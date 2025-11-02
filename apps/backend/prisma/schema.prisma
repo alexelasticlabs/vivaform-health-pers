@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionTier {
+  FREE
+  PREMIUM
+}
+
+enum ActivityLevel {
+  SEDENTARY
+  LIGHT
+  MODERATE
+  ACTIVE
+  ATHLETE
+}
+
+enum GoalType {
+  LOSE_WEIGHT
+  MAINTAIN_WEIGHT
+  GAIN_WEIGHT
+}
+
+model User {
+  id            String           @id @default(cuid())
+  email         String           @unique
+  passwordHash  String
+  name          String?
+  tier          SubscriptionTier @default(FREE)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  profile       Profile?
+  nutrition     NutritionEntry[]
+  water         WaterEntry[]
+  weight        WeightEntry[]
+  recommendations Recommendation[]
+  subscription  Subscription?
+}
+
+model Profile {
+  id               String        @id @default(cuid())
+  user             User          @relation(fields: [userId], references: [id])
+  userId           String        @unique
+  gender           String?
+  birthDate        DateTime?
+  heightCm         Int?
+  currentWeightKg  Float?
+  targetWeightKg   Float?
+  goal             GoalType?
+  activityLevel    ActivityLevel?
+  dietaryPreferences String[]
+  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime      @default(now())
+}
+
+model NutritionEntry {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  date        DateTime
+  mealType    String
+  food        String
+  calories    Int
+  protein     Float
+  fat         Float
+  carbs       Float
+  createdAt   DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model WaterEntry {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  date      DateTime
+  amountMl  Int
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model WeightEntry {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  date      DateTime
+  weightKg  Float
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model Recommendation {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  date      DateTime @default(now())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+
+  @@index([userId, date])
+}
+
+model Subscription {
+  id                 String   @id @default(cuid())
+  user               User     @relation(fields: [userId], references: [id])
+  userId             String   @unique
+  stripeCustomerId   String
+  stripeSubscription String
+  priceId            String
+  currentPeriodEnd   DateTime
+  status             String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}

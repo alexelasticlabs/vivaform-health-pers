@@ -1,0 +1,35 @@
+﻿@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 33% 98%;
+    --foreground: 222 35% 12%;
+    --surface: 210 25% 96%;
+    --border: 210 18% 85%;
+    --muted: 210 20% 93%;
+    --muted-foreground: 210 10% 42%;
+    --primary: 202 82% 48%;
+    --primary-foreground: 0 0% 100%;
+  }
+
+  [data-theme="dark"] {
+    --background: 222 45% 7%;
+    --foreground: 210 20% 96%;
+    --surface: 222 30% 14%;
+    --border: 222 22% 26%;
+    --muted: 222 18% 18%;
+    --muted-foreground: 222 12% 65%;
+    --primary: 202 85% 55%;
+    --primary-foreground: 210 25% 12%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+
+  a {
+    @apply transition-colors;
+  }
+}

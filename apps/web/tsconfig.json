@@ -1,0 +1,9 @@
+﻿{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+  "types": ["vite/client", "vitest", "vitest/globals", "node"],
+    "allowJs": false
+  },
+  "include": ["src", "vite.config.ts", "tailwind.config.ts", "postcss.config.cjs"]
+}
