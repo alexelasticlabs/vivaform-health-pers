@@ -1,408 +1,492 @@
 ﻿import { Link } from "react-router-dom";
-
-import { SUBSCRIPTION_PLANS } from "@vivaform/shared";
+import { useState } from "react";
 
 import { trackConversion } from "../lib/analytics";
 import { useIntersectionObserver } from "../hooks/use-intersection-observer";
+import { AppStoreButtons } from "../components/app-store-buttons";
+
+type ValueProp = {
+  title: string;
+  description: string;
+  icon: string;
+};
 
 type FeatureHighlight = {
   title: string;
   description: string;
+  icon: string;
 };
+
+type Testimonial = {
+  name: string;
+  role: string;
+  content: string;
+  initials: string;
+};
+
+type FaqItem = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
+const valueProps: ValueProp[] = [
+  {
+    title: "Personalized",
+    description: "Tailored to your goals and lifestyle",
+    icon: "🎯"
+  },
+  {
+    title: "Dietitian-Informed",
+    description: "Evidence-based expert guidance",
+    icon: "🥗"
+  },
+  {
+    title: "Privacy-First",
+    description: "Encrypted, secure, never shared",
+    icon: "🔒"
+  }
+];
 
 const featureHighlights: FeatureHighlight[] = [
   {
-    title: "Your personal nutrition coach",
-    description:
-      "VivaForm analyzes your daily diary and reveals exactly what's missing—no guesswork, no restrictive diets, just clear guidance."
+    title: "Smart nutrition tracking",
+    description: "Log meals instantly with feedback",
+    icon: "📊"
   },
   {
-    title: "Habits that actually stick",
-    description:
-      "Gentle reminders, visual streaks, and quick check-ins turn good intentions into lasting routines you can count on."
+    title: "Progress visualization",
+    description: "Charts for weight, habits, nutrition",
+    icon: "📈"
   },
   {
-    title: "Ready-made meal plans",
-    description:
-      "Get a week's worth of personalized meals in seconds—matched to your goals, taste preferences, and lifestyle."
+    title: "Personalized insights",
+    description: "Daily actionable recommendations",
+    icon: "💡"
+  },
+  {
+    title: "Meal planning",
+    description: "Weekly plans matching your needs",
+    icon: "🍱"
+  },
+  {
+    title: "Smart reminders",
+    description: "Gentle, customizable notifications",
+    icon: "⏰"
+  },
+  {
+    title: "Health integrations",
+    description: "Sync with Apple Health & Google Fit",
+    icon: "🔗"
   }
 ];
 
-type JourneyStep = {
-  title: string;
-  description: string;
-  detail: string;
-};
-
-const journeySteps: JourneyStep[] = [
+const testimonials: Testimonial[] = [
   {
-    title: "Discover your personalized plan",
-    description: "Just 5 minutes",
-    detail: "Answer 40 science-backed questions and watch VivaForm craft a wellness plan that fits your life, not someone else's template."
+    name: "Sarah M.",
+    role: "Lost 8 kg in 3 months",
+    content: "VivaForm made tracking effortless. The insights are spot-on and keep me motivated.",
+    initials: "SM"
   },
   {
-    title: "See your roadmap instantly",
-    description: "No waiting around",
-    detail:
-      "Get your calorie target, macro breakdown, and a clear weekly action plan—all customized the moment you finish the quiz."
+    name: "James T.",
+    role: "Marathon runner",
+    content: "Finally, a nutrition app that understands my training needs. Game changer!",
+    initials: "JT"
   },
   {
-    title: "Build momentum daily",
-    description: "Web + iOS + Android",
-    detail:
-      "Quick logging, smart reminders, and real-time progress charts keep you motivated and on track wherever you are."
+    name: "Linda K.",
+    role: "Vegan for 2 years",
+    content: "Best app for plant-based nutrition. Smart recommendations, zero hassle.",
+    initials: "LK"
   }
 ];
 
-type PlatformHighlight = {
-  title: string;
-  badge: string;
-  description: string;
-};
-
-const platformHighlights: PlatformHighlight[] = [
+const faqItems: FaqItem[] = [
   {
-    title: "Web dashboard",
-    badge: "New UI",
-    description: "Dive into detailed analytics, manage your subscription, and review recommendations from any browser."
-  },
-  {
-    title: "iOS app",
-    badge: "On the App Store",
-    description: "Home-screen widgets, daily reminders, and Apple Health sync to keep your plan top of mind."
-  },
-  {
-    title: "Android app",
-    badge: "On Google Play",
-    description: "Offline logging, Google Fit sync, and instant OTA updates powered by Expo."
-  }
-];
-
-type PricingTier = {
-  name: string;
-  price: string;
-  description: string;
-  highlight?: boolean;
-  features: string[];
-};
-
-const freeTier: PricingTier = {
-  name: "Free",
-  price: "$0",
-  description: "Core tracking tools for mindful nutrition",
-  features: [
-    "Profile with goals and daily targets",
-    "Meal and water diary",
-    "7-day weight chart",
-    "Smart reminders for meals"
-  ]
-};
-
-const vivaformPlusFeatures: string[] = [
-  "Goal-based meal planner",
-  "Advanced analytics and reports",
-  "PDF/CSV exports",
-  "Apple Health & Google Fit sync"
-];
-
-const pricingTiers: PricingTier[] = [
-  freeTier,
-  ...SUBSCRIPTION_PLANS.map((plan) => ({
-    name: `VivaForm+ · ${plan.title}`,
-    price: plan.price,
-    description: plan.description,
-    highlight: plan.plan === "annual",
-    features: vivaformPlusFeatures
-  }))
-];
-
-const faqItems = [
-  {
+    id: "faq-free-trial",
     question: "Do I need a credit card to get started?",
-    answer: "Not at all! Take the quiz and explore the free version as long as you like. Upgrade to premium features whenever you're ready."
-  },
-  {
-    question: "Is there a trial for the premium plan?",
     answer:
-      "Yes! Try VivaForm+ free for 7 days. Stripe only bills after the trial ends, so you can cancel anytime without charges."
+      "Not at all! VivaForm is free to start. Take the quiz, explore core features, and upgrade to premium only when you're ready for advanced tools."
   },
   {
-    question: "How does VivaForm give recommendations without AI?",
+    id: "faq-dietary-needs",
+    question: "Is VivaForm suitable for specific dietary needs?",
     answer:
-      "Our algorithms analyze your diary, goals, and progress patterns to highlight gaps and suggest practical next steps—no external AI needed."
+      "Absolutely! Whether you are vegetarian, vegan, gluten-free, or managing allergies, VivaForm adapts to your unique requirements."
   },
   {
-    question: "Can I download my data?",
-    answer: "Absolutely. VivaForm+ members can export everything to PDF or CSV, plus create secure data backups anytime."
+    id: "faq-difference",
+    question: "How does VivaForm differ from other apps?",
+    answer:
+      "We combine medical expertise with privacy-first design. Your data stays yours, and our recommendations come from dietitians, not external AI."
+  },
+  {
+    id: "faq-cancel",
+    question: "Can I cancel my subscription anytime?",
+    answer: "Yes! Cancel anytime from your account settings. No hidden fees, no questions asked."
+  },
+  {
+    id: "faq-platforms",
+    question: "What platforms does VivaForm support?",
+    answer: "VivaForm is available on iOS, Android, and web. All platforms sync seamlessly, so you can switch between devices."
+  },
+  {
+    id: "faq-data-security",
+    question: "How is my health data protected?",
+    answer: "We use bank-level encryption (AES-256) and never sell or share your data with third parties. You own your health information."
   }
-];
-
-const heroStats = [
-  { label: "People who finished the quiz", value: "25,000+" },
-  { label: "Average weight change", value: "-3.4 kg in 30 days" },
-  { label: "Habit retention", value: "86% keep logging" }
 ];
 
 export const LandingPage = () => {
   const handleStartClick = () => trackConversion("start_quiz_click", { placement: "hero" });
-  const handlePricingClick = (plan: string) => trackConversion("pricing_cta_click", { plan });
 
-  const [journeyRef, journeyVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
+  const [whyRef, whyVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
   const [featuresRef, featuresVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
-  const [platformRef, platformVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
-  const [pricingRef, pricingVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
+  const [testimonialsRef, testimonialsVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
+  
+  const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+
+  const heroStats: Array<{ value: string; label: string }> = [
+    { value: "125K+", label: "Active users" },
+    { value: "4.8★", label: "App Store rating" },
+    { value: "92%", label: "Goal completion" }
+  ];
 
   return (
     <main className="overflow-hidden">
-      <section className="relative isolate">
-        <div className="mx-auto flex max-w-6xl flex-col gap-12 px-6 pb-16 pt-20 text-center md:flex-row md:items-center md:text-left">
-          <div className="md:w-1/2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-primary">
-              Science-backed wellness
-            </span>
-            <h1 className="mt-6 text-4xl font-semibold tracking-tight md:text-5xl">
-              Transform your health with a plan that's actually yours
-            </h1>
-            <p className="mt-6 text-lg text-muted-foreground">
-              No cookie-cutter diets. No confusing jargon. Just a personalized path to lasting change—starting with a 5-minute quiz.
-            </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/register"
-                onClick={handleStartClick}
-                className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/40 active:translate-y-0"
-              >
-                Get your free plan now
-              </Link>
-              <Link
-                to="/login"
-                className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-all duration-200 hover:bg-muted hover:border-muted-foreground/20"
-              >
-                Log in
-              </Link>
-            </div>
-            <dl className="mt-10 grid gap-4 text-left text-sm text-muted-foreground sm:grid-cols-3">
-              {heroStats.map((stat) => (
-                <div key={stat.label}>
-                  <dt>{stat.label}</dt>
-                  <dd className="mt-2 text-base font-semibold text-foreground">{stat.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-          <div className="relative md:w-1/2">
-            <div className="pointer-events-none absolute -inset-6 -z-10 rounded-[40px] bg-gradient-to-br from-primary/30 via-emerald-200/40 to-transparent blur-3xl" aria-hidden />
-            <div className="rounded-3xl border border-border/60 bg-background/90 p-6 shadow-xl">
-              <div className="grid grid-cols-2 gap-4 text-left text-sm">
-                <div className="rounded-2xl bg-primary/10 p-4">
-                  <p className="text-xs text-muted-foreground">Today</p>
-                  <p className="mt-2 text-2xl font-semibold">1,540 kcal</p>
-                  <p className="text-xs text-muted-foreground">160 kcal below target</p>
-                </div>
-                <div className="rounded-2xl bg-emerald-100/40 p-4">
-                  <p className="text-xs text-emerald-700">Progress</p>
-                  <p className="mt-2 text-2xl font-semibold">-3.4 kg</p>
-                  <p className="text-xs text-emerald-700">in 28 days with VivaForm</p>
-                </div>
-                <div className="rounded-2xl bg-background p-4 shadow-sm">
-                  <p className="text-xs text-muted-foreground">Protein</p>
-                  <p className="mt-2 text-lg font-semibold">92 g</p>
-                  <p className="text-xs text-muted-foreground">12 g above goal</p>
-                </div>
-                <div className="rounded-2xl bg-background p-4 shadow-sm">
-                  <p className="text-xs text-muted-foreground">Water</p>
-                  <p className="mt-2 text-lg font-semibold">2.1 L</p>
-                  <p className="text-xs text-muted-foreground">Reminder at 5:00 PM</p>
-                </div>
-              </div>
-            </div>
+      {/* Hero Section */}
+      <section className="relative isolate px-6 py-16 sm:py-24 lg:py-32">
+        <div className="absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute left-1/2 top-0 -translate-x-1/2 blur-3xl">
+            <div className="aspect-[1108/632] w-[69.25rem] bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-500/20" />
           </div>
         </div>
-      </section>
 
-      <section id="journey" className="bg-surface/60 py-16" ref={journeyRef}>
-        <div
-          className={`mx-auto max-w-5xl px-6 transition-all duration-700 ${
-            journeyVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          <h2 className="text-center text-3xl font-semibold tracking-tight">How VivaForm drives lasting change</h2>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {journeySteps.map((step, index) => (
-              <article
-                key={step.title}
-                className="relative rounded-3xl border border-border/60 bg-background p-6 shadow-sm transition-all duration-500"
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <span className="absolute -top-5 left-6 flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-lg">
-                  {index + 1}
+        <div className="mx-auto max-w-7xl">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-2">
+            {/* Left: Text Content */}
+            <div className="flex flex-col justify-center">
+              <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-[3.5rem]">
+                Feel-good nutrition,
+                <span className="block bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 bg-clip-text text-transparent">
+                  guided by experts
                 </span>
-                <h3 className="mt-6 text-lg font-semibold">{step.title}</h3>
-                <p className="mt-2 text-xs uppercase tracking-wide text-muted-foreground">{step.description}</p>
-                <p className="mt-4 text-sm text-muted-foreground">{step.detail}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+              </h1>
 
-      <section id="features" className="bg-background/80 py-16" ref={featuresRef}>
-        <div
-          className={`mx-auto max-w-5xl px-6 transition-all duration-700 ${
-            featuresVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          <h2 className="text-center text-3xl font-semibold tracking-tight">Built for measurable progress</h2>
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
-            {featureHighlights.map((feature, index) => (
-              <article
-                key={feature.title}
-                className="rounded-3xl border border-border/70 bg-surface/60 p-6 shadow-sm transition-all duration-500 hover:shadow-lg hover:-translate-y-1"
-                style={{ transitionDelay: `${index * 100}ms` }}
-              >
-                <h3 className="text-lg font-semibold">{feature.title}</h3>
-                <p className="mt-3 text-sm text-muted-foreground">{feature.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="app" className="bg-surface py-16" ref={platformRef}>
-        <div
-          className={`mx-auto max-w-6xl px-6 transition-all duration-700 ${
-            platformVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          <div className="grid gap-10 md:grid-cols-2 md:items-center">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                Cross-platform
-              </span>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight">VivaForm is always with you</h2>
-              <p className="mt-4 text-sm text-muted-foreground">
-                Web and mobile stay in sync in real time. Log meals on the go, then review deep analytics from your laptop at night.
+              <p className="mt-6 max-w-prose text-lg leading-relaxed text-muted-foreground">
+                Personalized plans, habit coaching, and clear progress—without selling your data.
               </p>
-              <ul className="mt-6 space-y-4 text-sm">
-                {platformHighlights.map((platform) => (
-                  <li key={platform.title} className="rounded-3xl border border-border/60 bg-background px-5 py-4 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-base font-semibold">{platform.title}</h3>
-                      <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">{platform.badge}</span>
-                    </div>
-                    <p className="mt-2 text-xs text-muted-foreground">{platform.description}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="relative flex justify-center">
-              <div className="pointer-events-none absolute -inset-12 -z-10 rounded-[48px] bg-gradient-to-br from-primary/20 via-emerald-200/30 to-transparent blur-3xl" aria-hidden />
-              <div className="grid w-full max-w-md gap-4">
-                <div className="rounded-3xl border border-border/60 bg-background/90 p-6 shadow-xl">
-                  <h3 className="text-base font-semibold">Weekly analytics</h3>
-                  <p className="mt-2 text-xs text-muted-foreground">Compare consumed vs burned calories and spot trends for the last 7 days.</p>
-                </div>
-                <div className="rounded-3xl border border-border/60 bg-background/90 p-6 shadow-xl">
-                  <h3 className="text-base font-semibold">Hydration reminders</h3>
-                  <p className="mt-2 text-xs text-muted-foreground">Set the cadence once and let VivaForm nudge you before you fall behind.</p>
-                </div>
-                <div className="rounded-3xl border border-border/60 bg-background/90 p-6 shadow-xl">
-                  <h3 className="text-base font-semibold">Personalised tips</h3>
-                  <p className="mt-2 text-xs text-muted-foreground">If protein is low, we suggest concrete swaps and meals to close the gap.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      <section id="pricing" className="bg-background py-16" ref={pricingRef}>
-        <div
-          className={`mx-auto max-w-6xl px-6 transition-all duration-700 ${
-            pricingVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-          }`}
-        >
-          <h2 className="text-3xl font-semibold tracking-tight">Pick the plan that fits your pace</h2>
-          <p className="mt-3 text-muted-foreground">
-            Upgrade to VivaForm+ to unlock the meal planner, advanced analytics, exports, and integrations.
-          </p>
-          <div className="mt-10 grid gap-6 md:grid-cols-2">
-            {pricingTiers.map((tier) => (
-              <article
-                key={tier.name}
-                className={`rounded-3xl border border-border/70 bg-background p-8 text-left shadow-lg ${
-                  tier.highlight ? "ring-2 ring-primary" : ""
-                }`}
-              >
-                <div className="flex items-baseline justify-between">
-                  <h3 className="text-xl font-semibold">{tier.name}</h3>
-                  <span className="text-2xl font-semibold">{tier.price}</span>
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground">{tier.description}</p>
-                <ul className="mt-6 space-y-2 text-sm">
-                  {tier.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <span className="mt-1 h-2 w-2 rounded-full bg-primary" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Link
                   to="/register"
-                  onClick={() => handlePricingClick(tier.name)}
-                  className={`mt-8 inline-flex w-full items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition-all duration-200 ${
-                    tier.highlight
-                      ? "bg-primary text-primary-foreground shadow-lg hover:-translate-y-1 hover:shadow-xl"
-                      : "border border-border text-foreground hover:bg-muted hover:border-muted-foreground/20"
+                  onClick={handleStartClick}
+                  className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
+                >
+                  Start your free journey
+                  <svg
+                    className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center justify-center rounded-2xl border-2 border-border bg-card px-8 py-4 text-base font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
+                >
+                  Log in
+                </Link>
+              </div>
+
+              <div className="mt-12">
+                <p className="text-sm font-medium text-muted-foreground">Available on every platform</p>
+                <div className="mt-4">
+                  <AppStoreButtons />
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Phone Mockup */}
+            <div className="relative flex items-center justify-center lg:justify-end">
+              <div className="relative">
+                {/* Ambient glow */}
+                <div className="pointer-events-none absolute inset-0 -z-10">
+                  <div className="absolute left-1/4 top-12 h-56 w-56 rounded-full bg-emerald-400/20 blur-[100px]" />
+                  <div className="absolute bottom-12 right-1/4 h-64 w-64 rounded-full bg-teal-400/15 blur-[120px]" />
+                </div>
+
+                {/* iPhone Pro Mockup - более реалистичные пропорции */}
+                <div className="relative mx-auto w-[300px] sm:w-[340px]">
+                  {/* Phone frame */}
+                  <div className="relative overflow-hidden rounded-[3.5rem] border-[14px] border-gray-900 bg-gray-900 shadow-2xl shadow-black/40 dark:border-gray-950 dark:bg-gray-950">
+                    {/* Side buttons - более детальные */}
+                    <div className="absolute -left-[2px] top-[100px] h-8 w-[2px] rounded-l-full bg-gray-800" />
+                    <div className="absolute -left-[2px] top-[140px] h-14 w-[2px] rounded-l-full bg-gray-800" />
+                    <div className="absolute -left-[2px] top-[200px] h-14 w-[2px] rounded-l-full bg-gray-800" />
+                    <div className="absolute -right-[2px] top-[160px] h-20 w-[2px] rounded-r-full bg-gray-800" />
+                    
+                    {/* Dynamic Island */}
+                    <div className="absolute left-1/2 top-3 z-30 h-[30px] w-[120px] -translate-x-1/2 rounded-full bg-black" />
+                    
+                    {/* Screen с правильным aspect ratio iPhone 14 Pro */}
+                    <div className="relative aspect-[9/19.5] overflow-hidden rounded-[2.8rem] bg-white dark:bg-gray-950">
+                      {/* Status bar */}
+                      <div className="flex items-center justify-between px-6 pt-4 text-xs font-semibold text-gray-900 dark:text-white">
+                        <span>9:41</span>
+                        <div className="flex items-center gap-1.5">
+                          <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                          </svg>
+                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="1" y="6" width="18" height="12" rx="2" ry="2" />
+                            <path d="M23 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                          </svg>
+                        </div>
+                      </div>
+
+                      {/* Content - более компактный */}
+                      <div className="px-6 pb-8 pt-6">
+                        {/* Main card */}
+                        <div className="overflow-hidden rounded-[2rem] bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-6 shadow-2xl">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold uppercase tracking-wider text-white/90">Today's Progress</span>
+                            <span className="rounded-full bg-white/25 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">Day 24</span>
+                          </div>
+                          <p className="mt-4 text-3xl font-bold text-white">On track 💪</p>
+                          <p className="mt-2 text-sm font-medium text-white/95">1,540 cal • 104g protein • 8 glasses</p>
+                          
+                          <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-white/25">
+                            <div className="h-full w-[86%] rounded-full bg-white shadow-sm" />
+                          </div>
+                        </div>
+
+                        {/* Small stats preview */}
+                        <div className="mt-5 grid grid-cols-2 gap-3">
+                          <div className="rounded-2xl border border-gray-200/60 bg-white/80 p-4 backdrop-blur-sm dark:border-gray-800/60 dark:bg-gray-900/60">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Weight</p>
+                            <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-50">68.2 kg</p>
+                            <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400">-2.4 kg</p>
+                          </div>
+                          <div className="rounded-2xl border border-gray-200/60 bg-white/80 p-4 backdrop-blur-sm dark:border-gray-800/60 dark:bg-gray-900/60">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Streak</p>
+                            <p className="mt-2 text-2xl font-bold text-gray-900 dark:text-gray-50">24 days</p>
+                            <p className="mt-1 text-xs text-gray-600 dark:text-gray-400">🔥 Keep going!</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Home indicator */}
+                      <div className="absolute bottom-2 left-1/2 h-1 w-32 -translate-x-1/2 rounded-full bg-gray-900/20 dark:bg-white/20" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Stats Section */}
+      <section className="bg-surface py-12">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
+            {heroStats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <p className="font-display text-3xl font-bold text-foreground sm:text-4xl">{stat.value}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose VivaForm Section */}
+      <section id="why" className="bg-background py-20 sm:py-24" ref={whyRef}>
+        <div
+          className={`mx-auto max-w-7xl px-6 transition-all duration-700 lg:px-8 ${
+            whyVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          }`}
+        >
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Why Choose VivaForm?
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-prose mx-auto">
+              Medical expertise meets personalized guidance
+            </p>
+          </div>
+
+          <div className="mx-auto mt-16 max-w-5xl">
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+              {valueProps.map((prop) => (
+                <div
+                  key={prop.title}
+                  className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-card-hover"
+                >
+                  <div className="mb-4 text-4xl" aria-hidden="true">{prop.icon}</div>
+                  <h3 className="mb-3 font-display text-xl font-semibold text-foreground">{prop.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted-foreground">{prop.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section id="features" className="bg-surface py-20 sm:py-24" ref={featuresRef}>
+        <div
+          className={`mx-auto max-w-7xl px-6 transition-all duration-700 lg:px-8 ${
+            featuresVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          }`}
+        >
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Everything you need to succeed
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-prose mx-auto">
+              Powerful features, effortless experience
+            </p>
+          </div>
+
+          <div className="mx-auto mt-16 max-w-6xl">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featureHighlights.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-card-hover"
+                >
+                  <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/20 text-2xl">
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-display text-lg font-semibold text-foreground">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials */}
+      <section id="testimonials" className="bg-background py-20 sm:py-24" ref={testimonialsRef}>
+        <div
+          className={`mx-auto max-w-7xl px-6 transition-all duration-700 lg:px-8 ${
+            testimonialsVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+          }`}
+        >
+          <div className="mb-12 text-center">
+            <h2 className="font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+              Loved by thousands
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground max-w-prose mx-auto">
+              Real results from real people
+            </p>
+          </div>
+
+          <div className="mx-auto max-w-5xl">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {testimonials.map((testimonial) => (
+                <div
+                  key={testimonial.name}
+                  className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md"
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white">
+                      {testimonial.initials}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground">{testimonial.name}</p>
+                      <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                    </div>
+                  </div>
+                  <p className="text-sm leading-relaxed text-muted-foreground">"{testimonial.content}"</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section id="faq" className="bg-surface py-20 sm:py-24">
+        <div className="mx-auto max-w-3xl px-6">
+          <h2 className="text-center font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            Frequently asked questions
+          </h2>
+          <div className="mt-12 space-y-3">
+            {faqItems.map((item) => (
+              <div
+                key={item.id}
+                id={item.id}
+                className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md"
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenFaqId(openFaqId === item.id ? null : item.id)}
+                  className="flex w-full items-center justify-between px-6 py-5 text-left text-base font-semibold text-foreground transition-colors hover:bg-card-hover"
+                >
+                  {item.question}
+                  <svg
+                    className={`h-5 w-5 flex-shrink-0 transition-transform duration-200 ${
+                      openFaqId === item.id ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+                <div
+                  className={`overflow-hidden transition-all duration-300 ${
+                    openFaqId === item.id ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
                   }`}
                 >
-                  {tier.price === "$0" ? "Start for free" : "Try VivaForm+"}
-                </Link>
-              </article>
+                  <p className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">{item.answer}</p>
+                </div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section id="faq" className="bg-surface/80 py-16">
+      {/* Final CTA Section */}
+      <section id="cta" className="bg-background py-20">
         <div className="mx-auto max-w-4xl px-6">
-          <h2 className="text-center text-3xl font-semibold tracking-tight">Frequently asked questions</h2>
-          <div className="mt-10 space-y-4">
-            {faqItems.map((item) => (
-              <details key={item.question} className="rounded-3xl border border-border/70 bg-background px-6 py-5 shadow-sm">
-                <summary className="cursor-pointer text-base font-semibold">
-                  {item.question}
-                </summary>
-                <p className="mt-3 text-sm text-muted-foreground">{item.answer}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="cta" className="bg-background pb-20">
-        <div className="mx-auto flex max-w-4xl flex-col items-center gap-6 rounded-3xl border border-border/70 bg-surface px-10 py-12 text-center shadow-xl">
-          <span className="rounded-full border border-border/60 bg-background px-3 py-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Ready for lasting change?
-          </span>
-          <h2 className="text-3xl font-semibold tracking-tight">Your wellness journey starts today</h2>
-          <p className="text-sm text-muted-foreground">
-            Begin with our free tools to build momentum. When you're ready for advanced insights and meal plans, upgrade in one click.
-          </p>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              to="/register"
-              onClick={() => trackConversion("start_quiz_click", { placement: "cta" })}
-              className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-primary/40 active:translate-y-0"
-            >
-              Get your plan now
-            </Link>
-            <Link
-              to="/login"
-              className="inline-flex items-center justify-center rounded-full border border-border px-6 py-3 text-sm font-semibold text-foreground transition-all duration-200 hover:bg-muted hover:border-muted-foreground/20"
-            >
-              I already have an account
-            </Link>
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 px-10 py-16 text-center shadow-2xl sm:px-16">
+            <div className="relative">
+              <h2 className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
+                Ready to transform your health?
+              </h2>
+              <p className="mx-auto mt-4 max-w-xl text-lg text-emerald-50">
+                Join 125,000+ people achieving their wellness goals with VivaForm
+              </p>
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
+                <Link
+                  to="/register"
+                  onClick={() => trackConversion("start_quiz_click", { placement: "cta" })}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-emerald-600 shadow-lg transition-all hover:scale-[1.01] hover:shadow-xl active:scale-[0.99]"
+                >
+                  Start free today
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center justify-center rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur transition-all hover:scale-[1.01] hover:border-white/60 hover:bg-white/20 active:scale-[0.99]"
+                >
+                  Sign in
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

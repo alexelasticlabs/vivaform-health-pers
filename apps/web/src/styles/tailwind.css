@@ -4,32 +4,67 @@
 
 @layer base {
   :root {
-    --background: 210 33% 98%;
-    --foreground: 222 35% 12%;
-    --surface: 210 25% 96%;
-    --border: 210 18% 85%;
-    --muted: 210 20% 93%;
-    --muted-foreground: 210 10% 42%;
+    /* Основные цвета (HSL) */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    --surface: 210 20% 98%;
+    --border: 214 32% 91%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
     --primary: 202 82% 48%;
     --primary-foreground: 0 0% 100%;
+    
+    /* RGB-версии для rgba() */
+    --bg-rgb: 255 255 255;
+    --text-rgb: 17 24 39;
+    --bg-soft-rgb: 249 250 251;
+    --card-rgb: 255 255 255;
+    --muted-rgb: 107 114 128;
+    
+    /* Семантические цвета */
+    --card: 0 0% 100%;
+    --card-hover: 210 20% 99%;
+    --success: 142 71% 45%;
+    --warning: 38 92% 50%;
+    --error: 0 72% 51%;
   }
 
   [data-theme="dark"] {
-    --background: 222 45% 7%;
-    --foreground: 210 20% 96%;
-    --surface: 222 30% 14%;
-    --border: 222 22% 26%;
-    --muted: 222 18% 18%;
-    --muted-foreground: 222 12% 65%;
+    /* Основные цвета (HSL) */
+    --background: 222 47% 11%;
+    --foreground: 210 20% 98%;
+    --surface: 217 33% 17%;
+    --border: 215 25% 27%;
+    --muted: 217 24% 20%;
+    --muted-foreground: 215 20% 65%;
     --primary: 202 85% 55%;
-    --primary-foreground: 210 25% 12%;
+    --primary-foreground: 222 47% 11%;
+    
+    /* RGB-версии для rgba() */
+    --bg-rgb: 17 24 39;
+    --text-rgb: 249 250 251;
+    --bg-soft-rgb: 31 41 55;
+    --card-rgb: 31 41 55;
+    --muted-rgb: 156 163 175;
+    
+    /* Семантические цвета */
+    --card: 217 33% 17%;
+    --card-hover: 217 33% 20%;
+    --success: 142 71% 50%;
+    --warning: 38 92% 55%;
+    --error: 0 72% 56%;
   }
 
   body {
-    @apply bg-background text-foreground font-sans;
+    @apply bg-background text-foreground font-sans antialiased;
   }
 
   a {
-    @apply transition-colors;
+    @apply transition-colors duration-200;
+  }
+  
+  /* Типографическая шкала */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
   }
 }

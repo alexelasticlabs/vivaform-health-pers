@@ -5,6 +5,7 @@ import "@radix-ui/themes/styles.css";
 
 import { AppProviders } from "./providers/app-providers";
 import "./styles/tailwind.css";
+import "./styles/animations.css";
 import { initAnalytics } from "./lib/analytics";
 import { createAppRouter } from "./routes/router";
 
