@@ -63,4 +63,10 @@ export class AuthController {
   forceChangePassword(@CurrentUser() user: CurrentUserPayload, @Body() dto: ForceChangePasswordDto) {
     return this.authService.forceChangePassword(user.userId, dto);
   }
+
+  @Post("test-email")
+  @ApiOkResponse({ description: "Тестовая отправка email (только для dev)" })
+  testEmail(@Body() dto: { email: string }) {
+    return this.authService.testEmail(dto.email);
+  }
 }

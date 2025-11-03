@@ -394,4 +394,41 @@ export class AuthService {
     
     return password;
   }
+
+  /**
+   * Test email sending (dev only)
+   */
+  async testEmail(email: string) {
+    try {
+      await this.emailService.sendEmail({
+        to: email,
+        subject: 'VivaForm Test Email 🧪',
+        html: `
+          <div style="font-family: sans-serif; padding: 40px; text-align: center;">
+            <h1 style="color: #10b981;">✅ Email Works!</h1>
+            <p style="font-size: 18px;">This is a test email from VivaForm backend.</p>
+            <p style="color: #6b7280;">Sent at: ${new Date().toISOString()}</p>
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;">
+            <p style="font-size: 14px; color: #9ca3af;">
+              If you received this email, your SMTP configuration is working correctly! 🎉
+            </p>
+          </div>
+        `,
+        text: 'Email test successful! If you see this, your SMTP is working.'
+      });
+
+      return {
+        success: true,
+        message: `Test email sent to ${email}. Check Mailtrap inbox!`,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to send test email',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
 }

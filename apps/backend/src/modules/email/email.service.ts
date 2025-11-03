@@ -49,8 +49,12 @@ export class EmailService {
     const smtpUser = this.configService.get<string>('SMTP_USER');
     const smtpPass = this.configService.get<string>('SMTP_PASSWORD');
 
+    this.logger.log(`📧 Initializing SMTP with host: ${smtpHost}:${smtpPort}`);
+    this.logger.log(`👤 SMTP User: ${smtpUser ? smtpUser.substring(0, 6) + '...' : 'NOT SET'}`);
+    this.logger.log(`🔑 SMTP Password: ${smtpPass ? '****' + smtpPass.substring(smtpPass.length - 4) : 'NOT SET'}`);
+
     if (!smtpUser || !smtpPass) {
-      this.logger.warn('SMTP credentials not configured. Emails will be logged only.');
+      this.logger.warn('⚠️ SMTP credentials not configured. Emails will be logged only.');
       this.createEtherealTransporter();
       return;
     }
@@ -65,7 +69,15 @@ export class EmailService {
       },
     });
 
-    this.logger.log('SMTP email service initialized');
+    // Verify connection
+    try {
+      await this.transporter.verify();
+      this.logger.log('✅ SMTP connection verified successfully');
+    } catch (error) {
+      this.logger.error('❌ SMTP connection verification failed:', error);
+    }
+
+    this.logger.log(`📤 SMTP email service initialized (from: ${this.fromName} <${this.fromEmail}>)`);
   }
 
   private async createEtherealTransporter() {
@@ -165,13 +177,16 @@ export class EmailService {
       text: dto.text
     });
 
-    this.logger.log(`Email sent via SMTP to ${dto.to}: ${dto.subject}`);
+    this.logger.log(`✅ Email sent via SMTP to ${dto.to}: ${dto.subject}`);
+    this.logger.log(`📧 Message ID: ${info.messageId}`);
       
-    // Log preview URL for Ethereal
+    // Log preview URL for Ethereal or development info
     if (this.configService.get('NODE_ENV') === 'development') {
       const previewUrl = nodemailer.getTestMessageUrl(info);
       if (previewUrl) {
-        this.logger.log(`Preview URL: ${previewUrl}`);
+        this.logger.log(`🔗 Preview URL: ${previewUrl}`);
+      } else {
+        this.logger.log(`📬 Check Mailtrap inbox: https://mailtrap.io/inboxes`);
       }
     }
   }

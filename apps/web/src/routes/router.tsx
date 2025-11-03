@@ -23,6 +23,7 @@ import { ArticlesPage } from "../pages/articles-page";
 import { ArticleDetailPage } from "../pages/article-detail-page";
 import { PrivacyPage } from "../pages/privacy-page";
 import { TermsPage } from "../pages/terms-page";
+import { MyPlanPage } from "../pages/my-plan-page";
 
 export const createAppRouter = () =>
   createBrowserRouter([
@@ -115,6 +116,10 @@ export const createAppRouter = () =>
         {
           path: "settings",
           element: <SettingsPage />
+        },
+        {
+          path: "my-plan",
+          element: <MyPlanPage />
         }
       ]
     },

@@ -45,6 +45,7 @@ model User {
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   profile       Profile?
+  quizProfile   QuizProfile?
   nutrition     NutritionEntry[]
   water         WaterEntry[]
   weight        WeightEntry[]
@@ -103,6 +104,47 @@ model Profile {
   
   updatedAt        DateTime      @updatedAt
   createdAt        DateTime      @default(now())
+}
+
+// QuizProfile stores the complete quiz data with normalized fields
+model QuizProfile {
+  id               String   @id @default(cuid())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String   @unique
+  
+  // Tracking fields
+  clientId         String?  // For analytics - links to pre-registration draft
+  version          Int      @default(1) // Schema version for migrations
+  
+  // Raw quiz answers (JSON) - stores complete user responses
+  answers          Json     // Full structure: { diet: {...}, body: {...}, goals: {...}, habits: {...}, ... }
+  
+  // Normalized/cached fields for quick access and calculations
+  // Diet
+  dietPlan         String?  // e.g., "Mediterranean", "Vegetarian", "Keto"
+  
+  // Body metrics
+  heightCm         Float?
+  weightKg         Float?
+  bmi              Float?   // Calculated: kg / (m^2)
+  
+  // Goals
+  goalType         String?  // "lose", "maintain", "gain"
+  goalDeltaKg      Float?   // Target weight change (positive or negative)
+  etaMonths        Int?     // Expected timeline in months
+  
+  // Habits (commonly queried fields)
+  mealsPerDay      Int?
+  cookingTimeMinutes Int?
+  exerciseRegularly Boolean?
+  
+  // Metadata
+  completedAt      DateTime? // When quiz was fully completed
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([clientId])
 }
 
 model NutritionEntry {

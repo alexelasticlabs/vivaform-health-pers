@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
 import { QuizController } from './quiz.controller';
 import { QuizService } from './quiz.service';
+import { QuizService as QuizProfileService } from './services/quiz-profile.service';
 import { PrismaModule } from '../../common/prisma/prisma.module';
 
 @Module({
   imports: [PrismaModule],
   controllers: [QuizController],
-  providers: [QuizService],
-  exports: [QuizService],
+  providers: [
+    QuizService, // Legacy service for old Profile model
+    QuizProfileService, // New service for QuizProfile model
+  ],
+  exports: [QuizService, QuizProfileService],
 })
 export class QuizModule {}

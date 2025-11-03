@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useQuizStore } from '../store/quiz-store';
+import { Check } from 'lucide-react';
+import { useQuizStore, useQuizAutosave, calculateBMI } from '../store/quiz-store';
 import { submitQuiz } from '../api/quiz';
 import { useUserStore } from '../store/user-store';
+import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError } from '../lib/analytics';
 import { QuizProgress } from '../components/quiz/quiz-progress';
 import { IntroStep } from '../components/quiz/steps/intro-step';
 import { BodyMetricsStep } from '../components/quiz/steps/body-metrics-step';
@@ -15,7 +17,20 @@ import { PreferencesStep } from '../components/quiz/steps/preferences-step';
 import { EmotionalStep } from '../components/quiz/steps/emotional-step';
 import { HydrationStep } from '../components/quiz/steps/hydration-step';
 
-const TOTAL_STEPS = 10; // Expanded to 10 steps
+const TOTAL_STEPS = 10;
+
+const STEP_NAMES = [
+  'intro',
+  'body_metrics',
+  'goal_timeline',
+  'activity_level',
+  'food_habits',
+  'energy_schedule',
+  'preferences',
+  'emotional',
+  'hydration',
+  'final',
+];
 
 export function QuizPage() {
   const navigate = useNavigate();
@@ -23,13 +38,53 @@ export function QuizPage() {
   const {
     currentStep,
     answers,
-    result,
     isSubmitting,
-    setResult,
     setSubmitting,
     nextStep,
     prevStep,
+    getDraft,
+    lastSaved,
+    clientId,
   } = useQuizStore();
+  
+  const { debouncedSave } = useQuizAutosave();
+  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
+  const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
+  
+  // Calculate BMI preview in real-time
+  const bmiPreview = calculateBMI(answers);
+
+  // Log quiz start on mount
+  useEffect(() => {
+    if (clientId) {
+      logQuizStart(clientId);
+      setQuizStartTime(Date.now());
+    }
+  }, [clientId]);
+
+  // Log section completion when step changes
+  useEffect(() => {
+    if (currentStep > 0 && clientId) {
+      const progress = Math.round((currentStep / TOTAL_STEPS) * 100);
+      logQuizSectionCompleted(clientId, STEP_NAMES[currentStep - 1], progress);
+    }
+  }, [currentStep, clientId]);
+
+  // Show saved indicator when lastSaved changes
+  useEffect(() => {
+    if (lastSaved) {
+      setShowSavedIndicator(true);
+      const timer = setTimeout(() => setShowSavedIndicator(false), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [lastSaved]);
+
+  // Trigger autosave when answers change
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      debouncedSave();
+    }
+  }, [answers, debouncedSave]);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -80,12 +135,31 @@ export function QuizPage() {
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      const response = await submitQuiz(answers);
-      setResult(response.result);
-      toast.success('Your personalized plan is ready!');
-      nextStep(); // Move to results page
+      const draft = getDraft();
+      const durationSeconds = quizStartTime ? Math.round((Date.now() - quizStartTime) / 1000) : undefined;
+      
+      await submitQuiz(draft);
+      
+      // Log successful submission
+      if (clientId) {
+        logQuizSubmitSuccess(clientId, undefined, durationSeconds);
+      }
+      
+      toast.success('Your personalized plan is ready! ✨');
+      
+      // Redirect to register or dashboard
+      if (isAuthenticated) {
+        navigate('/app');
+      } else {
+        navigate('/register');
+      }
     } catch (error) {
-      toast.error('Failed to calculate your plan. Please try again.');
+      // Log submission error
+      if (clientId) {
+        logQuizSubmitError(clientId, error instanceof Error ? error.message : 'Unknown error');
+      }
+      
+      toast.error('Failed to save your plan. Please try again.');
       console.error(error);
     } finally {
       setSubmitting(false);
@@ -93,94 +167,6 @@ export function QuizPage() {
   };
 
   const renderStep = () => {
-    // Results page
-    if (currentStep >= TOTAL_STEPS) {
-      return (
-        <div className="max-w-2xl mx-auto p-6 md:p-8 bg-white rounded-2xl shadow-lg">
-          {result ? (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="text-6xl mb-4">✨</div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                  Your Plan is Ready!
-                </h1>
-                <p className="text-gray-600">
-                  Here's your personalized nutrition roadmap
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-xl">
-                  <div className="text-sm text-gray-600 mb-1">BMI</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {result.bmi.toFixed(1)}
-                  </div>
-                  <div className="text-xs text-gray-500 capitalize">
-                    {result.bmiCategory}
-                  </div>
-                </div>
-
-                <div className="p-4 bg-green-50 rounded-xl">
-                  <div className="text-sm text-gray-600 mb-1">Daily Calories</div>
-                  <div className="text-2xl font-bold text-green-600">
-                    {result.recommendedCalories} kcal
-                  </div>
-                  <div className="text-xs text-gray-500">Recommended intake</div>
-                </div>
-
-                <div className="p-4 bg-purple-50 rounded-xl">
-                  <div className="text-sm text-gray-600 mb-1">Protein</div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {result.macros.protein}g
-                  </div>
-                  <div className="text-xs text-gray-500">per day</div>
-                </div>
-
-                <div className="p-4 bg-orange-50 rounded-xl">
-                  <div className="text-sm text-gray-600 mb-1">TDEE</div>
-                  <div className="text-2xl font-bold text-orange-600">
-                    {result.tdee} kcal
-                  </div>
-                  <div className="text-xs text-gray-500">Total energy</div>
-                </div>
-              </div>
-
-              <div className="p-4 bg-gradient-to-br from-blue-50 to-green-50 rounded-xl">
-                <h3 className="font-semibold text-gray-900 mb-2">
-                  💡 Personalized Advice
-                </h3>
-                <p className="text-sm text-gray-700">{result.advice}</p>
-              </div>
-
-              {result.estimatedWeeks !== undefined && result.estimatedWeeks > 0 && (
-                <div className="text-center p-4 bg-yellow-50 rounded-xl">
-                  <p className="text-sm text-gray-700">
-                    Estimated timeline:{' '}
-                    <span className="font-bold text-yellow-700">
-                      ~{result.estimatedWeeks} weeks
-                    </span>
-                  </p>
-                </div>
-              )}
-
-              <button
-                onClick={() => navigate('/register', { state: { fromQuiz: true } })}
-                className="w-full py-4 bg-gradient-to-r from-blue-600 to-green-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
-              >
-                Continue → Create Your Account
-              </button>
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto" />
-              <p className="mt-4 text-gray-600">Calculating your plan...</p>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    // Regular steps
     switch (currentStep) {
       case 0:
         return <IntroStep />;
@@ -206,37 +192,59 @@ export function QuizPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        {currentStep < TOTAL_STEPS && (
-          <QuizProgress currentStep={currentStep + 1} totalSteps={TOTAL_STEPS} />
+        {/* Progress bar */}
+        <QuizProgress currentStep={currentStep + 1} totalSteps={TOTAL_STEPS} />
+        
+        {/* Saved indicator */}
+        {showSavedIndicator && (
+          <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+            <Check size={16} />
+            <span className="text-sm font-medium">Saved ✓</span>
+          </div>
+        )}
+        
+        {/* BMI Preview */}
+        {bmiPreview && currentStep > 0 && (
+          <div className="max-w-2xl mx-auto mb-6 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-emerald-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Your BMI</p>
+                <p className="text-2xl font-bold text-emerald-600">{bmiPreview.bmi}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Category</p>
+                <p className="text-lg font-semibold text-gray-900">{bmiPreview.category}</p>
+              </div>
+            </div>
+          </div>
         )}
 
         <div className="mb-8">{renderStep()}</div>
 
-        {currentStep < TOTAL_STEPS && (
-          <div className="flex gap-4 max-w-2xl mx-auto">
-            {currentStep > 0 && (
-              <button
-                onClick={prevStep}
-                className="px-6 py-3 border-2 border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
-              >
-                ← Back
-              </button>
-            )}
+        {/* Navigation buttons */}
+        <div className="flex gap-4 max-w-2xl mx-auto">
+          {currentStep > 0 && (
             <button
-              onClick={handleNext}
-              disabled={!canGoNext() || isSubmitting}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={prevStep}
+              className="px-6 py-3 border-2 border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
             >
-              {currentStep === TOTAL_STEPS - 1
-                ? isSubmitting
-                  ? 'Calculating...'
-                  : 'Calculate My Plan →'
-                : 'Next →'}
+              ← Back
             </button>
-          </div>
-        )}
+          )}
+          <button
+            onClick={handleNext}
+            disabled={!canGoNext() || isSubmitting}
+            className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
+          >
+            {currentStep === TOTAL_STEPS - 1
+              ? isSubmitting
+                ? 'Saving...'
+                : 'Complete Quiz →'
+              : 'Next →'}
+          </button>
+        </div>
       </div>
     </div>
   );

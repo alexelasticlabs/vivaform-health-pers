@@ -5,7 +5,10 @@ import { toast } from "sonner";
 import { Eye, EyeOff, Check } from "lucide-react";
 
 import { extractErrorMessage, login, registerUser } from "../api";
+import { submitQuiz } from "../api/quiz";
 import { useUserStore } from "../store/user-store";
+import { useQuizStore } from "../store/quiz-store";
+import { logQuizSubmitSuccess, logQuizSubmitError } from "../lib/analytics";
 import { VivaFormLogo } from "../components/viva-form-logo";
 
 export const RegisterPage = () => {
@@ -16,6 +19,7 @@ export const RegisterPage = () => {
   const navigate = useNavigate();
   const setAuth = useUserStore((state) => state.setAuth);
   const isAuthenticated = useUserStore((state) => state.isAuthenticated);
+  const { getDraft, clearDraft } = useQuizStore();
 
   // Password strength calculator
   const passwordStrength = useMemo(() => {
@@ -42,9 +46,36 @@ export const RegisterPage = () => {
 
   const loginMutation = useMutation({
     mutationFn: login,
-    onSuccess: (data) => {
-      setAuth(data.user, data.tokens);
-      toast.success("Welcome to VivaForm! 🎉 Your healthy journey begins now.");
+    onSuccess: async (data) => {
+      setAuth(data.user, data.tokens.accessToken, data.tokens.refreshToken);
+      
+      // Try to submit quiz draft if exists
+      try {
+        const draft = getDraft();
+        if (draft.answers && Object.keys(draft.answers).length > 0) {
+          await submitQuiz(draft);
+          
+          // Log successful quiz submission with userId
+          if (draft.clientId) {
+            logQuizSubmitSuccess(draft.clientId, data.user.id);
+          }
+          
+          clearDraft(); // Clear draft after successful submission
+          toast.success("Welcome to VivaForm! 🎉 Your quiz has been saved.");
+        } else {
+          toast.success("Welcome to VivaForm! 🎉 Your healthy journey begins now.");
+        }
+      } catch (error) {
+        // Log quiz submission error
+        const draft = getDraft();
+        if (draft.clientId) {
+          logQuizSubmitError(draft.clientId, error instanceof Error ? error.message : 'Unknown error');
+        }
+        
+        console.error('Failed to submit quiz draft:', error);
+        toast.success("Welcome to VivaForm! 🎉");
+      }
+      
       navigate("/app");
     },
     onError: (error) => toast.error(extractErrorMessage(error))

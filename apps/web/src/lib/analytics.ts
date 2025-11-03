@@ -96,3 +96,37 @@ export const trackConversion = (event: string, payload?: Record<string, unknown>
     window.gtag("event", event, payload ?? {});
   }
 };
+
+// Quiz-specific analytics events
+export const logQuizStart = (clientId: string) => {
+  trackConversion("quiz_start", {
+    clientId,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizSectionCompleted = (clientId: string, sectionId: string, progress: number) => {
+  trackConversion("quiz_section_completed", {
+    clientId,
+    sectionId,
+    progress, // 0-100
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizSubmitSuccess = (clientId: string, userId?: string, durationSeconds?: number) => {
+  trackConversion("quiz_submit_success", {
+    clientId,
+    userId,
+    durationSeconds,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizSubmitError = (clientId: string, error: string) => {
+  trackConversion("quiz_submit_error", {
+    clientId,
+    error,
+    timestamp: new Date().toISOString(),
+  });
+};

@@ -1,57 +1,68 @@
-import { Controller, Post, Body, Request, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { QuizService } from './quiz.service';
-import { SubmitQuizDto } from './dto/submit-quiz.dto';
+import { Controller, Post, Body, Get, Patch, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiTags, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+import { QuizService as QuizProfileService } from './services/quiz-profile.service';
+import { SubmitQuizDto, UpdateQuizProfileDto } from './dto/submit-quiz.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import type { SubmitQuizResponse } from '@vivaform/shared';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import type { CurrentUser as CurrentUserPayload } from '../../common/types/current-user';
 
 @ApiTags('quiz')
 @Controller('quiz')
 export class QuizController {
-  constructor(private quizService: QuizService) {}
-
-  /**
-   * POST /quiz/preview
-   * Preview quiz results without authentication
-   * For marketing funnel - does not save to profile
-   */
-  @Post('preview')
-  @ApiOperation({ 
-    summary: 'Preview quiz results (anonymous)',
-    description: 'Calculate personalized recommendations without saving to profile. Use this for marketing funnel.' 
-  })
-  async previewQuiz(
-    @Body() dto: SubmitQuizDto,
-  ): Promise<SubmitQuizResponse> {
-    const result = await this.quizService.submitQuiz(dto as any);
-
-    return {
-      result,
-      message: 'Quiz results calculated. Sign up to save your personalized plan!',
-    };
-  }
+  constructor(private quizProfileService: QuizProfileService) {}
 
   /**
    * POST /quiz/submit
-   * Submit quiz answers and save to profile (requires authentication)
+   * Submit quiz answers and save to QuizProfile
+   * Idempotent - can be called multiple times
    */
   @Post('submit')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ 
-    summary: 'Submit quiz and save to profile (authenticated)',
-    description: 'Calculate and save personalized recommendations to user profile.' 
+    summary: 'Submit quiz and save to profile',
+    description: 'Create or update QuizProfile with normalized data. Idempotent operation.' 
   })
+  @ApiOkResponse({ description: 'Quiz profile created/updated successfully' })
   async submitQuiz(
     @Body() dto: SubmitQuizDto,
-    @Request() req: any,
-  ): Promise<SubmitQuizResponse> {
-    const userId = req.user.userId;
-    const result = await this.quizService.submitQuiz(dto as any, userId);
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.quizProfileService.submitQuiz(user.userId, dto);
+  }
 
-    return {
-      result,
-      message: 'Quiz submitted and saved to your profile',
-    };
+  /**
+   * GET /quiz/profile
+   * Get user's complete quiz profile
+   */
+  @Get('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: 'Get user quiz profile',
+    description: 'Returns complete QuizProfile with all answers and normalized fields' 
+  })
+  @ApiOkResponse({ description: 'Quiz profile retrieved successfully' })
+  async getProfile(@CurrentUser() user: CurrentUserPayload) {
+    return this.quizProfileService.getQuizProfile(user.userId);
+  }
+
+  /**
+   * PATCH /quiz/profile
+   * Partially update quiz profile
+   */
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ 
+    summary: 'Update quiz profile',
+    description: 'Partially update QuizProfile answers. Merges with existing data.' 
+  })
+  @ApiOkResponse({ description: 'Quiz profile updated successfully' })
+  async updateProfile(
+    @Body() dto: UpdateQuizProfileDto,
+    @CurrentUser() user: CurrentUserPayload,
+  ) {
+    return this.quizProfileService.updateQuizProfile(user.userId, dto);
   }
 }
