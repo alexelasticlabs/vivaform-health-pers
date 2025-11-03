@@ -7,7 +7,13 @@
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "test": "turbo run test",
-    "format": "turbo run format"
+    "test:run": "pnpm --filter @vivaform/backend test --run && pnpm --filter @vivaform/web test --run",
+    "format": "turbo run format",
+    "health": "node health-check.js",
+    "db:migrate": "pnpm --filter @vivaform/backend prisma migrate dev",
+    "db:migrate:prod": "pnpm --filter @vivaform/backend prisma migrate deploy",
+    "db:seed": "pnpm --filter @vivaform/backend prisma db seed",
+    "db:studio": "pnpm --filter @vivaform/backend prisma studio"
   },
   "devDependencies": {
     "turbo": "^2.1.3"

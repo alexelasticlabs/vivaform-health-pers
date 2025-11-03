@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, X, Star, Zap } from 'lucide-react';
+import { createCheckoutSession } from '../api/subscriptions';
 
 const PLANS = [
   {
@@ -100,16 +101,12 @@ export function PremiumPage() {
     }
     
     try {
-      const response = await fetch('/api/subscriptions/create-checkout-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
-        },
-        body: JSON.stringify({ planId })
+      const { url } = await createCheckoutSession({
+        plan: planId as any,
+        successUrl: `${window.location.origin}/premium?success=true`,
+        cancelUrl: `${window.location.origin}/premium?canceled=true`
       });
       
-      const { url } = await response.json();
       if (url) {
         window.location.href = url;
       }

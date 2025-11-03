@@ -23,6 +23,7 @@ export class UsersService {
         name: true,
         role: true,
         tier: true,
+        emailVerified: true,
         createdAt: true
       }
     });
@@ -42,6 +43,7 @@ export class UsersService {
         name: true,
         role: true,
         tier: true,
+        emailVerified: true,
         createdAt: true
       }
     });
@@ -55,8 +57,18 @@ export class UsersService {
   }
 
   async verifyEmail(userId: string) {
-    // TODO: Add emailVerified field to User model in schema.prisma
-    this.logger.log(`Email verification requested for user ${userId} - feature pending schema update`);
-    return this.prisma.user.findUnique({ where: { id: userId } });
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        tier: true,
+        emailVerified: true,
+        createdAt: true
+      }
+    });
   }
 }

@@ -4,8 +4,11 @@ import { StatusBar } from "expo-status-bar";
 import * as Notifications from "expo-notifications";
 
 import { AppProviders } from "../src/providers/app-providers";
+import { usePushNotifications } from "../src/hooks/use-push-notifications";
 
 export default function RootLayout() {
+  usePushNotifications();
+
   useEffect(() => {
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
