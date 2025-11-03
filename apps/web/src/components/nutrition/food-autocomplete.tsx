@@ -2,23 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Plus } from "lucide-react";
 
-import { apiClient } from "../../api";
-
-interface FoodItem {
-  id: string;
-  name: string;
-  brand?: string;
-  category: string;
-  caloriesPer100g: number;
-  proteinPer100g: number;
-  fatPer100g: number;
-  carbsPer100g: number;
-  fiberPer100g?: number;
-  sugarPer100g?: number;
-  servingSize: string;
-  servingSizeGrams?: number;
-  verified: boolean;
-}
+import { searchFoods, getPopularFoods, type FoodItem } from "../../api/food";
 
 interface FoodAutocompleteProps {
   onSelect: (food: FoodItem) => void;
@@ -51,15 +35,15 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
   }, [searchQuery]);
 
   // Search foods API call
-  const { data: searchResults, isLoading: isSearching } = useQuery({
+  const { data: searchResponse, isLoading: isSearching } = useQuery({
     queryKey: ["foods", "search", debouncedQuery],
-    queryFn: async (): Promise<FoodItem[]> => {
-      if (!debouncedQuery.trim()) return [];
+    queryFn: async () => {
+      if (!debouncedQuery.trim()) return { foods: [], totalCount: 0 };
       
-      const response = await apiClient.get<SearchFoodsResponse>(
-        `/nutrition/foods/search?q=${encodeURIComponent(debouncedQuery)}&limit=10`
-      );
-      return response.data.data;
+      return await searchFoods({
+        query: debouncedQuery,
+        limit: 10
+      });
     },
     enabled: debouncedQuery.trim().length > 0
   });
@@ -67,11 +51,10 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
   // Popular foods for empty state
   const { data: popularFoods } = useQuery({
     queryKey: ["foods", "popular"],
-    queryFn: async (): Promise<FoodItem[]> => {
-      const response = await apiClient.get<SearchFoodsResponse>("/nutrition/foods/popular");
-      return response.data.data;
-    }
+    queryFn: getPopularFoods
   });
+
+  const searchResults = searchResponse?.foods || [];
 
   const handleInputChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -186,30 +169,5 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
   );
 }
 
-/**
- * Utility hook для работы с категориями продуктов
- */
-export function useFoodCategories() {
-  return useQuery({
-    queryKey: ["foods", "categories"],
-    queryFn: async (): Promise<string[]> => {
-      const response = await apiClient.get<{ data: string[] }>("/nutrition/foods/categories");
-      return response.data.data;
-    }
-  });
-}
 
-/**
- * Utility hook для популярных продуктов
- */
-export function usePopularFoods() {
-  return useQuery({
-    queryKey: ["foods", "popular"],
-    queryFn: async (): Promise<FoodItem[]> => {
-      const response = await apiClient.get<SearchFoodsResponse>("/nutrition/foods/popular");
-      return response.data.data;
-    }
-  });
-}
 
-export type { FoodItem };

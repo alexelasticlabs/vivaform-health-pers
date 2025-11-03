@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { fetchDailyDashboard } from "../../api";
 import type { DailyDashboardResponse } from "@vivaform/shared";
-import { AddNutritionForm } from "../../components/dashboard/add-nutrition-form";
+import { AddNutritionFormWithAutocomplete } from "../../components/dashboard/add-nutrition-form-enhanced";
 import { AddWaterForm } from "../../components/dashboard/add-water-form";
 import { AddWeightForm } from "../../components/dashboard/add-weight-form";
 
@@ -109,7 +109,7 @@ export const DashboardPage = () => {
           </header>
           {activeForm === "nutrition" ? (
             <div className="mt-4 rounded-3xl border border-border bg-background/80 p-4">
-              <AddNutritionForm date={defaultNutritionDate} />
+              <AddNutritionFormWithAutocomplete date={defaultNutritionDate} />
             </div>
           ) : null}
           <div className="mt-4 space-y-3 text-sm">

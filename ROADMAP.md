@@ -142,10 +142,16 @@
   - ✅ Display personalized tips (если есть)
   - ✅ Backend: `POST /recommendations`, `GET /recommendations?date=...`
 - ✅ Quick Stats Overview — calories, protein, water
+- ✅ **Food Database Integration** — 60 продуктов в 12 категориях
+  - ✅ `FoodItem` Prisma model с полной nutritional data
+  - ✅ Seed: 60 verified foods (Fruits, Vegetables, Meat, Fish, Dairy, Grains, etc.)
+  - ✅ Backend: `FoodService` + `FoodController`
+  - ✅ API: `GET /nutrition/foods/search`, `GET /nutrition/foods/popular`, `GET /nutrition/foods/categories`
+  - ✅ Frontend: `FoodAutocomplete` компонент с debouncing
+  - ✅ Enhanced Nutrition Form с auto macro calculation
+  - ✅ TypeScript types на всех уровнях
 
 **Осталось (не критично для MVP):**
-- [ ] Food search/autocomplete — база продуктов (можно добавить USDA API или локальную БД)
-- [ ] Auto macro calculation при выборе продукта
 - [ ] Progress bars для целей (calories vs target, water vs daily goal)
 - [ ] Mini charts в виджетах
 

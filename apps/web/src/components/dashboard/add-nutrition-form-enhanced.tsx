@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { MEAL_TYPES, type CreateNutritionEntryPayload } from "@vivaform/shared";
 
 import { createNutritionEntry, extractErrorMessage } from "../../api";
-import { FoodAutocomplete, type FoodItem } from "../nutrition/food-autocomplete";
+import { FoodAutocomplete } from "../nutrition/food-autocomplete";
+import type { FoodItem } from "../../api/food";
 
 const defaultState: CreateNutritionEntryPayload = {
   mealType: MEAL_TYPES[0],
