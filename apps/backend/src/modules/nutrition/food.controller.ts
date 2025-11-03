@@ -8,7 +8,7 @@ import { FoodService } from "./food.service";
 
 class SearchFoodsQueryDto {
   @IsString()
-  q!: string;
+  query!: string;
 
   @IsOptional()
   @IsString()
@@ -31,12 +31,12 @@ export class FoodController {
 
   @Get("search")
   @ApiOperation({ summary: "Поиск продуктов для автодополнения" })
-  @ApiQuery({ name: "q", description: "Поисковый запрос (название или бренд)" })
+  @ApiQuery({ name: "query", description: "Поисковый запрос (название или бренд)" })
   @ApiQuery({ name: "category", required: false, description: "Фильтр по категории" })
   @ApiQuery({ name: "limit", required: false, description: "Максимум результатов (1-50)", type: Number })
   async searchFoods(@Query() query: SearchFoodsQueryDto) {
     return this.foodService.searchFoods({
-      query: query.q,
+      query: query.query,
       category: query.category,
       limit: query.limit
     });

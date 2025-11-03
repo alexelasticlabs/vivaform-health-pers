@@ -19,17 +19,17 @@ export class AuthService {
     @Inject(jwtConfig.KEY) private readonly jwtSettings: ConfigType<typeof jwtConfig>
   ) {}
 
-  private async signTokens(userId: string, email: string) {
+  private async signTokens(userId: string, email: string, role?: string, tier?: string) {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, email },
+        { sub: userId, email, role, tier },
         {
           secret: this.jwtSettings.secret,
           expiresIn: this.jwtSettings.accessTokenTtl
         }
       ),
       this.jwtService.signAsync(
-        { sub: userId, email, type: "refresh" },
+        { sub: userId, email, role, tier, type: "refresh" },
         {
           secret: this.jwtSettings.refreshSecret,
           expiresIn: this.jwtSettings.refreshTokenTtl
@@ -60,7 +60,7 @@ export class AuthService {
       throw new UnauthorizedException("Неверный email или пароль");
     }
 
-    const tokens = await this.signTokens(user.id, user.email);
+    const tokens = await this.signTokens(user.id, user.email, user.role, user.tier);
 
     return {
       user: {
@@ -91,7 +91,7 @@ export class AuthService {
         throw new UnauthorizedException("Пользователь не найден");
       }
 
-      const tokens = await this.signTokens(user.id, user.email);
+      const tokens = await this.signTokens(user.id, user.email, user.role, user.tier);
 
       return {
         user,

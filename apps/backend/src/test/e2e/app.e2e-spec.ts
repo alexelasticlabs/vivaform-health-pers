@@ -2,12 +2,10 @@
 import { Test } from "@nestjs/testing";
 import * as argon2 from "argon2";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { AppModule } from "../../app.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
-
-vi.setTimeout(30_000);
 
 describe("AppModule e2e", () => {
   let app: INestApplication;

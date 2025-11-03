@@ -22,7 +22,7 @@ const createStripeService = () => {
     subscriptions: {
       retrieve: vi.fn()
     }
-  } as unknown as Stripe.Stripe;
+  } as unknown as typeof Stripe.Stripe;
 
   return {
     client: stripeClient,
@@ -54,7 +54,7 @@ describe("SubscriptionsService", () => {
     });
 
     const result = await service.createCheckoutSession("user-1", {
-      plan: "monthly",
+      plan: "monthly" as any,
       successUrl: "https://app/success",
       cancelUrl: "https://app/cancel"
     });
@@ -73,7 +73,7 @@ describe("SubscriptionsService", () => {
 
     await expect(
       service.createCheckoutSession("missing", {
-        plan: "monthly",
+        plan: "monthly" as any,
         successUrl: "https://ok",
         cancelUrl: "https://cancel"
       })

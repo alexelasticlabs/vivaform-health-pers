@@ -94,13 +94,29 @@ const FAQ = [
 export function PremiumPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
-  const handleSubscribe = (planId: string) => {
+  const handleSubscribe = async (planId: string) => {
     if (planId === 'free') {
       return;
     }
-    // TODO: Integrate with Stripe checkout
-    console.log('Subscribe to:', planId);
-    // navigate to checkout or call Stripe API
+    
+    try {
+      const response = await fetch('/api/subscriptions/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        },
+        body: JSON.stringify({ planId })
+      });
+      
+      const { url } = await response.json();
+      if (url) {
+        window.location.href = url;
+      }
+    } catch (error) {
+      console.error('Failed to create checkout session:', error);
+      alert('Не удалось создать сессию оплаты. Попробуйте позже.');
+    }
   };
 
   return (

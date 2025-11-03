@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import * as argon2 from "argon2";
 
 const prisma = new PrismaClient();
 
@@ -401,6 +402,44 @@ const mealTemplates = [
 
 async function main() {
   console.log("🌱 Starting seed...");
+
+  // Create test admin user if not exists
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: "admin@vivaform.com" }
+  });
+
+  if (!existingAdmin) {
+    const passwordHash = await argon2.hash("admin123");
+    const admin = await prisma.user.create({
+      data: {
+        email: "admin@vivaform.com",
+        passwordHash,
+        name: "Admin User",
+        role: "ADMIN",
+        tier: "PREMIUM"
+      }
+    });
+    console.log("✅ Created admin user:", admin.email);
+  }
+
+  // Create test regular user if not exists
+  const existingUser = await prisma.user.findUnique({
+    where: { email: "test@vivaform.com" }
+  });
+
+  if (!existingUser) {
+    const passwordHash = await argon2.hash("test123");
+    const user = await prisma.user.create({
+      data: {
+        email: "test@vivaform.com",
+        passwordHash,
+        name: "Test User",
+        role: "USER",
+        tier: "FREE"
+      }
+    });
+    console.log("✅ Created test user:", user.email);
+  }
 
   // Clear existing meal templates
   await prisma.mealTemplate.deleteMany();

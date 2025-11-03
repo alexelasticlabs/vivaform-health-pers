@@ -19,8 +19,8 @@ const mockJwtSettings: ReturnType<typeof jwtConfig> = {
 };
 
 const createJwtService = () => ({
-  signAsync: vi.fn<[payload: any, options?: any], Promise<string>>((payload, options) => Promise.resolve("token")),
-  verifyAsync: vi.fn<[token: string, options?: any], Promise<any>>()
+  signAsync: vi.fn((payload: any, options?: any) => Promise.resolve("token")),
+  verifyAsync: vi.fn((token: string, options?: any) => Promise.resolve({}))
 });
 
 const createUsersService = () => ({

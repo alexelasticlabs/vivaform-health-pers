@@ -1,13 +1,17 @@
 import { Controller, Post, Headers, RawBodyRequest, Req, BadRequestException, Logger } from '@nestjs/common';
 import { Request } from 'express';
 import { StripeService } from '../stripe/stripe.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import Stripe from 'stripe';
 
 @Controller('webhooks')
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
 
-  constructor(private readonly stripeService: StripeService) {}
+  constructor(
+    private readonly stripeService: StripeService,
+    private readonly subscriptionsService: SubscriptionsService
+  ) {}
 
   @Post('stripe')
   async handleStripeWebhook(
@@ -65,66 +69,31 @@ export class WebhooksController {
 
   private async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
     this.logger.log(`💳 Checkout completed for session: ${session.id}`);
-
-    const userId = session.metadata?.userId;
-    if (!userId) {
-      this.logger.error('No userId in checkout session metadata');
-      return;
-    }
-
-    const subscriptionId = session.subscription as string;
-    if (!subscriptionId) {
-      this.logger.error('No subscription ID in checkout session');
-      return;
-    }
-
-    // Stripe service will create/update subscription
-    await this.stripeService.handleSubscriptionCreated(userId, subscriptionId);
-    
-    this.logger.log(`✅ Subscription created for user ${userId}`);
+    await this.subscriptionsService.handleCheckoutCompleted(session);
+    this.logger.log(`✅ Subscription created via SubscriptionsService`);
   }
 
   private async handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
     this.logger.log(`💰 Payment succeeded for invoice: ${invoice.id}`);
-
     const subscriptionId = invoice.subscription as string;
     if (!subscriptionId) {
       return;
     }
-
-    // Extend subscription period
-    await this.stripeService.handlePaymentSucceeded(subscriptionId);
     
-    this.logger.log(`✅ Subscription ${subscriptionId} extended`);
+    const subscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId);
+    await this.subscriptionsService.handleSubscriptionUpdated(subscription);
+    this.logger.log(`✅ Subscription ${subscriptionId} updated`);
   }
 
   private async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     this.logger.log(`🔄 Subscription updated: ${subscription.id}`);
-
-    const userId = subscription.metadata?.userId;
-    if (!userId) {
-      this.logger.error('No userId in subscription metadata');
-      return;
-    }
-
-    // Sync subscription status
-    await this.stripeService.syncSubscriptionStatus(userId, subscription);
-    
+    await this.subscriptionsService.handleSubscriptionUpdated(subscription);
     this.logger.log(`✅ Subscription ${subscription.id} synced`);
   }
 
   private async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
     this.logger.log(`❌ Subscription deleted: ${subscription.id}`);
-
-    const userId = subscription.metadata?.userId;
-    if (!userId) {
-      this.logger.error('No userId in subscription metadata');
-      return;
-    }
-
-    // Downgrade to FREE tier
-    await this.stripeService.handleSubscriptionCanceled(userId);
-    
-    this.logger.log(`✅ User ${userId} downgraded to FREE`);
+    await this.subscriptionsService.handleSubscriptionDeleted(subscription);
+    this.logger.log(`✅ User downgraded to FREE`);
   }
 }
