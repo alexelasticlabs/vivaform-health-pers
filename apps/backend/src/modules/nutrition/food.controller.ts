@@ -35,11 +35,17 @@ export class FoodController {
   @ApiQuery({ name: "category", required: false, description: "Фильтр по категории" })
   @ApiQuery({ name: "limit", required: false, description: "Максимум результатов (1-50)", type: Number })
   async searchFoods(@Query() query: SearchFoodsQueryDto) {
-    return this.foodService.searchFoods({
+    const foods = await this.foodService.searchFoods({
       query: query.query,
       category: query.category,
       limit: query.limit
     });
+    
+    // Wrap response to match frontend expectations
+    return {
+      foods,
+      totalCount: foods.length
+    };
   }
 
   @Get("categories")

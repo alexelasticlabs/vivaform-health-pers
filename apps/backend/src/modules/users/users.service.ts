@@ -57,9 +57,36 @@ export class UsersService {
   }
 
   async verifyEmail(userId: string) {
+    // Check if already verified to prevent duplicate verification
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { emailVerified: true, emailVerifiedAt: true }
+    });
+
+    if (user?.emailVerified && user?.emailVerifiedAt) {
+      this.logger.warn(`Attempted to verify already verified email for user ${userId}`);
+      // Return existing user data instead of throwing error
+      return this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          tier: true,
+          emailVerified: true,
+          emailVerifiedAt: true,
+          createdAt: true
+        }
+      });
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
-      data: { emailVerified: true },
+      data: { 
+        emailVerified: true,
+        emailVerifiedAt: new Date()
+      },
       select: {
         id: true,
         email: true,
@@ -67,6 +94,7 @@ export class UsersService {
         role: true,
         tier: true,
         emailVerified: true,
+        emailVerifiedAt: true,
         createdAt: true
       }
     });

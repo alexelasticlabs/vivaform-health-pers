@@ -106,8 +106,11 @@ export function PremiumPage() {
     setError(null);
     
     try {
+      // Map marketing plan ID to actual subscription plan
+      const subscriptionPlan = planId === 'premium' ? 'monthly' : planId;
+      
       const { url } = await createCheckoutSession({
-        plan: planId as any,
+        plan: subscriptionPlan as 'monthly' | 'quarterly' | 'annual',
         successUrl: `${window.location.origin}/premium?success=true`,
         cancelUrl: `${window.location.origin}/premium?canceled=true`
       });
