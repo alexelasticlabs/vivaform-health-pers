@@ -1,20 +1,25 @@
 import { useState, useMemo } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Eye, EyeOff } from 'lucide-react';
-import { resetPassword } from '../api/password';
+import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { forceChangePassword } from '../api/password';
 import { VivaFormLogo } from '../components/viva-form-logo';
+import { useUserStore } from '../store/user-store';
 
-export function ResetPasswordPage() {
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token') || '';
-  
+export function ForceChangePasswordPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { profile, setAuth } = useUserStore();
+
+  // Redirect if user doesn't need to change password
+  if (!profile?.mustChangePassword) {
+    navigate('/app', { replace: true });
+    return null;
+  }
 
   // Password strength calculator
   const passwordStrength = useMemo(() => {
@@ -36,8 +41,8 @@ export function ResetPasswordPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!password || !token) {
-      toast.error('Please fill in all fields');
+    if (!password) {
+      toast.error('Please enter a new password');
       return;
     }
 
@@ -53,39 +58,27 @@ export function ResetPasswordPage() {
 
     setIsLoading(true);
     try {
-      await resetPassword({ token, newPassword: password });
-      toast.success('Password updated ✅ You can log in now.');
-      setTimeout(() => navigate('/login'), 2000);
+      await forceChangePassword({ newPassword: password });
+      
+      // Update user profile to clear mustChangePassword flag
+      if (profile) {
+        setAuth(
+          { ...profile, mustChangePassword: false },
+          localStorage.getItem('accessToken') || '',
+          localStorage.getItem('refreshToken') || ''
+        );
+      }
+      
+      toast.success('Password updated successfully! ✅');
+      setTimeout(() => navigate('/app'), 1500);
     } catch (error: any) {
-      const message = error?.response?.data?.message || 'Invalid or expired reset token';
+      const message = error?.response?.data?.message || 'Failed to update password';
       toast.error(message);
       console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
-
-  if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800 p-4">
-        <div className="w-full max-w-md backdrop-blur-xl bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8 text-center space-y-6">
-          <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-            Invalid Link
-          </h1>
-          <p className="text-muted-foreground mb-6">
-            The password reset link is invalid or missing.
-          </p>
-          <Link
-            to="/forgot-password"
-            className="inline-block w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Request New Link
-          </Link>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800 p-4">
@@ -95,11 +88,14 @@ export function ResetPasswordPage() {
             <VivaFormLogo size="lg" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
-            Create New Password
+            Create Your New Password
           </h1>
-          <p className="text-muted-foreground">
-            Enter your new password below
-          </p>
+          <div className="flex items-center justify-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl">
+            <AlertTriangle className="text-yellow-600 dark:text-yellow-500" size={20} />
+            <p className="text-sm text-yellow-800 dark:text-yellow-300 font-medium">
+              For your security, please set a new password now.
+            </p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -116,6 +112,7 @@ export function ResetPasswordPage() {
                 placeholder="At least 8 characters"
                 required
                 minLength={8}
+                autoFocus
               />
               <button
                 type="button"
@@ -179,14 +176,14 @@ export function ResetPasswordPage() {
             disabled={isLoading}
             className="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-medium hover:from-emerald-700 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
           >
-            {isLoading ? 'Updating password...' : 'Update Password'}
+            {isLoading ? 'Updating password...' : 'Continue to App'}
           </button>
         </form>
 
         <div className="text-center text-sm text-muted-foreground">
-          Remember your password?{' '}
-          <Link to="/login" className="text-primary hover:underline font-medium">
-            Log in
+          Need help?{' '}
+          <Link to="/contact" className="text-primary hover:underline font-medium">
+            Contact support
           </Link>
         </div>
       </div>

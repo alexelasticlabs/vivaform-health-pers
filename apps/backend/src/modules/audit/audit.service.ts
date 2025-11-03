@@ -8,6 +8,8 @@ export enum AuditAction {
   EMAIL_VERIFIED = 'EMAIL_VERIFIED',
   PASSWORD_CHANGED = 'PASSWORD_CHANGED',
   PASSWORD_RESET_REQUESTED = 'PASSWORD_RESET_REQUESTED',
+  PASSWORD_RESET = 'PASSWORD_RESET',
+  TEMP_PASSWORD_REQUESTED = 'TEMP_PASSWORD_REQUESTED',
   
   SUBSCRIPTION_CREATED = 'SUBSCRIPTION_CREATED',
   SUBSCRIPTION_CANCELLED = 'SUBSCRIPTION_CANCELLED',
@@ -145,6 +147,50 @@ export class AuditService {
     await this.log({
       userId,
       action: AuditAction.ACCOUNT_DELETED,
+      ipAddress
+    });
+  }
+
+  /**
+   * Логирование запроса на сброс пароля
+   */
+  async logPasswordResetRequest(userId: string, ipAddress?: string): Promise<void> {
+    await this.log({
+      userId,
+      action: AuditAction.PASSWORD_RESET_REQUESTED,
+      ipAddress
+    });
+  }
+
+  /**
+   * Логирование успешного сброса пароля
+   */
+  async logPasswordReset(userId: string, ipAddress?: string): Promise<void> {
+    await this.log({
+      userId,
+      action: AuditAction.PASSWORD_RESET,
+      ipAddress
+    });
+  }
+
+  /**
+   * Логирование запроса временного пароля
+   */
+  async logTempPasswordRequest(userId: string, ipAddress?: string): Promise<void> {
+    await this.log({
+      userId,
+      action: AuditAction.TEMP_PASSWORD_REQUESTED,
+      ipAddress
+    });
+  }
+
+  /**
+   * Логирование изменения пароля
+   */
+  async logPasswordChange(userId: string, ipAddress?: string): Promise<void> {
+    await this.log({
+      userId,
+      action: AuditAction.PASSWORD_CHANGED,
       ipAddress
     });
   }

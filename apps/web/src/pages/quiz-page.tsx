@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useQuizStore } from '../store/quiz-store';
 import { submitQuiz } from '../api/quiz';
+import { useUserStore } from '../store/user-store';
 import { QuizProgress } from '../components/quiz/quiz-progress';
 import { IntroStep } from '../components/quiz/steps/intro-step';
 import { BodyMetricsStep } from '../components/quiz/steps/body-metrics-step';
@@ -18,6 +19,7 @@ const TOTAL_STEPS = 10; // Expanded to 10 steps
 
 export function QuizPage() {
   const navigate = useNavigate();
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
   const {
     currentStep,
     answers,
@@ -28,6 +30,14 @@ export function QuizPage() {
     nextStep,
     prevStep,
   } = useQuizStore();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      toast.info("You're already logged in. Redirecting to dashboard...");
+      navigate("/app");
+    }
+  }, [isAuthenticated, navigate]);
 
   const canGoNext = () => {
     switch (currentStep) {

@@ -1,7 +1,7 @@
 ﻿export const getDayRange = (input?: string | Date) => {
   const baseDate = input ? new Date(input) : new Date();
   if (Number.isNaN(baseDate.getTime())) {
-    throw new Error("Некорректная дата");
+    throw new Error("Invalid date");
   }
 
   const start = new Date(baseDate);

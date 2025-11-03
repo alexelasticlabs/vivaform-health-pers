@@ -127,8 +127,8 @@ export class NotificationsService {
 
     await this.sendToUser({
       userId,
-      title: "💧 Время пить воду!",
-      body: `Не забудьте выпить стакан воды. Цель: ${glassesNeeded} стаканов в день`,
+      title: "💧 Time to drink water!",
+      body: `Don't forget to drink a glass of water. Goal: ${glassesNeeded} glasses per day`,
       data: { type: "water_reminder", waterGoalMl: waterGoal }
     });
   }
@@ -139,8 +139,8 @@ export class NotificationsService {
   async sendWeightTrackingReminder(userId: string): Promise<void> {
     await this.sendToUser({
       userId,
-      title: "⚖️ Время взвеситься!",
-      body: "Отслеживайте свой прогресс — запишите текущий вес",
+      title: "⚖️ Time to weigh yourself!",
+      body: "Track your progress — record your current weight",
       data: { type: "weight_reminder" }
     });
   }
@@ -160,8 +160,8 @@ export class NotificationsService {
 
     await this.sendToUser({
       userId,
-      title: `${emoji} Время ${mealType}`,
-      body: "Не забудьте записать приём пищи для точного трекинга",
+      title: `${emoji} Time for ${mealType}`,
+      body: "Don't forget to log your meal for accurate tracking",
       data: { type: "meal_reminder", mealType }
     });
   }
@@ -172,8 +172,8 @@ export class NotificationsService {
   async sendRecommendationsNotification(userId: string, count: number): Promise<void> {
     await this.sendToUser({
       userId,
-      title: "✨ Новые рекомендации!",
-      body: `У вас ${count} ${this.pluralize(count, "новая рекомендация", "новых рекомендации", "новых рекомендаций")}`,
+      title: "✨ New recommendations!",
+      body: `You have ${count} new ${count === 1 ? 'recommendation' : 'recommendations'}`,
       data: { type: "new_recommendations", count }
     });
   }

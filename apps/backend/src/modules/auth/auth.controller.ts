@@ -7,7 +7,7 @@ import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
-import { ForgotPasswordDto, ResetPasswordDto } from "./dto/forgot-password.dto";
+import { ForgotPasswordDto, ResetPasswordDto, RequestTempPasswordDto, ForceChangePasswordDto } from "./dto/forgot-password.dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -49,5 +49,18 @@ export class AuthController {
   @ApiOkResponse({ description: "Верификация email" })
   verifyEmail(@Query("token") token: string) {
     return this.authService.verifyEmail(token);
+  }
+
+  @Post("request-temp-password")
+  @ApiOkResponse({ description: "Запрос временного пароля" })
+  requestTempPassword(@Body() dto: RequestTempPasswordDto) {
+    return this.authService.requestTempPassword(dto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post("force-change-password")
+  @ApiOkResponse({ description: "Принудительная смена пароля после временного" })
+  forceChangePassword(@CurrentUser() user: CurrentUserPayload, @Body() dto: ForceChangePasswordDto) {
+    return this.authService.forceChangePassword(user.userId, dto);
   }
 }

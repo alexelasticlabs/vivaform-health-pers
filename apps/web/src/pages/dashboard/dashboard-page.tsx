@@ -1,8 +1,11 @@
 ﻿import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { Zap } from "lucide-react";
 
 import { fetchDailyDashboard } from "../../api";
 import type { DailyDashboardResponse } from "@vivaform/shared";
+import { useUserStore } from "../../store/user-store";
 import { AddNutritionFormWithAutocomplete } from "../../components/dashboard/add-nutrition-form-enhanced";
 import { AddWaterForm } from "../../components/dashboard/add-water-form";
 import { AddWeightForm } from "../../components/dashboard/add-weight-form";
@@ -41,6 +44,8 @@ const buildSummaryCards = (data?: DailyDashboardResponse) => {
 export const DashboardPage = () => {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [activeForm, setActiveForm] = useState<"nutrition" | "water" | "weight" | null>(null);
+  const profile = useUserStore((state) => state.profile);
+  const isPremium = profile?.tier === "PREMIUM";
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["dashboard", selectedDate],
@@ -73,6 +78,34 @@ export const DashboardPage = () => {
           />
         </div>
       </section>
+
+      {/* Premium Banner for Free Users */}
+      {!isPremium && (
+        <section className="rounded-3xl border-2 border-yellow-400 bg-gradient-to-r from-yellow-50 via-orange-50 to-yellow-50 p-6 shadow-lg">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg">
+                <Zap size={24} fill="currentColor" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  Unlock VivaForm Premium
+                </h3>
+                <p className="mt-1 text-sm text-gray-700">
+                  Get personalized meal plans, AI recommendations, and advanced analytics to reach your goals faster.
+                </p>
+              </div>
+            </div>
+            <Link
+              to="/premium"
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl bg-gradient-to-r from-blue-600 to-green-600 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl"
+            >
+              <Zap size={16} />
+              Upgrade Now
+            </Link>
+          </div>
+        </section>
+      )}
 
       {isError ? (
         <div className="rounded-3xl border border-destructive/40 bg-destructive/10 p-6 text-sm text-destructive">

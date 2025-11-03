@@ -41,11 +41,9 @@ const describeStatus = (record: SubscriptionRecord | null | undefined) => {
 };
 
 export const SettingsPage = () => {
-  const { tokens, profile, setProfile } = useUserStore((state) => ({
-    tokens: state.tokens,
-    profile: state.profile,
-    setProfile: state.setProfile
-  }));
+  const tokens = useUserStore((state) => state.tokens);
+  const profile = useUserStore((state) => state.profile);
+  const setProfile = useUserStore((state) => state.setProfile);
 
   const {
     data: profileData,

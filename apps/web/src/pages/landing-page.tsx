@@ -1,8 +1,10 @@
 ﻿import { Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { trackConversion } from "../lib/analytics";
 import { useIntersectionObserver } from "../hooks/use-intersection-observer";
 import { AppStoreButtons } from "../components/app-store-buttons";
+import { useUserStore } from "../store/user-store";
 type ValueProp = {
   title: string;
   description: string;
@@ -129,12 +131,15 @@ const faqItems: FaqItem[] = [
   }
 ];
 export const LandingPage = () => {
+  const navigate = useNavigate();
+  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
   const handleStartClick = () => trackConversion("start_quiz_click", { placement: "hero" });
   const [whyRef, whyVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
   const [featuresRef, featuresVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
   const [testimonialsRef, testimonialsVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
   
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
+  
   const heroStats: Array<{ value: string; label: string }> = [
     { value: "125K+", label: "Active users" },
     { value: "4.8★", label: "App Store rating" },
@@ -163,34 +168,48 @@ export const LandingPage = () => {
                 Personalized plans, habit coaching, and clear progress—without selling your data.
               </p>
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                <Link
-                  to="/quiz"
-                  onClick={handleStartClick}
-                  className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
-                >
-                  Get Started
-                  <svg
-                    className="h-5 w-5 transition-transform group-hover:translate-x-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
+                {isAuthenticated ? (
+                  <Link
+                    to="/app"
+                    className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
                   >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-                <Link
-                  to="/premium"
-                  className="inline-flex items-center justify-center rounded-2xl border-2 border-blue-500 bg-blue-50 px-8 py-4 text-base font-semibold text-blue-600 shadow-sm transition-all hover:scale-[1.01] hover:bg-blue-100 hover:shadow-md active:scale-[0.99]"
-                >
-                  View Plans
-                </Link>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center justify-center rounded-2xl border-2 border-border bg-card px-8 py-4 text-base font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
-                >
-                  Log in
-                </Link>
+                    Go to Dashboard
+                    <svg
+                      className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                    </svg>
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      to="/quiz"
+                      onClick={handleStartClick}
+                      className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
+                    >
+                      Get Started
+                      <svg
+                        className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        aria-hidden="true"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </Link>
+                    <Link
+                      to="/login"
+                      className="inline-flex items-center justify-center rounded-2xl border-2 border-border bg-card px-8 py-4 text-base font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
+                    >
+                      Log in
+                    </Link>
+                  </>
+                )}
               </div>
               <div className="mt-12">
                 <p className="text-sm font-medium text-muted-foreground">Available on every platform</p>

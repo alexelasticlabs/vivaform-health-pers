@@ -103,8 +103,15 @@ export class EmailService {
 
   async sendPasswordResetEmail(email: string, token: string) {
     const resetUrl = `${this.configService.get('FRONTEND_URL') || 'http://localhost:5173'}/reset-password?token=${token}`;
-    const subject = 'Сброс пароля - VivaForm';
+    const subject = 'Reset your VivaForm password';
     const html = this.getPasswordResetTemplate(resetUrl);
+
+    await this.sendEmail({ to: email, subject, html });
+  }
+
+  async sendTempPasswordEmail(email: string, tempPassword: string) {
+    const subject = 'Your temporary VivaForm password';
+    const html = this.getTempPasswordTemplate(tempPassword);
 
     await this.sendEmail({ to: email, subject, html });
   }
@@ -256,11 +263,12 @@ export class EmailService {
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
             .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #2563eb 0%, #10b981 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
             .content { background: white; padding: 40px 20px; border: 1px solid #e5e7eb; }
-            .button { display: inline-block; background: #ef4444; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 20px 0; }
+            .button { display: inline-block; background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: 600; }
             .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
-            .warning { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 20px 0; }
+            .warning { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 20px 0; border-radius: 4px; }
+            .note { background: #f0fdf4; border-left: 4px solid #10b981; padding: 12px; margin: 20px 0; border-radius: 4px; }
           </style>
         </head>
         <body>
@@ -272,11 +280,72 @@ export class EmailService {
               <p>We received a request to reset your VivaForm password.</p>
               <p>Click the button below to create a new password:</p>
               <a href="${resetUrl}" class="button">Reset Password →</a>
-              <p>This link will expire in 1 hour.</p>
+              <div class="note">
+                <strong>⏱️ This link is valid for 60 minutes.</strong>
+              </div>
               <div class="warning">
                 <strong>⚠️ Security Notice:</strong><br>
                 If you didn't request this password reset, please ignore this email and ensure your account is secure.
               </div>
+              <p style="margin-top: 30px;">Need help? Contact us at support@vivaform.com</p>
+              <p>Best regards,<br>The VivaForm Team</p>
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} VivaForm. All rights reserved.</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+  }
+
+  private getTempPasswordTemplate(tempPassword: string): string {
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%); color: white; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { background: white; padding: 40px 20px; border: 1px solid #e5e7eb; }
+            .password-box { background: #f9fafb; border: 2px dashed #10b981; padding: 20px; text-align: center; margin: 20px 0; border-radius: 8px; }
+            .password { font-size: 28px; font-weight: 700; letter-spacing: 2px; color: #10b981; font-family: 'Courier New', monospace; }
+            .footer { text-align: center; padding: 20px; color: #6b7280; font-size: 14px; }
+            .warning { background: #fef2f2; border-left: 4px solid #ef4444; padding: 12px; margin: 20px 0; border-radius: 4px; }
+            .note { background: #fffbeb; border-left: 4px solid #f59e0b; padding: 12px; margin: 20px 0; border-radius: 4px; }
+            .steps { background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; }
+            .steps ol { margin: 0; padding-left: 20px; }
+            .steps li { margin: 8px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔐 Your Temporary Password</h1>
+            </div>
+            <div class="content">
+              <p>Your one-time temporary password for VivaForm:</p>
+              <div class="password-box">
+                <div class="password">${tempPassword}</div>
+                <p style="margin: 10px 0 0; font-size: 14px; color: #6b7280;">Copy this password carefully</p>
+              </div>
+              <div class="note">
+                <strong>⏱️ Important:</strong> This password is valid for <strong>15 minutes</strong> and can only be used <strong>once</strong>.
+              </div>
+              <div class="steps">
+                <strong>Next steps:</strong>
+                <ol>
+                  <li>Go to the VivaForm login page</li>
+                  <li>Enter your email and this temporary password</li>
+                  <li>You'll be prompted to create a new permanent password</li>
+                </ol>
+              </div>
+              <div class="warning">
+                <strong>⚠️ Security Notice:</strong><br>
+                If you didn't request this temporary password, please ignore this email and ensure your account is secure.
+              </div>
+              <p style="margin-top: 30px;">Need help? Contact us at support@vivaform.com</p>
               <p>Best regards,<br>The VivaForm Team</p>
             </div>
             <div class="footer">

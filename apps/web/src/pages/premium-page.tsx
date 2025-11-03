@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Check, X, Star, Zap } from 'lucide-react';
 import { createCheckoutSession } from '../api/subscriptions';
+import { useUserStore } from '../store/user-store';
 
 const PLANS = [
   {
@@ -25,11 +26,34 @@ const PLANS = [
     highlighted: false,
   },
   {
-    id: 'premium',
-    name: 'PREMIUM',
+    id: 'monthly',
+    name: 'MONTHLY',
     price: '$4.87',
     period: 'per month',
     description: 'For serious results',
+    badge: 'Flexible',
+    features: [
+      { text: 'Everything from FREE', included: true },
+      { text: 'Personalized meal plan', included: true },
+      { text: 'AI meal generator', included: true },
+      { text: 'Advanced analytics', included: true },
+      { text: 'Apple Health/Google Fit integration', included: true },
+      { text: 'Reminders and notifications', included: true },
+      { text: 'Data export', included: true },
+      { text: 'Priority support', included: true },
+      { text: 'Ad-free', included: true },
+    ],
+    cta: 'Get Started',
+    highlighted: false,
+  },
+  {
+    id: 'quarterly',
+    name: 'QUARTERLY',
+    price: '$17.63',
+    period: 'for 4 months',
+    originalPrice: '$19.48',
+    savings: '~10% off',
+    description: 'Best for building habits',
     badge: 'Popular',
     features: [
       { text: 'Everything from FREE', included: true },
@@ -44,7 +68,30 @@ const PLANS = [
     ],
     cta: 'Get Started',
     highlighted: true,
-    stripePriceId: 'price_monthly', // Replace with actual Stripe Price ID
+  },
+  {
+    id: 'annual',
+    name: 'ANNUAL',
+    price: '$28.76',
+    period: 'for 12 months',
+    originalPrice: '$58.44',
+    savings: '~50% off',
+    description: 'Maximum value',
+    badge: 'Best Value',
+    features: [
+      { text: 'Everything from FREE', included: true },
+      { text: 'Personalized meal plan', included: true },
+      { text: 'AI meal generator', included: true },
+      { text: 'Advanced analytics', included: true },
+      { text: 'Apple Health/Google Fit integration', included: true },
+      { text: 'Reminders and notifications', included: true },
+      { text: 'Data export', included: true },
+      { text: 'Priority support', included: true },
+      { text: 'Ad-free', included: true },
+      { text: '1 year commitment = biggest savings', included: true },
+    ],
+    cta: 'Get Started',
+    highlighted: false,
   },
 ];
 
@@ -93,6 +140,8 @@ const FAQ = [
 ];
 
 export function PremiumPage() {
+  const navigate = useNavigate();
+  const profile = useUserStore((state) => state.profile);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,12 +151,18 @@ export function PremiumPage() {
       return;
     }
     
+    // Check if user is authenticated
+    if (!profile) {
+      navigate('/login?redirect=/premium');
+      return;
+    }
+    
     setIsLoading(true);
     setError(null);
     
     try {
-      // Map marketing plan ID to actual subscription plan
-      const subscriptionPlan = planId === 'premium' ? 'monthly' : planId;
+      // All paid plans use their ID directly (monthly, quarterly, annual)
+      const subscriptionPlan = planId as 'monthly' | 'quarterly' | 'annual';
       
       const { url } = await createCheckoutSession({
         plan: subscriptionPlan as 'monthly' | 'quarterly' | 'annual',
@@ -172,42 +227,54 @@ export function PremiumPage() {
 
       {/* Pricing Cards */}
       <section className="py-12 px-4">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {PLANS.map((plan) => (
             <div
               key={plan.id}
-              className={`relative bg-white rounded-2xl shadow-xl p-8 ${
+              className={`relative bg-white rounded-2xl shadow-xl p-6 ${
                 plan.highlighted
-                  ? 'border-4 border-blue-500 transform scale-105'
+                  ? 'border-4 border-blue-500 transform lg:scale-105'
                   : 'border-2 border-gray-200'
               }`}
             >
               {plan.badge && (
-                <div className="absolute top-0 right-8 transform -translate-y-1/2">
-                  <div className="flex items-center gap-1 px-4 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-sm font-bold rounded-full shadow-lg">
-                    <Star size={14} fill="currentColor" />
+                <div className="absolute top-0 right-4 transform -translate-y-1/2">
+                  <div className="flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs font-bold rounded-full shadow-lg">
+                    <Star size={12} fill="currentColor" />
                     {plan.badge}
                   </div>
                 </div>
               )}
 
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
                   {plan.name}
                 </h3>
-                <p className="text-gray-600 text-sm mb-4">{plan.description}</p>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-bold text-gray-900">
-                    {plan.price}
-                  </span>
-                  <span className="text-gray-600">/ {plan.period}</span>
+                <p className="text-gray-600 text-xs mb-3">{plan.description}</p>
+                <div className="flex flex-col gap-1">
+                  {('originalPrice' in plan && plan.originalPrice) && (
+                    <span className="text-sm text-gray-400 line-through">
+                      {plan.originalPrice}
+                    </span>
+                  )}
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-bold text-gray-900">
+                      {plan.price}
+                    </span>
+                    <span className="text-xs text-gray-600">/ {plan.period}</span>
+                  </div>
+                  {('savings' in plan && plan.savings) && (
+                    <span className="text-xs font-semibold text-green-600">
+                      {plan.savings}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <button
                 onClick={() => handleSubscribe(plan.id)}
                 disabled={plan.id === 'free' || isLoading}
-                className={`w-full py-4 rounded-xl font-semibold text-lg transition-all mb-8 ${
+                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all mb-6 ${
                   plan.highlighted
                     ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-lg hover:scale-[1.02]'
                     : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
@@ -215,7 +282,7 @@ export function PremiumPage() {
               >
                 {isLoading && plan.id !== 'free' ? (
                   <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
@@ -226,18 +293,18 @@ export function PremiumPage() {
                 )}
               </button>
 
-              <ul className="space-y-4">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start gap-3">
+              <ul className="space-y-2">
+                {plan.features.slice(0, 6).map((feature, index) => (
+                  <li key={index} className="flex items-start gap-2">
                     {feature.included ? (
-                      <Check className="text-green-500 flex-shrink-0 mt-1" size={20} />
+                      <Check className="text-green-500 flex-shrink-0 mt-0.5" size={16} />
                     ) : (
-                      <X className="text-gray-300 flex-shrink-0 mt-1" size={20} />
+                      <X className="text-gray-300 flex-shrink-0 mt-0.5" size={16} />
                     )}
                     <span
-                      className={
+                      className={`text-xs ${
                         feature.included ? 'text-gray-900' : 'text-gray-400'
-                      }
+                      }`}
                     >
                       {feature.text}
                     </span>

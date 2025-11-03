@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 import { ThemeToggle } from "../theme-toggle";
+import { VivaFormLogo } from "../viva-form-logo";
 import { useUserStore } from "../../store/user-store";
 
 const appNav = [
@@ -29,7 +30,7 @@ export const AppShell = ({ children }: PropsWithChildren) => {
       <header className="border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-lg font-semibold tracking-tight">VivaForm</div>
+            <VivaFormLogo size="sm" />
             <div className="md:hidden">
               <ThemeToggle />
             </div>

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 
 import { PrismaService } from "../../common/prisma/prisma.service";
 
@@ -71,7 +71,7 @@ export class MealPlanService {
   async generateWeeklyPlan(userId: string): Promise<WeeklyMealPlan> {
     this.logger.log(`Generating weekly meal plan for user ${userId}`);
 
-    // 1. Загружаем профиль пользователя с данными квиза
+    // 1. Load user profile with quiz data
     const profile = await this.prisma.profile.findUnique({
       where: { userId },
       select: {
@@ -87,23 +87,24 @@ export class MealPlanService {
     });
 
     if (!profile || !profile.recommendedCalories) {
-      throw new Error("Profile or recommended calories not found. Please complete the quiz first.");
+      throw new BadRequestException("Profile or recommended calories not found. Please complete the quiz first.");
     }
 
-    // 2. Вычисляем целевые макросы на основе калорий
+    // 2. Calculate target macros based on calories
     const targetMacros = this.calculateMacroTargets(
       profile.recommendedCalories,
       profile.dietPlan || "mediterranean"
     );
 
-    // 3. Загружаем подходящие meal templates из базы
+    // 3. Load suitable meal templates from database
     const availableTemplates = await this.getFilteredMealTemplates(profile);
 
     if (availableTemplates.length === 0) {
-      throw new Error("No suitable meal templates found for your preferences.");
+      this.logger.warn(`No suitable meal templates found for user ${userId} with dietPlan=${profile.dietPlan}, cookingTime=${profile.cookingTimeMinutes}`);
+      throw new BadRequestException("No suitable meal templates found for your preferences. Please adjust your dietary settings or contact support.");
     }
 
-    // 4. Генерируем план на 7 дней
+    // 4. Generate 7-day plan
     const days: DayPlan[] = [];
     const today = new Date();
 
@@ -122,7 +123,7 @@ export class MealPlanService {
       days.push(dayPlan);
     }
 
-    // 5. Вычисляем средние значения за неделю
+    // 5. Calculate weekly averages
     const weeklyAverages = this.calculateWeeklyAverages(days);
 
     return {

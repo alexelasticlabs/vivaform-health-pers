@@ -5,9 +5,16 @@ export interface ForgotPasswordRequest {
 }
 
 export interface ResetPasswordRequest {
-  email: string;
   token: string;
-  password: string;
+  newPassword: string;
+}
+
+export interface RequestTempPasswordRequest {
+  email: string;
+}
+
+export interface ForceChangePasswordRequest {
+  newPassword: string;
 }
 
 export interface MessageResponse {
@@ -21,6 +28,16 @@ export async function forgotPassword(data: ForgotPasswordRequest): Promise<Messa
 
 export async function resetPassword(data: ResetPasswordRequest): Promise<MessageResponse> {
   const response = await apiClient.post('/auth/reset-password', data);
+  return response.data;
+}
+
+export async function requestTempPassword(data: RequestTempPasswordRequest): Promise<MessageResponse> {
+  const response = await apiClient.post('/auth/request-temp-password', data);
+  return response.data;
+}
+
+export async function forceChangePassword(data: ForceChangePasswordRequest): Promise<MessageResponse> {
+  const response = await apiClient.post('/auth/force-change-password', data);
   return response.data;
 }
 
