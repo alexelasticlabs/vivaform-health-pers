@@ -6,6 +6,7 @@ import * as argon2 from "argon2";
 import { jwtConfig } from "../../config";
 import { UsersService } from "../users/users.service";
 import { EmailService } from "../email/email.service";
+import { AuditService } from "../audit/audit.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
 import { ForgotPasswordDto, ResetPasswordDto } from "./dto/forgot-password.dto";
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly emailService: EmailService,
+    private readonly auditService: AuditService,
     @Inject(jwtConfig.KEY) private readonly jwtSettings: ConfigType<typeof jwtConfig>
   ) {}
 
@@ -59,6 +61,9 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException("Неверный email или пароль");
     }
+
+    // Audit log
+    await this.auditService.logLogin(user.id);
 
     const tokens = await this.signTokens(user.id, user.email, user.role, user.tier);
 

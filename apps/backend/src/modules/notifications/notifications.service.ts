@@ -180,31 +180,63 @@ export class NotificationsService {
 
   /**
    * Низкоуровневая отправка push-уведомлений через Expo API
+   * Включает retry-логику и детальное логирование ошибок
    */
   private async sendPushNotifications(messages: ExpoPushMessage[]): Promise<void> {
     // Разбиваем на чанки (Expo рекомендует до 100 за раз)
     const chunks = this.expo.chunkPushNotifications(messages);
 
     for (const chunk of chunks) {
-      try {
-        const tickets = await this.expo.sendPushNotificationsAsync(chunk);
-        this.handlePushTickets(tickets);
-      } catch (error) {
-        this.logger.error("Failed to send push notifications", error instanceof Error ? error.stack : String(error));
-      }
+      await this.sendChunkWithRetry(chunk, 3);
     }
   }
 
   /**
-   * Обработка результатов отправки
+   * Отправка чанка с retry-логикой
    */
-  private handlePushTickets(tickets: ExpoPushTicket[]): void {
+  private async sendChunkWithRetry(chunk: ExpoPushMessage[], maxRetries: number): Promise<void> {
+    let attempt = 0;
+
+    while (attempt < maxRetries) {
+      try {
+        const tickets = await this.expo.sendPushNotificationsAsync(chunk);
+        this.handlePushTickets(tickets, chunk);
+        return; // Success
+      } catch (error) {
+        attempt++;
+        this.logger.error(
+          `Failed to send push notifications (attempt ${attempt}/${maxRetries})`,
+          error instanceof Error ? error.stack : String(error)
+        );
+
+        if (attempt < maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s
+          const delayMs = Math.pow(2, attempt - 1) * 1000;
+          await new Promise(resolve => setTimeout(resolve, delayMs));
+        }
+      }
+    }
+
+    this.logger.error(`Failed to send push notification chunk after ${maxRetries} attempts`);
+  }
+
+  /**
+   * Обработка результатов отправки с логированием проблемных токенов
+   */
+  private handlePushTickets(tickets: ExpoPushTicket[], messages: ExpoPushMessage[]): void {
     tickets.forEach((ticket, index) => {
       if (ticket.status === "error") {
+        const pushToken = messages[index]?.to;
+        
         this.logger.error(
-          `Push notification error for ticket ${index}: ${ticket.message}`,
+          `Push notification error for token ${pushToken}: ${ticket.message}`,
           ticket.details ? JSON.stringify(ticket.details) : undefined
         );
+
+        // Если токен невалидный - логируем для дальнейшей очистки
+        if (ticket.details?.error === 'DeviceNotRegistered') {
+          this.logger.warn(`Token ${pushToken} is no longer valid - should be removed from database`);
+        }
       }
     });
   }

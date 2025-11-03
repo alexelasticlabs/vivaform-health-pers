@@ -1,9 +1,11 @@
 import { Controller, Post, Headers, RawBodyRequest, Req, BadRequestException, Logger } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { Request } from 'express';
 import { StripeService } from '../stripe/stripe.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import Stripe from 'stripe';
 
+@SkipThrottle()
 @Controller('webhooks')
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);

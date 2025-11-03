@@ -21,7 +21,22 @@ async function bootstrap() {
 
   app.use("/webhooks/stripe", raw({ type: "application/json" }));
 
-  app.use(helmet());
+  // Security: Helmet with Content Security Policy
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          styleSrc: ["'self'", "'unsafe-inline'"],
+          scriptSrc: ["'self'"],
+          imgSrc: ["'self'", "data:", "https:"],
+          connectSrc: ["'self'"]
+        }
+      },
+      crossOriginEmbedderPolicy: false
+    })
+  );
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,

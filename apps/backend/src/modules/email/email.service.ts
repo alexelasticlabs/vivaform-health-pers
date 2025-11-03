@@ -1,34 +1,71 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { Transporter } from 'nodemailer';
+import sgMail from '@sendgrid/mail';
+
+export interface SendEmailDto {
+  to: string;
+  subject: string;
+  html: string;
+  text?: string;
+}
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter!: Transporter;
+  private transporter?: Transporter;
+  private readonly emailService: string;
+  private readonly fromEmail: string;
+  private readonly fromName: string;
 
-  constructor() {
-    // Use SMTP config from environment
-    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASSWORD;
+  constructor(private configService: ConfigService) {
+    this.emailService = this.configService.get<string>('EMAIL_SERVICE') || 'smtp';
+    this.fromEmail = this.configService.get<string>('EMAIL_FROM') || 'noreply@example.com';
+    this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') || 'VivaForm';
+
+    if (this.emailService === 'sendgrid') {
+      this.initializeSendGrid();
+    } else {
+      this.initializeSMTP();
+    }
+  }
+
+  private initializeSendGrid() {
+    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    
+    if (!apiKey) {
+      this.logger.warn('SENDGRID_API_KEY not configured - email sending disabled');
+      return;
+    }
+
+    sgMail.setApiKey(apiKey);
+    this.logger.log('SendGrid email service initialized');
+  }
+
+  private async initializeSMTP() {
+    const smtpHost = this.configService.get<string>('SMTP_HOST');
+    const smtpPort = parseInt(this.configService.get<string>('SMTP_PORT') || '587', 10);
+    const smtpUser = this.configService.get<string>('SMTP_USER');
+    const smtpPass = this.configService.get<string>('SMTP_PASSWORD');
 
     if (!smtpUser || !smtpPass) {
       this.logger.warn('SMTP credentials not configured. Emails will be logged only.');
-      // Create ethereal test account for development
       this.createEtherealTransporter();
-    } else {
-      this.transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465,
-        auth: {
-          user: smtpUser,
-          pass: smtpPass,
-        },
-      });
+      return;
     }
+
+    this.transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+
+    this.logger.log('SMTP email service initialized');
   }
 
   private async createEtherealTransporter() {
@@ -50,49 +87,85 @@ export class EmailService {
   }
 
   async sendWelcomeEmail(email: string, name: string) {
-    const subject = 'Welcome to VivaForm! 🎉';
+    const subject = 'Добро пожаловать в VivaForm! 🎉';
     const html = this.getWelcomeTemplate(name);
 
-    await this.sendEmail(email, subject, html);
+    await this.sendEmail({ to: email, subject, html });
   }
 
   async sendVerificationEmail(email: string, token: string) {
-    const verificationUrl = `${process.env.WEB_URL || 'http://localhost:5175'}/verify-email?token=${token}`;
-    const subject = 'Verify Your VivaForm Email';
+    const verificationUrl = `${this.configService.get('FRONTEND_URL') || 'http://localhost:5173'}/verify-email?token=${token}`;
+    const subject = 'Подтвердите ваш email - VivaForm';
     const html = this.getVerificationTemplate(verificationUrl);
 
-    await this.sendEmail(email, subject, html);
+    await this.sendEmail({ to: email, subject, html });
   }
 
   async sendPasswordResetEmail(email: string, token: string) {
-    const resetUrl = `${process.env.WEB_URL || 'http://localhost:5175'}/reset-password?token=${token}`;
-    const subject = 'Reset Your VivaForm Password';
+    const resetUrl = `${this.configService.get('FRONTEND_URL') || 'http://localhost:5173'}/reset-password?token=${token}`;
+    const subject = 'Сброс пароля - VivaForm';
     const html = this.getPasswordResetTemplate(resetUrl);
 
-    await this.sendEmail(email, subject, html);
+    await this.sendEmail({ to: email, subject, html });
   }
 
-  private async sendEmail(to: string, subject: string, html: string) {
+  async sendEmail(dto: SendEmailDto): Promise<void> {
     try {
-      const info = await this.transporter.sendMail({
-        from: process.env.SMTP_FROM || '"VivaForm" <noreply@vivaform.app>',
-        to,
-        subject,
-        html,
-      });
-
-      this.logger.log(`Email sent: ${info.messageId}`);
-      
-      // Log preview URL for Ethereal
-      if (process.env.NODE_ENV === 'development') {
-        const previewUrl = nodemailer.getTestMessageUrl(info);
-        if (previewUrl) {
-          this.logger.log(`Preview URL: ${previewUrl}`);
-        }
+      if (this.emailService === 'sendgrid') {
+        await this.sendViaSendGrid(dto);
+      } else {
+        await this.sendViaSMTP(dto);
       }
     } catch (error) {
-      this.logger.error(`Failed to send email to ${to}`, error);
+      this.logger.error(`Failed to send email to ${dto.to}:`, error);
       throw error;
+    }
+  }
+
+  private async sendViaSendGrid(dto: SendEmailDto): Promise<void> {
+    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    
+    if (!apiKey) {
+      this.logger.warn(`Email sending skipped - SENDGRID_API_KEY not configured. To: ${dto.to}, Subject: ${dto.subject}`);
+      return;
+    }
+
+    await sgMail.send({
+      to: dto.to,
+      from: {
+        email: this.fromEmail,
+        name: this.fromName
+      },
+      subject: dto.subject,
+      html: dto.html,
+      text: dto.text || dto.html.replace(/<[^>]*>/g, '')
+    });
+
+    this.logger.log(`Email sent via SendGrid to ${dto.to}: ${dto.subject}`);
+  }
+
+  private async sendViaSMTP(dto: SendEmailDto): Promise<void> {
+    if (!this.transporter) {
+      this.logger.warn(`Email sending skipped - SMTP not configured. To: ${dto.to}, Subject: ${dto.subject}`);
+      return;
+    }
+
+    const info = await this.transporter.sendMail({
+      from: `${this.fromName} <${this.fromEmail}>`,
+      to: dto.to,
+      subject: dto.subject,
+      html: dto.html,
+      text: dto.text
+    });
+
+    this.logger.log(`Email sent via SMTP to ${dto.to}: ${dto.subject}`);
+      
+    // Log preview URL for Ethereal
+    if (this.configService.get('NODE_ENV') === 'development') {
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      if (previewUrl) {
+        this.logger.log(`Preview URL: ${previewUrl}`);
+      }
     }
   }
 

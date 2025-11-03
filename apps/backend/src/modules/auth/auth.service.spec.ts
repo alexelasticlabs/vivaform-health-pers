@@ -33,20 +33,29 @@ const createEmailService = () => ({
   sendPasswordResetEmail: vi.fn()
 });
 
+const createAuditService = () => ({
+  log: vi.fn(),
+  logLogin: vi.fn(),
+  logRegistration: vi.fn()
+});
+
 describe("AuthService", () => {
   let authService: AuthService;
   let usersService: ReturnType<typeof createUsersService>;
   let jwtService: ReturnType<typeof createJwtService>;
   let emailService: ReturnType<typeof createEmailService>;
+  let auditService: ReturnType<typeof createAuditService>;
 
   beforeEach(() => {
     usersService = createUsersService();
     jwtService = createJwtService();
     emailService = createEmailService();
+    auditService = createAuditService();
     authService = new AuthService(
       usersService as unknown as UsersService,
       jwtService as unknown as JwtService,
       emailService as any,
+      auditService as any,
       mockJwtSettings
     );
   });

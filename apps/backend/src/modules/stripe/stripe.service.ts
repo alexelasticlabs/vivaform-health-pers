@@ -1,4 +1,4 @@
-﻿import { Inject, Injectable, Logger } from "@nestjs/common";
+﻿import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService, ConfigType } from "@nestjs/config";
 import Stripe from "stripe";
 
@@ -6,7 +6,7 @@ import { stripeConfig } from "../../config";
 import { PrismaService } from "../../common/prisma/prisma.service";
 
 @Injectable()
-export class StripeService {
+export class StripeService implements OnModuleInit {
   private readonly stripe: Stripe;
   private readonly logger = new Logger(StripeService.name);
 
@@ -15,6 +15,10 @@ export class StripeService {
     private readonly prisma: PrismaService,
     @Inject(stripeConfig.KEY) private readonly stripeSettings: ConfigType<typeof stripeConfig>
   ) {
+    if (!this.stripeSettings.apiKey) {
+      throw new Error('STRIPE_API_KEY is not configured');
+    }
+
     this.stripe = new Stripe(this.stripeSettings.apiKey, {
       apiVersion: "2024-06-20",
       appInfo: {
@@ -22,6 +26,24 @@ export class StripeService {
         version: "0.1.0"
       }
     });
+
+    this.logger.log('Stripe client initialized');
+  }
+
+  async onModuleInit() {
+    // Verify Stripe configuration at boot
+    if (!this.stripeSettings.webhookSecret) {
+      this.logger.error('STRIPE_WEBHOOK_SECRET is not configured! Webhooks will fail.');
+    }
+
+    const requiredPrices: Array<keyof ConfigType<typeof stripeConfig>['prices']> = ['monthly', 'quarterly', 'annual'];
+    for (const priceKey of requiredPrices) {
+      if (!this.stripeSettings.prices[priceKey]) {
+        this.logger.warn(`Stripe price ${priceKey} is not configured`);
+      }
+    }
+
+    this.logger.log('Stripe configuration validated');
   }
 
   get client() {
@@ -46,11 +68,14 @@ export class StripeService {
 
   async handleSubscriptionCreated(userId: string, subscriptionId: string) {
     try {
-      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId, {
+        expand: ['items.data.price.product']
+      });
       
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
       
-      // Determine tier based on subscription status and price
+      // Extract priceId from first subscription item
+      const priceId = subscription.items.data[0]?.price?.id || 'unknown';
       const tier = subscription.status === 'active' ? 'PREMIUM' : 'FREE';
 
       // Update user tier
@@ -59,7 +84,7 @@ export class StripeService {
         data: { tier }
       });
 
-      // Create subscription record
+      // Create subscription record with captured priceId and metadata
       await this.prisma.subscription.create({
         data: {
           userId,
@@ -67,13 +92,13 @@ export class StripeService {
           stripeCustomerId: subscription.customer as string,
           status: subscription.status,
           currentPeriodEnd,
-          priceId: 'price_default' // Default, should be read from price
+          priceId
         }
       });
 
-      this.logger.log(`✅ Subscription created for user ${userId}`);
+      this.logger.log(`✅ Subscription created for user ${userId}: ${subscriptionId} (price: ${priceId}, status: ${subscription.status})`);
     } catch (error) {
-      this.logger.error(`Failed to handle subscription creation`, error);
+      this.logger.error(`Failed to handle subscription creation for user ${userId}`, error);
       throw error;
     }
   }
@@ -102,6 +127,7 @@ export class StripeService {
     try {
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
       const tier = subscription.status === 'active' ? 'PREMIUM' : 'FREE';
+      const priceId = subscription.items.data[0]?.price?.id || 'unknown';
 
       await this.prisma.user.update({
         where: { id: userId },
@@ -112,13 +138,14 @@ export class StripeService {
         where: { stripeSubscription: subscription.id },
         data: {
           status: subscription.status,
-          currentPeriodEnd
+          currentPeriodEnd,
+          priceId
         }
       });
 
-      this.logger.log(`✅ Subscription ${subscription.id} synced for user ${userId}`);
+      this.logger.log(`✅ Subscription ${subscription.id} synced: ${userId}, tier: ${tier}, status: ${subscription.status}, price: ${priceId}`);
     } catch (error) {
-      this.logger.error(`Failed to sync subscription status`, error);
+      this.logger.error(`Failed to sync subscription ${subscription.id} for user ${userId}`, error);
       throw error;
     }
   }

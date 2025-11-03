@@ -1,12 +1,14 @@
 ﻿import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
-import { ThrottlerModule } from "@nestjs/throttler";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ScheduleModule } from "@nestjs/schedule";
+import { APP_GUARD } from "@nestjs/core";
 
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { appConfig, jwtConfig, stripeConfig } from "./config";
 import { AdminModule } from "./modules/admin/admin.module";
 import { ArticleModule } from "./modules/articles/article.module";
+import { AuditModule } from "./modules/audit/audit.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
@@ -27,11 +29,29 @@ import { WebhooksModule } from "./modules/webhooks/webhooks.module";
       isGlobal: true,
       load: [appConfig, jwtConfig, stripeConfig]
     }),
-    ThrottlerModule.forRoot([{ ttl: 60, limit: 120 }]),
+    // Rate limiting: 10 requests per 10 seconds per user
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000,  // 1 second
+        limit: 5    // 5 requests per second
+      },
+      {
+        name: 'medium',
+        ttl: 10000, // 10 seconds
+        limit: 20   // 20 requests per 10 seconds
+      },
+      {
+        name: 'long',
+        ttl: 60000, // 1 minute
+        limit: 100  // 100 requests per minute
+      }
+    ]),
     ScheduleModule.forRoot(),
     PrismaModule,
     AdminModule,
     ArticleModule,
+    AuditModule,
     HealthModule,
     UsersModule,
     AuthModule,
@@ -45,6 +65,12 @@ import { WebhooksModule } from "./modules/webhooks/webhooks.module";
     QuizModule,
     WebhooksModule,
     DashboardModule
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard
+    }
   ]
 })
 export class AppModule {}

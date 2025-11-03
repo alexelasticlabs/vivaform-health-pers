@@ -5,13 +5,14 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["src/**/*.spec.ts", "src/**/*.test.ts"],
+    include: ["src/**/*.spec.ts", "src/**/*.test.ts", "src/test/e2e/**/*.e2e-spec.ts"],
     setupFiles: "./src/test/setup.ts",
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
       reportsDirectory: "coverage"
-    }
+    },
+    testTimeout: 30000 // 30 seconds for e2e tests
   },
   resolve: {
     alias: {

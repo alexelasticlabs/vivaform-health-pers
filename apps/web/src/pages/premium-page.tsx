@@ -94,11 +94,16 @@ const FAQ = [
 
 export function PremiumPage() {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubscribe = async (planId: string) => {
     if (planId === 'free') {
       return;
     }
+    
+    setIsLoading(true);
+    setError(null);
     
     try {
       const { url } = await createCheckoutSession({
@@ -109,15 +114,43 @@ export function PremiumPage() {
       
       if (url) {
         window.location.href = url;
+      } else {
+        throw new Error('Не удалось получить URL оплаты');
       }
     } catch (error) {
       console.error('Failed to create checkout session:', error);
-      alert('Не удалось создать сессию оплаты. Попробуйте позже.');
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Не удалось создать сессию оплаты. Попробуйте позже.';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+      {/* Error Alert */}
+      {error && (
+        <div className="fixed top-4 right-4 z-50 max-w-md">
+          <div className="bg-red-100 border-2 border-red-500 rounded-xl p-4 shadow-lg">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <h4 className="font-semibold text-red-900 mb-1">Ошибка</h4>
+                <p className="text-sm text-red-800">{error}</p>
+              </div>
+              <button 
+                onClick={() => setError(null)}
+                className="text-red-500 hover:text-red-700 font-bold"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
@@ -170,14 +203,24 @@ export function PremiumPage() {
 
               <button
                 onClick={() => handleSubscribe(plan.id)}
-                disabled={plan.id === 'free'}
+                disabled={plan.id === 'free' || isLoading}
                 className={`w-full py-4 rounded-xl font-semibold text-lg transition-all mb-8 ${
                   plan.highlighted
                     ? 'bg-gradient-to-r from-blue-600 to-green-600 text-white hover:shadow-lg hover:scale-[1.02]'
                     : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {plan.cta}
+                {isLoading && plan.id !== 'free' ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Загрузка...
+                  </span>
+                ) : (
+                  plan.cta
+                )}
               </button>
 
               <ul className="space-y-4">
