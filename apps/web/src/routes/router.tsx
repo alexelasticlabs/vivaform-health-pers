@@ -18,6 +18,8 @@ import { EmailVerificationPage } from "../pages/email-verification-page";
 import { PremiumPage } from "../pages/premium-page";
 import { MealPlannerPage } from "../pages/meal-planner-page";
 import { AdminPage } from "../pages/admin-page";
+import { ArticlesPage } from "../pages/articles-page";
+import { ArticleDetailPage } from "../pages/article-detail-page";
 
 export const createAppRouter = () =>
   createBrowserRouter([
@@ -56,6 +58,14 @@ export const createAppRouter = () =>
         {
           path: "premium",
           element: <PremiumPage />
+        },
+        {
+          path: "articles",
+          element: <ArticlesPage />
+        },
+        {
+          path: "articles/:slug",
+          element: <ArticleDetailPage />
         }
       ]
     },

@@ -6,6 +6,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { appConfig, jwtConfig, stripeConfig } from "./config";
 import { AdminModule } from "./modules/admin/admin.module";
+import { ArticleModule } from "./modules/articles/article.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
@@ -30,6 +31,7 @@ import { WebhooksModule } from "./modules/webhooks/webhooks.module";
     ScheduleModule.forRoot(),
     PrismaModule,
     AdminModule,
+    ArticleModule,
     HealthModule,
     UsersModule,
     AuthModule,
