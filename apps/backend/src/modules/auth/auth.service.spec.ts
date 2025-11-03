@@ -19,8 +19,8 @@ const mockJwtSettings: ReturnType<typeof jwtConfig> = {
 };
 
 const createJwtService = () => ({
-  signAsync: vi.fn<[], Promise<string>>(() => Promise.resolve("token")),
-  verifyAsync: vi.fn<[], Promise<unknown>>()
+  signAsync: vi.fn<[payload: any, options?: any], Promise<string>>((payload, options) => Promise.resolve("token")),
+  verifyAsync: vi.fn<[token: string, options?: any], Promise<any>>()
 });
 
 const createUsersService = () => ({
@@ -28,15 +28,27 @@ const createUsersService = () => ({
   findById: vi.fn()
 });
 
+const createEmailService = () => ({
+  sendEmail: vi.fn(),
+  sendPasswordResetEmail: vi.fn()
+});
+
 describe("AuthService", () => {
   let authService: AuthService;
   let usersService: ReturnType<typeof createUsersService>;
   let jwtService: ReturnType<typeof createJwtService>;
+  let emailService: ReturnType<typeof createEmailService>;
 
   beforeEach(() => {
     usersService = createUsersService();
     jwtService = createJwtService();
-    authService = new AuthService(usersService as unknown as UsersService, jwtService as unknown as JwtService, mockJwtSettings);
+    emailService = createEmailService();
+    authService = new AuthService(
+      usersService as unknown as UsersService,
+      jwtService as unknown as JwtService,
+      emailService as any,
+      mockJwtSettings
+    );
   });
 
   afterEach(() => {

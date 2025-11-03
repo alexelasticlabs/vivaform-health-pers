@@ -65,7 +65,7 @@ export class ArticleController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiOperation({ summary: "Create article (admin only)" })
-  async createArticle(@Request() req, @Body() createArticleDto: CreateArticleDto) {
+  async createArticle(@Request() req: any, @Body() createArticleDto: CreateArticleDto) {
     return this.articleService.createArticle(req.user.userId, createArticleDto);
   }
 

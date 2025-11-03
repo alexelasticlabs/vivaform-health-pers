@@ -1,6 +1,6 @@
 ﻿import "reflect-metadata";
-import { config } from "dotenv";
 
-config({ path: process.env.DOTENV_CONFIG_PATH ?? ".env.test" });
-
-process.setMaxListeners?.(20);
+// Environment variables are loaded by vitest
+if (process.setMaxListeners) {
+  process.setMaxListeners(20);
+}

@@ -63,11 +63,11 @@ export class StripeService {
       await this.prisma.subscription.create({
         data: {
           userId,
-          stripeSubscriptionId: subscriptionId,
+          stripeSubscription: subscriptionId,
           stripeCustomerId: subscription.customer as string,
           status: subscription.status,
           currentPeriodEnd,
-          plan: 'monthly' // Default, should be read from metadata or price
+          priceId: 'price_default' // Default, should be read from price
         }
       });
 
@@ -84,7 +84,7 @@ export class StripeService {
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
 
       await this.prisma.subscription.update({
-        where: { stripeSubscriptionId: subscriptionId },
+        where: { stripeSubscription: subscriptionId },
         data: {
           currentPeriodEnd,
           status: subscription.status
@@ -109,7 +109,7 @@ export class StripeService {
       });
 
       await this.prisma.subscription.update({
-        where: { stripeSubscriptionId: subscription.id },
+        where: { stripeSubscription: subscription.id },
         data: {
           status: subscription.status,
           currentPeriodEnd

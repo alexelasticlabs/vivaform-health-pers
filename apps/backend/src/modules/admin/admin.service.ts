@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "../../common/prisma/prisma.service";
 
-interface UserStats {
+export interface UserStats {
   totalUsers: number;
   freeUsers: number;
   premiumUsers: number;
@@ -9,7 +9,7 @@ interface UserStats {
   newThisWeek: number;
 }
 
-interface SystemStats {
+export interface SystemStats {
   nutritionEntries: number;
   waterEntries: number;
   weightEntries: number;

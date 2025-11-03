@@ -5,12 +5,12 @@ export class CreateArticleDto {
   @ApiProperty({ example: "10 Tips for Healthy Eating" })
   @IsString()
   @MinLength(3)
-  title: string;
+  title!: string;
 
   @ApiProperty({ example: "# Introduction\n\nThis is an article about healthy eating..." })
   @IsString()
   @MinLength(10)
-  content: string;
+  content!: string;
 
   @ApiPropertyOptional({ example: "Learn the basics of healthy nutrition" })
   @IsOptional()
@@ -19,7 +19,7 @@ export class CreateArticleDto {
 
   @ApiProperty({ example: "Nutrition" })
   @IsString()
-  category: string;
+  category!: string;
 
   @ApiPropertyOptional({ example: "https://example.com/image.jpg" })
   @IsOptional()

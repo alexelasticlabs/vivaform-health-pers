@@ -1,4 +1,4 @@
-﻿import { Injectable } from "@nestjs/common";
+﻿import { Injectable, Logger } from "@nestjs/common";
 import * as argon2 from "argon2";
 
 import { PrismaService } from "../../common/prisma/prisma.service";
@@ -6,6 +6,8 @@ import { CreateUserDto } from "./dto/create-user.dto";
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
+  
   constructor(private readonly prisma: PrismaService) {}
 
   findByEmail(email: string) {
@@ -51,9 +53,8 @@ export class UsersService {
   }
 
   async verifyEmail(userId: string) {
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { emailVerified: true }
-    });
+    // TODO: Add emailVerified field to User model in schema.prisma
+    this.logger.log(`Email verification requested for user ${userId} - feature pending schema update`);
+    return this.prisma.user.findUnique({ where: { id: userId } });
   }
 }

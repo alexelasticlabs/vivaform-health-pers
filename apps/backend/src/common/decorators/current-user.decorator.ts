@@ -1,10 +1,10 @@
 ﻿import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 
-import type { CurrentUser } from "../types/current-user";
+import type { CurrentUser as CurrentUserType } from "../types/current-user";
 
-export const CurrentUser = createParamDecorator<keyof CurrentUser | undefined, ExecutionContext, unknown>(
-  (data, ctx) => {
-    const request = ctx.switchToHttp().getRequest<{ user?: CurrentUser }>();
+export const CurrentUser = createParamDecorator<keyof CurrentUserType | undefined>(
+  (data, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest<{ user?: CurrentUserType }>();
     const user = request.user;
 
     if (!user) {

@@ -156,7 +156,7 @@ model Subscription {
   user               User     @relation(fields: [userId], references: [id])
   userId             String   @unique
   stripeCustomerId   String
-  stripeSubscription String
+  stripeSubscription String   @unique
   priceId            String
   currentPeriodEnd   DateTime
   status             String

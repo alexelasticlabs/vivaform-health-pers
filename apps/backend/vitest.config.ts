@@ -1,4 +1,5 @@
 ﻿import { defineConfig } from "vitest/config";
+import path from "path";
 
 export default defineConfig({
   test: {
@@ -6,13 +7,21 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.spec.ts", "src/**/*.test.ts"],
     setupFiles: "./src/test/setup.ts",
-    deps: {
-      inline: ["@nestjs/"]
-    },
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
       reportsDirectory: "coverage"
+    }
+  },
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src")
+    },
+    conditions: ["node"]
+  },
+  server: {
+    deps: {
+      inline: ["dotenv"]
     }
   }
 });

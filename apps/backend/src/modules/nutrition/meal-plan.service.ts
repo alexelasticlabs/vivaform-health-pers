@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 
 import { PrismaService } from "../../common/prisma/prisma.service";
 
-interface MealPlanMeal {
+export interface MealPlanMeal {
   mealType: string;
   name: string;
   calories: number;
@@ -14,7 +14,7 @@ interface MealPlanMeal {
   cookingTimeMinutes: number;
 }
 
-interface DayPlan {
+export interface DayPlan {
   date: string;
   meals: MealPlanMeal[];
   dailyTotals: {
@@ -25,7 +25,7 @@ interface DayPlan {
   };
 }
 
-interface WeeklyMealPlan {
+export interface WeeklyMealPlan {
   days: DayPlan[];
   weeklyAverages: {
     calories: number;
