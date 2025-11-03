@@ -12,7 +12,13 @@ export class HealthController {
 
   @Get()
   @ApiOperation({ summary: "Проверить статус API" })
-  getHealth() {
+  async getHealth() {
     return this.healthService.getStatus();
+  }
+
+  @Get("metrics")
+  @ApiOperation({ summary: "Получить метрики приложения" })
+  async getMetrics() {
+    return this.healthService.getMetrics();
   }
 }

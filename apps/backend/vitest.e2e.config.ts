@@ -1,17 +1,17 @@
-﻿import { defineConfig } from "vitest/config";
+import { defineConfig } from "vitest/config";
 import path from "path";
 
 export default defineConfig({
   test: {
     globals: true,
     environment: "node",
-    include: ["src/**/*.spec.ts", "src/**/*.test.ts"],
-    exclude: ["src/test/e2e/**"],
-    setupFiles: "./src/test/setup.ts",
+    include: ["src/test/e2e/**/*.e2e-spec.ts"],
+    testTimeout: 30000, // 30 seconds for e2e tests
+    hookTimeout: 30000,
     coverage: {
       provider: "v8",
       reporter: ["text", "html"],
-      reportsDirectory: "coverage"
+      reportsDirectory: "coverage-e2e"
     }
   },
   resolve: {
@@ -19,10 +19,5 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src")
     },
     conditions: ["node"]
-  },
-  server: {
-    deps: {
-      inline: ["dotenv"]
-    }
   }
 });

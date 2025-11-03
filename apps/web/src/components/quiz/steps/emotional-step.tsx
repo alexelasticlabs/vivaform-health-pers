@@ -8,27 +8,27 @@ export function EmotionalStep() {
 
   return (
     <QuizCard
-      title="Эмоциональная сфера"
-      subtitle="Понимание вашей связи с едой поможет создать лучший план"
+      title="Emotional Wellbeing"
+      subtitle="Understanding your relationship with food helps create a better plan"
     >
       <div className="space-y-6">
         {/* Еда при стрессе */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Вы едите больше, когда испытываете стресс?
+            Do you eat more when you're stressed?
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
               selected={answers.eatWhenStressed === true}
               onClick={() => updateAnswer('eatWhenStressed', true)}
             >
-              Да, стресс вызывает аппетит
+              Yes, stress triggers appetite
             </OptionButton>
             <OptionButton
               selected={answers.eatWhenStressed === false}
               onClick={() => updateAnswer('eatWhenStressed', false)}
             >
-              Нет, аппетит не меняется
+              No, appetite doesn't change
             </OptionButton>
           </div>
         </div>
@@ -36,15 +36,15 @@ export function EmotionalStep() {
         {/* Главная мотивация */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Что вас больше всего мотивирует?
+            What motivates you the most?
           </label>
           <div className="space-y-2">
             {[
-              { value: 'health', label: '💪 Здоровье и энергия' },
-              { value: 'appearance', label: '✨ Внешний вид' },
-              { value: 'performance', label: '🏃 Спортивные результаты' },
-              { value: 'wellbeing', label: '😊 Общее самочувствие' },
-              { value: 'medical', label: '🏥 Медицинские показания' },
+              { value: 'health', label: '💪 Health and energy' },
+              { value: 'appearance', label: '✨ Appearance' },
+              { value: 'performance', label: '🏃 Athletic performance' },
+              { value: 'wellbeing', label: '😊 Overall wellbeing' },
+              { value: 'medical', label: '🏥 Medical reasons' },
             ].map((option) => (
               <OptionButton
                 key={option.value}
@@ -60,7 +60,7 @@ export function EmotionalStep() {
         {/* Уровень стресса */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Как вы оцениваете свой текущий уровень стресса?
+            How would you rate your current stress level?
           </label>
           <SliderInput
             value={answers.stressLevel ?? 5}
@@ -69,9 +69,9 @@ export function EmotionalStep() {
             max={10}
             step={1}
             label={(value) => {
-              if (value <= 3) return `${value} - Низкий 😌`;
-              if (value <= 6) return `${value} - Средний 😐`;
-              return `${value} - Высокий 😰`;
+              if (value <= 3) return `${value} - Low 😌`;
+              if (value <= 6) return `${value} - Medium 😐`;
+              return `${value} - High 😰`;
             }}
           />
         </div>
@@ -79,15 +79,15 @@ export function EmotionalStep() {
         {/* Источник комфорта */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Что помогает вам чувствовать себя лучше?
+            What helps you feel better?
           </label>
           <div className="space-y-2">
             {[
-              { value: 'exercise', label: '🏃 Физическая активность' },
-              { value: 'food', label: '🍕 Вкусная еда' },
-              { value: 'social', label: '👥 Общение с близкими' },
-              { value: 'rest', label: '😴 Отдых и сон' },
-              { value: 'hobbies', label: '🎨 Хобби и увлечения' },
+              { value: 'exercise', label: '🏃 Physical activity' },
+              { value: 'food', label: '🍕 Tasty food' },
+              { value: 'social', label: '👥 Socializing' },
+              { value: 'rest', label: '😴 Rest and sleep' },
+              { value: 'hobbies', label: '🎨 Hobbies' },
             ].map((option) => (
               <OptionButton
                 key={option.value}
@@ -103,7 +103,7 @@ export function EmotionalStep() {
         {/* Уверенность в рутине */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Насколько легко вам придерживаться новой рутины?
+            How easy is it for you to stick to a new routine?
           </label>
           <SliderInput
             value={answers.routineConfidence ?? 5}
@@ -112,9 +112,9 @@ export function EmotionalStep() {
             max={10}
             step={1}
             label={(value) => {
-              if (value <= 3) return `${value} - Сложно`;
-              if (value <= 6) return `${value} - Средне`;
-              return `${value} - Легко`;
+              if (value <= 3) return `${value} - Difficult`;
+              if (value <= 6) return `${value} - Medium`;
+              return `${value} - Easy`;
             }}
           />
         </div>

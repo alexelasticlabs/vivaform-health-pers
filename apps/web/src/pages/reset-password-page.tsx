@@ -18,17 +18,17 @@ export function ResetPasswordPage() {
     e.preventDefault();
     
     if (!email || !password || !token) {
-      toast.error('Заполните все поля');
+      toast.error('Please fill in all fields');
       return;
     }
 
     if (password.length < 8) {
-      toast.error('Пароль должен содержать минимум 8 символов');
+      toast.error('Password must be at least 8 characters');
       return;
     }
 
     if (password !== confirmPassword) {
-      toast.error('Пароли не совпадают');
+      toast.error('Passwords do not match');
       return;
     }
 
@@ -38,7 +38,7 @@ export function ResetPasswordPage() {
       toast.success(response.message);
       setTimeout(() => navigate('/login'), 2000);
     } catch (error: any) {
-      const message = error?.response?.data?.message || 'Недействительный или истёкший токен';
+      const message = error?.response?.data?.message || 'Invalid or expired reset token';
       toast.error(message);
       console.error(error);
     } finally {
@@ -52,16 +52,16 @@ export function ResetPasswordPage() {
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           <div className="text-6xl mb-4">❌</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Неверная ссылка
+            Invalid Link
           </h1>
           <p className="text-gray-600 mb-6">
-            Ссылка для сброса пароля недействительна или отсутствует.
+            The password reset link is invalid or missing.
           </p>
           <Link
             to="/forgot-password"
             className="inline-block w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
           >
-            Запросить новую ссылку
+            Request New Link
           </Link>
         </div>
       </div>
@@ -74,10 +74,10 @@ export function ResetPasswordPage() {
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">🔐</div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Новый пароль
+            New Password
           </h1>
           <p className="text-gray-600">
-            Создайте новый безопасный пароль
+            Create a new secure password
           </p>
         </div>
 
@@ -99,14 +99,14 @@ export function ResetPasswordPage() {
 
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-              Новый пароль
+              New Password
             </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Минимум 8 символов"
+              placeholder="Minimum 8 characters"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
               minLength={8}
@@ -115,14 +115,14 @@ export function ResetPasswordPage() {
 
           <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-              Подтвердите пароль
+              Confirm Password
             </label>
             <input
               id="confirmPassword"
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Повторите пароль"
+              placeholder="Repeat password"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               required
             />
@@ -133,7 +133,7 @@ export function ResetPasswordPage() {
             disabled={isLoading}
             className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Сохранение...' : 'Сбросить пароль'}
+            {isLoading ? 'Saving...' : 'Reset Password'}
           </button>
         </form>
 
@@ -142,7 +142,7 @@ export function ResetPasswordPage() {
             to="/login"
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            ← Вернуться к входу
+            ← Back to Login
           </Link>
         </div>
       </div>

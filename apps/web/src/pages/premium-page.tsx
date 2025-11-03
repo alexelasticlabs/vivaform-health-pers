@@ -9,19 +9,19 @@ const PLANS = [
     name: 'FREE',
     price: '$0',
     period: 'forever',
-    description: 'Основы здорового питания',
+    description: 'Healthy nutrition basics',
     features: [
-      { text: 'Трекинг калорий и макросов', included: true },
-      { text: 'Учёт воды', included: true },
-      { text: 'Отслеживание веса', included: true },
-      { text: 'Базовые рекомендации', included: true },
-      { text: 'Персональный план питания', included: false },
-      { text: 'Генератор рационов (AI)', included: false },
-      { text: 'Расширенная аналитика', included: false },
-      { text: 'Интеграция с Apple Health/Google Fit', included: false },
-      { text: 'Приоритетная поддержка', included: false },
+      { text: 'Calorie and macro tracking', included: true },
+      { text: 'Water tracking', included: true },
+      { text: 'Weight tracking', included: true },
+      { text: 'Basic recommendations', included: true },
+      { text: 'Personalized meal plan', included: false },
+      { text: 'AI meal generator', included: false },
+      { text: 'Advanced analytics', included: false },
+      { text: 'Apple Health/Google Fit integration', included: false },
+      { text: 'Priority support', included: false },
     ],
-    cta: 'Текущий план',
+    cta: 'Current Plan',
     highlighted: false,
   },
   {
@@ -29,20 +29,20 @@ const PLANS = [
     name: 'PREMIUM',
     price: '$4.87',
     period: 'per month',
-    description: 'Для серьёзных результатов',
-    badge: 'Популярный',
+    description: 'For serious results',
+    badge: 'Popular',
     features: [
-      { text: 'Всё из FREE', included: true },
-      { text: 'Персональный план питания', included: true },
-      { text: 'Генератор рационов (AI)', included: true },
-      { text: 'Расширенная аналитика', included: true },
-      { text: 'Интеграция с Apple Health/Google Fit', included: true },
-      { text: 'Напоминания и уведомления', included: true },
-      { text: 'Экспорт данных', included: true },
-      { text: 'Приоритетная поддержка', included: true },
-      { text: 'Без рекламы', included: true },
+      { text: 'Everything from FREE', included: true },
+      { text: 'Personalized meal plan', included: true },
+      { text: 'AI meal generator', included: true },
+      { text: 'Advanced analytics', included: true },
+      { text: 'Apple Health/Google Fit integration', included: true },
+      { text: 'Reminders and notifications', included: true },
+      { text: 'Data export', included: true },
+      { text: 'Priority support', included: true },
+      { text: 'Ad-free', included: true },
     ],
-    cta: 'Начать',
+    cta: 'Get Started',
     highlighted: true,
     stripePriceId: 'price_monthly', // Replace with actual Stripe Price ID
   },
@@ -50,45 +50,45 @@ const PLANS = [
 
 const TESTIMONIALS = [
   {
-    name: 'Анна К.',
-    role: 'Похудела на 12 кг',
-    text: 'VivaForm помог мне наконец достичь своих целей. Персонализированный план питания и простой трекинг сделали процесс лёгким.',
+    name: 'Anna K.',
+    role: 'Lost 12 kg',
+    text: 'VivaForm finally helped me reach my goals. The personalized meal plan and simple tracking made it easy.',
     avatar: '👩',
   },
   {
-    name: 'Дмитрий С.',
-    role: 'Набрал 8 кг мышц',
-    text: 'Отличный инструмент для спортсменов. Точный подсчёт макросов и интеграция с Apple Health сэкономили кучу времени.',
+    name: 'Dmitry S.',
+    role: 'Gained 8 kg of muscle',
+    text: 'Excellent tool for athletes. Accurate macro tracking and Apple Health integration saved so much time.',
     avatar: '👨',
   },
   {
-    name: 'Мария П.',
-    role: 'Улучшила здоровье',
-    text: 'После 3 месяцев использования чувствую себя намного лучше. Рекомендации действительно работают!',
+    name: 'Maria P.',
+    role: 'Improved health',
+    text: 'After 3 months of use, I feel so much better. The recommendations really work!',
     avatar: '👩‍🦰',
   },
 ];
 
 const FAQ = [
   {
-    question: 'Можно ли отменить подписку?',
-    answer: 'Да, вы можете отменить подписку в любое время в настройках аккаунта. После отмены доступ к премиум-функциям сохранится до конца оплаченного периода.',
+    question: 'Can I cancel my subscription?',
+    answer: 'Yes, you can cancel your subscription anytime in account settings. After cancellation, access to premium features will remain until the end of the paid period.',
   },
   {
-    question: 'Есть ли пробный период?',
-    answer: 'FREE план доступен всем пользователям без ограничений по времени. Вы можете попробовать базовые функции перед апгрейдом на PREMIUM.',
+    question: 'Is there a trial period?',
+    answer: 'The FREE plan is available to all users without time limits. You can try the basic features before upgrading to PREMIUM.',
   },
   {
-    question: 'Какие способы оплаты поддерживаются?',
-    answer: 'Мы принимаем все основные кредитные карты (Visa, Mastercard, American Express) через безопасную платформу Stripe.',
+    question: 'What payment methods are supported?',
+    answer: 'We accept all major credit cards (Visa, Mastercard, American Express) through the secure Stripe platform.',
   },
   {
-    question: 'Можно ли перейти на другой план?',
-    answer: 'Да, вы можете в любой момент перейти на другой план. При апгрейде разница будет рассчитана пропорционально.',
+    question: 'Can I switch to a different plan?',
+    answer: 'Yes, you can switch to another plan at any time. When upgrading, the difference will be calculated proportionally.',
   },
   {
-    question: 'Работает ли на мобильных?',
-    answer: 'Да! У нас есть мобильное приложение для iOS и Android, а также адаптивная веб-версия.',
+    question: 'Does it work on mobile?',
+    answer: 'Yes! We have a mobile app for iOS and Android, as well as a responsive web version.',
   },
 ];
 
@@ -115,13 +115,13 @@ export function PremiumPage() {
       if (url) {
         window.location.href = url;
       } else {
-        throw new Error('Не удалось получить URL оплаты');
+        throw new Error('Failed to get payment URL');
       }
     } catch (error) {
       console.error('Failed to create checkout session:', error);
       const errorMessage = error instanceof Error 
         ? error.message 
-        : 'Не удалось создать сессию оплаты. Попробуйте позже.';
+        : 'Failed to create payment session. Please try again later.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -137,7 +137,7 @@ export function PremiumPage() {
             <div className="flex items-start gap-3">
               <span className="text-2xl">⚠️</span>
               <div className="flex-1">
-                <h4 className="font-semibold text-red-900 mb-1">Ошибка</h4>
+                <h4 className="font-semibold text-red-900 mb-1">Error</h4>
                 <p className="text-sm text-red-800">{error}</p>
               </div>
               <button 
@@ -156,13 +156,13 @@ export function PremiumPage() {
         <div className="max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 rounded-full text-blue-700 text-sm font-medium mb-6">
             <Zap size={16} />
-            Трансформируйте своё питание
+            Transform Your Nutrition
           </div>
           <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-            Выберите свой план
+            Choose Your Plan
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Начните с бесплатного плана или получите полный доступ к персонализированным планам питания и AI-рекомендациям
+            Start with a free plan or get full access to personalized meal plans and AI recommendations
           </p>
         </div>
       </section>
@@ -216,7 +216,7 @@ export function PremiumPage() {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                     </svg>
-                    Загрузка...
+                    Loading...
                   </span>
                 ) : (
                   plan.cta
@@ -250,7 +250,7 @@ export function PremiumPage() {
       <section className="py-20 px-4 bg-white/50">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
-            Истории успеха
+            Success Stories
           </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {TESTIMONIALS.map((testimonial, index) => (
@@ -276,7 +276,7 @@ export function PremiumPage() {
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto">
           <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">
-            Часто задаваемые вопросы
+            Frequently Asked Questions
           </h2>
           <div className="space-y-4">
             {FAQ.map((item, index) => (
@@ -314,23 +314,23 @@ export function PremiumPage() {
       <section className="py-20 px-4 bg-gradient-to-r from-blue-600 to-green-600">
         <div className="max-w-4xl mx-auto text-center text-white">
           <h2 className="text-4xl font-bold mb-6">
-            Готовы начать своё путешествие?
+            Ready to Start Your Journey?
           </h2>
           <p className="text-xl mb-8 opacity-90">
-            Присоединяйтесь к тысячам пользователей, которые уже достигли своих целей
+            Join thousands of users who have already achieved their goals
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <Link
               to="/quiz"
               className="px-8 py-4 bg-white text-blue-600 rounded-xl font-semibold text-lg hover:shadow-lg transition-all"
             >
-              Пройти квиз →
+              Take Quiz →
             </Link>
             <Link
               to="/register"
               className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl font-semibold text-lg hover:bg-white/10 transition-all"
             >
-              Создать аккаунт
+              Create Account
             </Link>
           </div>
         </div>

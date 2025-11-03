@@ -13,7 +13,7 @@ export function ForgotPasswordPage() {
     e.preventDefault();
     
     if (!email) {
-      toast.error('Введите email');
+      toast.error('Please enter your email');
       return;
     }
 
@@ -23,7 +23,7 @@ export function ForgotPasswordPage() {
       toast.success(response.message);
       setIsSubmitted(true);
     } catch (error) {
-      toast.error('Произошла ошибка. Попробуйте позже.');
+      toast.error('An error occurred. Please try again later.');
       console.error(error);
     } finally {
       setIsLoading(false);
@@ -36,19 +36,19 @@ export function ForgotPasswordPage() {
         <div className="max-w-md w-full bg-white rounded-2xl shadow-lg p-8 text-center">
           <div className="text-6xl mb-4">📧</div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Проверьте почту
+            Check Your Email
           </h1>
           <p className="text-gray-600 mb-6">
-            Если email существует в системе, на него отправлена ссылка для сброса пароля.
+            If the email exists in our system, a password reset link has been sent.
           </p>
           <p className="text-sm text-gray-500 mb-6">
-            Ссылка действительна в течение 1 часа.
+            The link is valid for 1 hour.
           </p>
           <Link
             to="/login"
             className="inline-block w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
           >
-            Вернуться к входу
+            Back to Login
           </Link>
         </div>
       </div>
@@ -61,10 +61,10 @@ export function ForgotPasswordPage() {
         <div className="text-center mb-8">
           <div className="text-5xl mb-4">🔒</div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Забыли пароль?
+            Forgot Password?
           </h1>
           <p className="text-gray-600">
-            Введите ваш email, и мы отправим ссылку для сброса пароля
+            Enter your email and we'll send you a password reset link
           </p>
         </div>
 
@@ -89,7 +89,7 @@ export function ForgotPasswordPage() {
             disabled={isLoading}
             className="w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isLoading ? 'Отправка...' : 'Отправить ссылку'}
+            {isLoading ? 'Sending...' : 'Send Reset Link'}
           </button>
         </form>
 
@@ -98,7 +98,7 @@ export function ForgotPasswordPage() {
             to="/login"
             className="text-sm text-blue-600 hover:text-blue-700 font-medium"
           >
-            ← Вернуться к входу
+            ← Back to Login
           </Link>
         </div>
       </div>

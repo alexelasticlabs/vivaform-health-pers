@@ -8,14 +8,14 @@ export function EnergyScheduleStep() {
 
   return (
     <QuizCard
-      title="Энергия и режим"
-      subtitle="Расскажите о вашем режиме дня и активности"
+      title="Energy and Schedule"
+      subtitle="Tell us about your daily routine and activity"
     >
       <div className="space-y-6">
         {/* Сон */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Сколько часов вы спите в сутки?
+            How many hours do you sleep per day?
           </label>
           <SliderInput
             value={answers.sleepHours ?? 7}
@@ -23,27 +23,27 @@ export function EnergyScheduleStep() {
             min={4}
             max={12}
             step={0.5}
-            label={(value) => `${value} часов`}
+            label={(value) => `${value} hours`}
           />
         </div>
 
         {/* Физическая активность */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Вы регулярно занимаетесь спортом?
+            Do you exercise regularly?
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
               selected={answers.exerciseRegularly === true}
               onClick={() => updateAnswer('exerciseRegularly', true)}
             >
-              ✅ Да, регулярно
+              ✅ Yes, regularly
             </OptionButton>
             <OptionButton
               selected={answers.exerciseRegularly === false}
               onClick={() => updateAnswer('exerciseRegularly', false)}
             >
-              ❌ Нет
+              ❌ No
             </OptionButton>
           </div>
         </div>
@@ -51,7 +51,7 @@ export function EnergyScheduleStep() {
         {/* Время пробуждения */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Когда вы обычно просыпаетесь?
+            When do you usually wake up?
           </label>
           <input
             type="time"
@@ -64,7 +64,7 @@ export function EnergyScheduleStep() {
         {/* Время ужина */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Когда вы обычно ужинаете?
+            When do you usually have dinner?
           </label>
           <input
             type="time"

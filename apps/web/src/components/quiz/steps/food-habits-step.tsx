@@ -8,14 +8,14 @@ export function FoodHabitsStep() {
 
   return (
     <QuizCard
-      title="Ваши пищевые привычки"
-      subtitle="Расскажите о ваших текущих привычках в питании"
+      title="Your Eating Habits"
+      subtitle="Tell us about your current nutrition habits"
     >
       <div className="space-y-6">
         {/* Количество приёмов пищи */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Сколько раз в день вы едите?
+            How many times per day do you eat?
           </label>
           <div className="grid grid-cols-2 gap-3">
             {[2, 3, 4, 5, 6].map((meals) => (
@@ -24,7 +24,7 @@ export function FoodHabitsStep() {
                 selected={answers.mealsPerDay === meals}
                 onClick={() => updateAnswer('mealsPerDay', meals)}
               >
-                {meals} {meals === 2 ? 'раза' : 'раз'}
+                {meals} {meals === 2 ? 'times' : 'times'}
               </OptionButton>
             ))}
           </div>
@@ -33,20 +33,20 @@ export function FoodHabitsStep() {
         {/* Пропуск завтрака */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Вы завтракаете?
+            Do you eat breakfast?
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
               selected={answers.skipBreakfast === false}
               onClick={() => updateAnswer('skipBreakfast', false)}
             >
-              ✅ Да, регулярно
+              ✅ Yes, regularly
             </OptionButton>
             <OptionButton
               selected={answers.skipBreakfast === true}
               onClick={() => updateAnswer('skipBreakfast', true)}
             >
-              ❌ Нет, пропускаю
+              ❌ No, I skip it
             </OptionButton>
           </div>
         </div>
@@ -54,20 +54,20 @@ export function FoodHabitsStep() {
         {/* Перекусы */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Вы перекусываете между приёмами пищи?
+            Do you snack between meals?
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
               selected={answers.snackBetweenMeals === true}
               onClick={() => updateAnswer('snackBetweenMeals', true)}
             >
-              Да, часто
+              Yes, often
             </OptionButton>
             <OptionButton
               selected={answers.snackBetweenMeals === false}
               onClick={() => updateAnswer('snackBetweenMeals', false)}
             >
-              Нет, редко
+              No, rarely
             </OptionButton>
           </div>
         </div>
@@ -75,15 +75,15 @@ export function FoodHabitsStep() {
         {/* Фастфуд */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Как часто вы едите фастфуд?
+            How often do you eat fast food?
           </label>
           <div className="space-y-2">
             {[
-              { value: 'never', label: 'Никогда' },
-              { value: 'rarely', label: 'Редко (раз в месяц)' },
-              { value: 'sometimes', label: 'Иногда (раз в неделю)' },
-              { value: 'often', label: 'Часто (несколько раз в неделю)' },
-              { value: 'daily', label: 'Ежедневно' },
+              { value: 'never', label: 'Never' },
+              { value: 'rarely', label: 'Rarely (once a month)' },
+              { value: 'sometimes', label: 'Sometimes (once a week)' },
+              { value: 'often', label: 'Often (several times a week)' },
+              { value: 'daily', label: 'Daily' },
             ].map((option) => (
               <OptionButton
                 key={option.value}
@@ -99,15 +99,15 @@ export function FoodHabitsStep() {
         {/* Домашняя еда */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Как часто вы готовите дома?
+            How often do you cook at home?
           </label>
           <div className="space-y-2">
             {[
-              { value: 'never', label: 'Никогда' },
-              { value: 'rarely', label: 'Редко' },
-              { value: 'sometimes', label: 'Иногда' },
-              { value: 'often', label: 'Часто' },
-              { value: 'always', label: 'Всегда' },
+              { value: 'never', label: 'Never' },
+              { value: 'rarely', label: 'Rarely' },
+              { value: 'sometimes', label: 'Sometimes' },
+              { value: 'often', label: 'Often' },
+              { value: 'always', label: 'Always' },
             ].map((option) => (
               <OptionButton
                 key={option.value}

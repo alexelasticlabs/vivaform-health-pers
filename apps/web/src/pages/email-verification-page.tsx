@@ -12,7 +12,7 @@ export function EmailVerificationPage() {
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('Токен верификации отсутствует');
+      setMessage('Verification token is missing');
       return;
     }
 
@@ -23,7 +23,7 @@ export function EmailVerificationPage() {
         setMessage(response.message);
       } catch (error: any) {
         setStatus('error');
-        const errorMessage = error?.response?.data?.message || 'Недействительный или истёкший токен верификации';
+        const errorMessage = error?.response?.data?.message || 'Invalid or expired verification token';
         setMessage(errorMessage);
         console.error(error);
       }
@@ -39,10 +39,10 @@ export function EmailVerificationPage() {
           <>
             <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Проверяем email...
+              Verifying Email...
             </h1>
             <p className="text-gray-600">
-              Пожалуйста, подождите
+              Please wait
             </p>
           </>
         )}
@@ -51,19 +51,19 @@ export function EmailVerificationPage() {
           <>
             <div className="text-6xl mb-4">✅</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Email подтверждён!
+              Email Verified!
             </h1>
             <p className="text-gray-600 mb-6">
               {message}
             </p>
             <p className="text-sm text-gray-500 mb-6">
-              Теперь вы можете войти в свой аккаунт
+              You can now log in to your account
             </p>
             <Link
               to="/login"
               className="inline-block w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
-              Перейти ко входу
+              Go to Login
             </Link>
           </>
         )}
@@ -72,19 +72,19 @@ export function EmailVerificationPage() {
           <>
             <div className="text-6xl mb-4">❌</div>
             <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              Ошибка верификации
+              Verification Error
             </h1>
             <p className="text-gray-600 mb-6">
               {message}
             </p>
             <p className="text-sm text-gray-500 mb-6">
-              Возможно, ссылка истекла или была уже использована
+              The link may have expired or was already used
             </p>
             <Link
               to="/login"
               className="inline-block w-full py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors"
             >
-              Вернуться ко входу
+              Back to Login
             </Link>
           </>
         )}

@@ -21,20 +21,20 @@ export function MealPlannerPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Meal Planner</h1>
           <p className="text-gray-600 mb-6">
-            Персональный планировщик питания доступен только для премиум-пользователей
+            Personal meal planner is available only for premium users
           </p>
           <div className="space-y-3">
             <Link
               to="/premium"
               className="block w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-semibold py-3 px-6 rounded-lg hover:from-orange-600 hover:to-yellow-600 transition"
             >
-              Перейти на Premium
+              Upgrade to Premium
             </Link>
             <button
               onClick={() => navigate(-1)}
               className="block w-full border-2 border-gray-300 text-gray-700 font-semibold py-3 px-6 rounded-lg hover:bg-gray-50 transition"
             >
-              Назад
+              Go Back
             </button>
           </div>
         </div>
@@ -69,15 +69,15 @@ export function MealPlannerPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
-          <h2 className="text-xl font-bold text-red-600 mb-2">Ошибка</h2>
+          <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
           <p className="text-gray-600 mb-4">
-            {error instanceof Error ? error.message : "Не удалось загрузить план питания"}
+            {error instanceof Error ? error.message : "Failed to load meal plan"}
           </p>
           <button
             onClick={() => refetch()}
             className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition"
           >
-            Попробовать снова
+            Try Again
           </button>
         </div>
       </div>
@@ -89,7 +89,7 @@ export function MealPlannerPage() {
   }
 
   const selectedDay = mealPlan.days[selectedDayIndex];
-  const dayNames = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
+  const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-green-50 to-teal-50">
@@ -103,7 +103,7 @@ export function MealPlannerPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">Meal Planner</h1>
-                <p className="text-sm text-gray-600">Ваш персональный план питания на неделю</p>
+                <p className="text-sm text-gray-600">Your personal weekly meal plan</p>
               </div>
             </div>
             <button
@@ -111,7 +111,7 @@ export function MealPlannerPage() {
               className="flex items-center gap-2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 transition"
             >
               <TrendingUp className="w-4 h-4" />
-              Обновить план
+              Refresh Plan
             </button>
           </div>
         </div>
@@ -120,60 +120,60 @@ export function MealPlannerPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Weekly Summary Card */}
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Средние показатели за неделю</h2>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Weekly Averages</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600">
                 {mealPlan.weeklyAverages.calories}
               </p>
-              <p className="text-sm text-gray-600">Калории</p>
+              <p className="text-sm text-gray-600">Calories</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">
-                {mealPlan.weeklyAverages.protein}г
+                {mealPlan.weeklyAverages.protein}g
               </p>
-              <p className="text-sm text-gray-600">Белок</p>
+              <p className="text-sm text-gray-600">Protein</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-600">{mealPlan.weeklyAverages.fat}г</p>
-              <p className="text-sm text-gray-600">Жиры</p>
+              <p className="text-2xl font-bold text-yellow-600">{mealPlan.weeklyAverages.fat}g</p>
+              <p className="text-sm text-gray-600">Fat</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-orange-600">
-                {mealPlan.weeklyAverages.carbs}г
+                {mealPlan.weeklyAverages.carbs}g
               </p>
-              <p className="text-sm text-gray-600">Углеводы</p>
+              <p className="text-sm text-gray-600">Carbs</p>
             </div>
           </div>
 
           {/* Progress bars for target vs actual */}
           <div className="mt-6 space-y-3">
             <MacroProgress
-              label="Калории"
+              label="Calories"
               actual={mealPlan.weeklyAverages.calories}
               target={mealPlan.targetMacros.calories}
               color="blue"
             />
             <MacroProgress
-              label="Белок"
+              label="Protein"
               actual={mealPlan.weeklyAverages.protein}
               target={mealPlan.targetMacros.protein}
               color="green"
-              unit="г"
+              unit="g"
             />
             <MacroProgress
-              label="Жиры"
+              label="Fat"
               actual={mealPlan.weeklyAverages.fat}
               target={mealPlan.targetMacros.fat}
               color="yellow"
-              unit="г"
+              unit="g"
             />
             <MacroProgress
-              label="Углеводы"
+              label="Carbs"
               actual={mealPlan.weeklyAverages.carbs}
               target={mealPlan.targetMacros.carbs}
               color="orange"
-              unit="г"
+              unit="g"
             />
           </div>
         </div>
@@ -204,7 +204,7 @@ export function MealPlannerPage() {
             {/* Meals List */}
             <div className="lg:col-span-2 space-y-4">
               <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Меню на {new Date(selectedDay.date).toLocaleDateString("ru-RU", { weekday: "long", day: "numeric", month: "long" })}
+                Menu for {new Date(selectedDay.date).toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })}
               </h2>
               {selectedDay.meals.map((meal, index) => (
                 <MealCard key={index} meal={meal} />
@@ -214,30 +214,30 @@ export function MealPlannerPage() {
             {/* Daily Totals Sidebar */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl shadow-lg p-6 sticky top-4">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Итого за день</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Daily Totals</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center pb-3 border-b">
-                    <span className="text-gray-600">Калории</span>
+                    <span className="text-gray-600">Calories</span>
                     <span className="text-xl font-bold text-blue-600">
                       {selectedDay.dailyTotals.calories}
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b">
-                    <span className="text-gray-600">Белок</span>
+                    <span className="text-gray-600">Protein</span>
                     <span className="text-xl font-bold text-green-600">
-                      {selectedDay.dailyTotals.protein}г
+                      {selectedDay.dailyTotals.protein}g
                     </span>
                   </div>
                   <div className="flex justify-between items-center pb-3 border-b">
-                    <span className="text-gray-600">Жиры</span>
+                    <span className="text-gray-600">Fat</span>
                     <span className="text-xl font-bold text-yellow-600">
-                      {selectedDay.dailyTotals.fat}г
+                      {selectedDay.dailyTotals.fat}g
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-600">Углеводы</span>
+                    <span className="text-gray-600">Carbs</span>
                     <span className="text-xl font-bold text-orange-600">
-                      {selectedDay.dailyTotals.carbs}г
+                      {selectedDay.dailyTotals.carbs}g
                     </span>
                   </div>
                 </div>
