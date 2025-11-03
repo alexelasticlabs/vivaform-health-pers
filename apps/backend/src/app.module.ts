@@ -5,6 +5,7 @@ import { ScheduleModule } from "@nestjs/schedule";
 
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { appConfig, jwtConfig, stripeConfig } from "./config";
+import { AdminModule } from "./modules/admin/admin.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { DashboardModule } from "./modules/dashboard/dashboard.module";
 import { HealthModule } from "./modules/health/health.module";
@@ -28,6 +29,7 @@ import { WebhooksModule } from "./modules/webhooks/webhooks.module";
     ThrottlerModule.forRoot([{ ttl: 60, limit: 120 }]),
     ScheduleModule.forRoot(),
     PrismaModule,
+    AdminModule,
     HealthModule,
     UsersModule,
     AuthModule,

@@ -12,6 +12,11 @@ enum SubscriptionTier {
   PREMIUM
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 enum ActivityLevel {
   SEDENTARY
   LIGHT
@@ -31,6 +36,7 @@ model User {
   email         String           @unique
   passwordHash  String
   name          String?
+  role          UserRole         @default(USER)
   tier          SubscriptionTier @default(FREE)
   pushToken     String?          // Expo Push Token for notifications
   createdAt     DateTime         @default(now())

@@ -19,15 +19,20 @@
 - ✅ Support widget
 - ✅ Comprehensive тесты (landing + widget)
 - ✅ Analytics integration (Meta Pixel + Google Ads готовы)
+- ✅ **Admin Panel** — управление пользователями, модерация продуктов, статистика
 
 **Backend**
 - ✅ NestJS API structure
-- ✅ Prisma + PostgreSQL (MealTemplate модель + 25 seed блюд)
+- ✅ Prisma + PostgreSQL (MealTemplate + FoodItem модели)
 - ✅ JWT + Refresh tokens
 - ✅ **EmailService с Nodemailer** — welcome, verification, password reset templates
 - ✅ **Stripe Webhooks** — auto-sync subscriptions (4 event handlers)
 - ✅ **QuizService** — расчёт BMI, BMR, TDEE, macros
 - ✅ **MealPlanService** — алгоритмическая генерация меню (без AI API)
+- ✅ **RecommendationsGeneratorService** — 8 алгоритмических правил + автоматическая генерация
+- ✅ **NotificationsService** — Push-уведомления через Expo SDK + 5 cron-задач
+- ✅ **FoodService** — поиск по базе продуктов (60 seed items)
+- ✅ **AdminService** — управление пользователями, модерация, статистика
 - ✅ Stripe integration (webhooks, subscriptions)
 - ✅ Базовые модули (auth, users, dashboard, weight, water, nutrition, recommendations, quiz, webhooks, meal-plan)
 - ✅ Security (Helmet, CORS, rate limiting, Stripe signature verification)

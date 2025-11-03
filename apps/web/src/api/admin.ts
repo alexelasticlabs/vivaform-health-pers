@@ -1,0 +1,86 @@
+import { apiClient } from "./client";
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: "USER" | "ADMIN";
+  tier: "FREE" | "PREMIUM";
+  createdAt: string;
+  updatedAt: string;
+  _count: {
+    nutrition: number;
+    water: number;
+    weight: number;
+    recommendations: number;
+  };
+}
+
+export interface UserStats {
+  totalUsers: number;
+  freeUsers: number;
+  premiumUsers: number;
+  activeToday: number;
+  newThisWeek: number;
+}
+
+export interface SystemStats {
+  nutritionEntries: number;
+  waterEntries: number;
+  weightEntries: number;
+  recommendations: number;
+  foodItems: number;
+  mealTemplates: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export const getAllUsers = async (page = 1, limit = 50) => {
+  const response = await apiClient.get<{ users: AdminUser[]; pagination: any }>(
+    `/admin/users?page=${page}&limit=${limit}`
+  );
+  return response.data;
+};
+
+export const getUserStats = async (): Promise<UserStats> => {
+  const response = await apiClient.get("/admin/stats/users");
+  return response.data;
+};
+
+export const getSystemStats = async (): Promise<SystemStats> => {
+  const response = await apiClient.get("/admin/stats/system");
+  return response.data;
+};
+
+export const updateUserRole = async (userId: string, role: "USER" | "ADMIN") => {
+  const response = await apiClient.patch(`/admin/users/${userId}/role`, { role });
+  return response.data;
+};
+
+export const getAdminFoodItems = async (verified?: boolean, page = 1, limit = 50) => {
+  const params = new URLSearchParams();
+  if (verified !== undefined) params.set("verified", verified.toString());
+  params.set("page", page.toString());
+  params.set("limit", limit.toString());
+
+  const response = await apiClient.get(`/admin/food-items?${params.toString()}`);
+  return response.data;
+};
+
+export const verifyFoodItem = async (foodId: string, verified: boolean) => {
+  const response = await apiClient.patch(`/admin/food-items/${foodId}/verify`, { verified });
+  return response.data;
+};
+
+export const deleteFoodItem = async (foodId: string) => {
+  const response = await apiClient.delete(`/admin/food-items/${foodId}`);
+  return response.data;
+};

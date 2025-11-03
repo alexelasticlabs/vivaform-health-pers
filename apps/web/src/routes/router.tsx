@@ -17,6 +17,7 @@ import { ResetPasswordPage } from "../pages/reset-password-page";
 import { EmailVerificationPage } from "../pages/email-verification-page";
 import { PremiumPage } from "../pages/premium-page";
 import { MealPlannerPage } from "../pages/meal-planner-page";
+import { AdminPage } from "../pages/admin-page";
 
 export const createAppRouter = () =>
   createBrowserRouter([
@@ -81,6 +82,10 @@ export const createAppRouter = () =>
         {
           path: "meal-planner",
           element: <MealPlannerPage />
+        },
+        {
+          path: "admin",
+          element: <AdminPage />
         },
         {
           path: "settings",
