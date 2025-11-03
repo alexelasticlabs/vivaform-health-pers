@@ -1,6 +1,6 @@
 ﻿import { FormEvent, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 
 import { extractErrorMessage, login } from "../api";
@@ -82,9 +82,9 @@ export const LoginPage = () => {
           {isPending ? "Signing you in…" : "Log in"}
         </button>
       </form>
-      <a href="#" className="text-center text-sm font-medium text-primary hover:underline">
+      <Link to="/forgot-password" className="text-center text-sm font-medium text-primary hover:underline">
         Forgot password?
-      </a>
+      </Link>
     </section>
   );
 };

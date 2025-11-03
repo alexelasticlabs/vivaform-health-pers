@@ -11,6 +11,12 @@ import { RegisterPage } from "../pages/register-page";
 import { ProgressPage } from "../pages/progress-page";
 import { RecommendationsPage } from "../pages/recommendations-page";
 import { SettingsPage } from "../pages/settings-page";
+import { QuizPage } from "../pages/quiz-page";
+import { ForgotPasswordPage } from "../pages/forgot-password-page";
+import { ResetPasswordPage } from "../pages/reset-password-page";
+import { EmailVerificationPage } from "../pages/email-verification-page";
+import { PremiumPage } from "../pages/premium-page";
+import { MealPlannerPage } from "../pages/meal-planner-page";
 
 export const createAppRouter = () =>
   createBrowserRouter([
@@ -29,6 +35,26 @@ export const createAppRouter = () =>
         {
           path: "register",
           element: <RegisterPage />
+        },
+        {
+          path: "quiz",
+          element: <QuizPage />
+        },
+        {
+          path: "forgot-password",
+          element: <ForgotPasswordPage />
+        },
+        {
+          path: "reset-password",
+          element: <ResetPasswordPage />
+        },
+        {
+          path: "verify-email",
+          element: <EmailVerificationPage />
+        },
+        {
+          path: "premium",
+          element: <PremiumPage />
         }
       ]
     },
@@ -51,6 +77,10 @@ export const createAppRouter = () =>
         {
           path: "recommendations",
           element: <RecommendationsPage />
+        },
+        {
+          path: "meal-planner",
+          element: <MealPlannerPage />
         },
         {
           path: "settings",

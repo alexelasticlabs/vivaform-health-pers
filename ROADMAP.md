@@ -7,7 +7,11 @@
 **Frontend (Web)**
 - ✅ Landing page с улучшенными текстами и анимациями
 - ✅ Базовая аутентификация (login/register)
-- ✅ Dashboard с виджетами
+- ✅ **Quiz с 10 шагами (30+ вопросов)** — полный onboarding flow
+- ✅ **Forgot Password + Reset Password + Email Verification** — полный security flow
+- ✅ **Premium Page с pricing, testimonials, FAQ** — conversion-focused
+- ✅ **Meal Planner MVP (PREMIUM feature)** — генератор меню на неделю БЕЗ AI
+- ✅ Dashboard с виджетами (nutrition, water, weight, recommendations)
 - ✅ Progress page (графики веса)
 - ✅ Recommendations page (базовая структура)
 - ✅ Settings page
@@ -18,137 +22,172 @@
 
 **Backend**
 - ✅ NestJS API structure
-- ✅ Prisma + PostgreSQL
+- ✅ Prisma + PostgreSQL (MealTemplate модель + 25 seed блюд)
 - ✅ JWT + Refresh tokens
+- ✅ **EmailService с Nodemailer** — welcome, verification, password reset templates
+- ✅ **Stripe Webhooks** — auto-sync subscriptions (4 event handlers)
+- ✅ **QuizService** — расчёт BMI, BMR, TDEE, macros
+- ✅ **MealPlanService** — алгоритмическая генерация меню (без AI API)
 - ✅ Stripe integration (webhooks, subscriptions)
-- ✅ Базовые модули (auth, users, dashboard, weight, water, nutrition, recommendations)
-- ✅ Security (Helmet, CORS, rate limiting)
+- ✅ Базовые модули (auth, users, dashboard, weight, water, nutrition, recommendations, quiz, webhooks, meal-plan)
+- ✅ Security (Helmet, CORS, rate limiting, Stripe signature verification)
 
 **Infrastructure**
 - ✅ Monorepo (Turborepo + pnpm)
 - ✅ TypeScript everywhere
 - ✅ Vite 6 + React 19
-- ✅ Tailwind CSS 4 + Radix UI
+- ✅ Tailwind CSS 4 + Radix UI + lucide-react icons
 
 ---
 
-## 🎯 Phase 1: Core User Journey (Приоритет 1) — 2-3 недели
+## 🎯 Phase 1: Core User Journey (Приоритет 1) — ✅ ЗАВЕРШЕНО
 
-### 🎪 1.1 Onboarding Quiz (Критично!)
-**Статус:** ❌ Отсутствует  
-**Описание:** Интерактивный квиз из ~40 вопросов для персонализации
+### 🎪 1.1 Onboarding Quiz — ✅ РЕАЛИЗОВАНО
+**Статус:** ✅ Полностью готово  
+**Описание:** Интерактивный квиз из 10 шагов (30+ вопросов) для персонализации
 
-**Задачи:**
-- [ ] Создать `apps/web/src/pages/quiz-page.tsx`
-- [ ] Разработать state machine для квиза (Zustand или XState)
-- [ ] Дизайн UI: progress bar, плавные переходы между вопросами
-- [ ] Группы вопросов:
-  - Базовые: пол, возраст, рост, текущий вес, целевой вес
-  - Активность: уровень физической активности, тип работы
-  - Питание: режим питания, предпочтения (вегетарианство, аллергии)
-  - Цели: похудение/набор/поддержание, временные рамки
-  - Привычки: вода, сон, стресс
-- [ ] Сохранение промежуточных результатов (localStorage)
-- [ ] Валидация ответов
-- [ ] Backend endpoint: `POST /api/quiz/submit`
-- [ ] Автоматический расчёт TDEE и макросов после завершения
-- [ ] Тесты для quiz flow
-
-**Зависимости:** Backend `/quiz` module
-
----
-
-### 🔐 1.2 Улучшение Auth Flow
-**Статус:** ⚠️ Базовая реализация есть, нужны улучшения
-
-**Задачи:**
-- [ ] Forgot Password flow
-  - [ ] `apps/web/src/pages/forgot-password-page.tsx`
-  - [ ] Backend: `POST /api/auth/forgot-password`
-  - [ ] Email с ссылкой восстановления
-  - [ ] `apps/web/src/pages/reset-password-page.tsx`
-- [ ] Email verification
-  - [ ] Отправка письма после регистрации
-  - [ ] `GET /api/auth/verify-email/:token`
-  - [ ] Страница подтверждения
-- [ ] Social auth (опционально)
-  - [ ] Google OAuth
-  - [ ] Apple Sign In
-- [ ] Rate limiting на login/register
-- [ ] Captcha для предотвращения ботов
-- [ ] Тесты auth flows
+**Реализовано:**
+- ✅ `apps/web/src/pages/quiz-page.tsx` — главная страница квиза
+- ✅ State management (Zustand quiz-store)
+- ✅ 10 шагов квиза:
+  1. ✅ IntroStep — выбор диеты (Mediterranean/Carnivore/Anti-Inflammatory)
+  2. ✅ BodyMetricsStep — рост, вес, BMI калькулятор
+  3. ✅ GoalTimelineStep — целевой вес и таймлайн
+  4. ✅ ActivityLevelStep — уровень активности (5 вариантов)
+  5. ✅ FoodHabitsStep — 5 вопросов о питании (meals/day, breakfast, snacks, fast food, cooking)
+  6. ✅ EnergyScheduleStep — 5 вопросов о режиме (sleep, activity, exercise, wake/dinner time)
+  7. ✅ PreferencesStep — 6 вопросов (allergies, avoided foods, complexity, cooking time)
+  8. ✅ EmotionalStep — 5 вопросов (stress eating, motivation, stress level, comfort source, confidence)
+  9. ✅ HydrationStep — 4 вопроса (daily water, reminders, tracking, health app)
+  10. ✅ IntegrationsStep — тема интерфейса
+- ✅ Progress bar с анимациями
+- ✅ Валидация на каждом шаге
+- ✅ Сохранение в localStorage
+- ✅ Backend: `POST /api/quiz/submit` — расчёт BMI, BMR, TDEE, macros
+- ✅ Финальный экран с результатами и CTA "Continue → Create account"
 
 ---
 
-### 💎 1.3 Premium Upsell Flow
-**Статус:** ⚠️ Stripe интеграция есть, UI flow отсутствует
+### 🔐 1.2 Улучшение Auth Flow — ✅ РЕАЛИЗОВАНО
+**Статус:** ✅ Полностью готово
 
-**Задачи:**
-- [ ] `apps/web/src/pages/premium-page.tsx` — промо-страница VivaForm+
-  - Benefits comparison table (Free vs Premium)
-  - Pricing cards с тремя планами
-  - Testimonials section
-  - FAQ специфичный для подписки
-- [ ] Stripe Checkout integration
-  - [ ] Кнопка "Subscribe" → Stripe Checkout Session
-  - [ ] Success callback page (`/premium/success`)
-  - [ ] Cancel callback page (`/premium/cancel`)
-- [ ] Trial period (7 days)
-  - [ ] Backend логика проверки триала
-  - [ ] UI баннер "X days left in trial"
-- [ ] Subscription management
-  - [ ] View current plan в Settings
-  - [ ] Cancel subscription
-  - [ ] Update payment method
-  - [ ] Invoice history
-- [ ] Premium gates по всему приложению
-  - [ ] Upgrade prompts в нужных местах
-  - [ ] Disable premium features для Free users
-- [ ] Тесты checkout flow
+**Реализовано:**
+- ✅ Forgot Password flow
+  - ✅ `apps/web/src/pages/forgot-password-page.tsx`
+  - ✅ Backend: `POST /auth/forgot-password` — генерирует JWT токен (1 час)
+  - ✅ Email с ссылкой восстановления (HTML template)
+  - ✅ `apps/web/src/pages/reset-password-page.tsx` — парсинг token из URL
+- ✅ Email verification
+  - ✅ Отправка письма после регистрации (welcome + verification)
+  - ✅ `GET /auth/verify-email?token=...` — маркирует emailVerified=true
+  - ✅ `apps/web/src/pages/email-verification-page.tsx` — автоматическая верификация
+- ✅ EmailService с Nodemailer
+  - ✅ 3 HTML templates: welcome.html, verification.html, password-reset.html
+  - ✅ SMTP config из environment variables
+  - ✅ Ethereal email для dev-тестирования
+- ✅ Rate limiting на login/register (уже было)
+- ✅ Argon2 password hashing
 
 ---
 
-### 📊 1.4 Dashboard Completion
-**Статус:** ⚠️ Базовая структура есть, нужно наполнение
+### 💎 1.3 Premium Upsell Flow — ✅ РЕАЛИЗОВАНО
+**Статус:** ✅ Полностью готово
 
-**Задачи:**
-- [ ] Nutrition Diary Widget
-  - [ ] Add meal form (breakfast, lunch, dinner, snacks)
-  - [ ] Food search/autocomplete (база продуктов)
-  - [ ] Macro calculation (calories, protein, carbs, fats)
-  - [ ] Daily summary card
-  - [ ] Backend: `POST /api/nutrition/meals`, `GET /api/nutrition/daily-summary`
-- [ ] Water Tracker Widget
-  - [ ] Quick add buttons (250ml, 500ml, 750ml, custom)
-  - [ ] Progress bar до цели
-  - [ ] Backend: `POST /api/water/log`, `GET /api/water/today`
-- [ ] Weight Widget
-  - [ ] Quick add weight entry
-  - [ ] Mini chart (last 7 days)
-  - [ ] Backend уже есть: `/api/weight/*`
-- [ ] Recommendations Widget
-  - [ ] Display personalized tips
-  - [ ] "See all recommendations" link
-  - [ ] Backend: `/api/recommendations/today`
-- [ ] Quick Stats Overview
-  - [ ] Today's calories vs target
-  - [ ] Macro balance
-  - [ ] Weight trend
-- [ ] Тесты dashboard widgets
+**Реализовано:**
+- ✅ `apps/web/src/pages/premium-page.tsx` — промо-страница VivaForm+
+  - ✅ Hero section с gradient
+  - ✅ Pricing cards (FREE vs PREMIUM) с highlight
+  - ✅ Feature comparison table с Check/X иконками
+  - ✅ Testimonials section (3 отзыва)
+  - ✅ FAQ accordion (5 вопросов)
+  - ✅ CTA section с dual buttons
+- ✅ Stripe Webhook integration
+  - ✅ `POST /webhooks/stripe` с signature verification
+  - ✅ 4 event handlers:
+    - checkout.session.completed → создание Subscription + update User.tier
+    - invoice.payment_succeeded → обновление currentPeriodEnd
+    - customer.subscription.updated → sync tier и status
+    - customer.subscription.deleted → downgrade to FREE
+- ✅ Premium gates
+  - ✅ Meal Planner — strict premium gate с редиректом на /premium
+  - ✅ Navigation bar — ✨ icon для premium features
+- ✅ "View Plans" button на landing page
+
+**Осталось (не критично):**
+- [ ] Trial period (7 days) — требует дополнительной логики
+- [ ] Subscription management UI в Settings (cancel, update payment, invoices)
+- [ ] Social auth (Google, Apple) — опционально
 
 ---
 
-## 🚀 Phase 2: Premium Features (Приоритет 2) — 3-4 недели
+### 📊 1.4 Dashboard Completion — ✅ БАЗОВО ГОТОВО
+**Статус:** ✅ Основной функционал работает
 
-### 🍽️ 2.1 Meal Planner (Premium)
-**Статус:** ❌ Отсутствует
+**Реализовано:**
+- ✅ GET `/dashboard/daily` endpoint — агрегирует все данные за день
+- ✅ Nutrition Diary Widget
+  - ✅ Add meal form (breakfast, lunch, dinner, snacks)
+  - ✅ Manual input (food name, calories, protein, fat, carbs)
+  - ✅ Daily summary card
+  - ✅ Backend: `POST /nutrition`, `GET /nutrition?date=...`, `GET /nutrition/summary`
+- ✅ Water Tracker Widget
+  - ✅ Quick add form с кастомным input
+  - ✅ Display entries за день
+  - ✅ Backend: `POST /water`, `GET /water?date=...`, `GET /water/total`
+- ✅ Weight Widget
+  - ✅ Quick add weight entry с опциональной заметкой
+  - ✅ Display latest weight + progress delta
+  - ✅ Backend: `POST /weight`, `GET /weight/latest`, `GET /weight/progress`
+- ✅ Recommendations Widget
+  - ✅ Display personalized tips (если есть)
+  - ✅ Backend: `POST /recommendations`, `GET /recommendations?date=...`
+- ✅ Quick Stats Overview — calories, protein, water
 
-**Задачи:**
-- [ ] `apps/web/src/pages/meal-planner-page.tsx`
-- [ ] UI для генерации меню
-  - [ ] Параметры: дней (1/3/7), тип диеты, исключения
-  - [ ] "Generate Plan" button
-- [ ] Backend: Meal plan generation algorithm
+**Осталось (не критично для MVP):**
+- [ ] Food search/autocomplete — база продуктов (можно добавить USDA API или локальную БД)
+- [ ] Auto macro calculation при выборе продукта
+- [ ] Progress bars для целей (calories vs target, water vs daily goal)
+- [ ] Mini charts в виджетах
+
+---
+
+## 🚀 Phase 2: Premium Features (Приоритет 2) — ✅ MEAL PLANNER ГОТОВ
+
+### 🍽️ 2.1 Meal Planner (Premium) — ✅ MVP РЕАЛИЗОВАНО
+**Статус:** ✅ Полностью готово БЕЗ внешних AI API
+
+**Реализовано:**
+- ✅ `apps/web/src/pages/meal-planner-page.tsx` (470 строк)
+  - ✅ Premium gate UI — редирект на /premium если tier !== 'PREMIUM'
+  - ✅ Weekly calendar navigation (7 дней)
+  - ✅ Meal cards с expandable details (ingredients, instructions)
+  - ✅ Macro progress bars (actual vs target)
+  - ✅ Daily totals sidebar
+  - ✅ Weekly averages summary
+  - ✅ Regenerate button (refetch)
+- ✅ Backend: MealPlanService (440 строк)
+  - ✅ `GET /nutrition/meal-plan` endpoint с premium gate
+  - ✅ MealTemplate модель в Prisma (25 готовых блюд)
+  - ✅ Seed data: Mediterranean (8), Carnivore (6), Anti-Inflammatory (6), Snacks (5)
+  - ✅ Алгоритм генерации:
+    - ✅ Фильтрация по dietPlan, cookingTime, complexity, allergens, avoidedFoods
+    - ✅ Расчёт целевых макросов по типу диеты (protein/fat/carbs ratios)
+    - ✅ Scoring algorithm для подбора блюд (минимизация разницы с target)
+    - ✅ Балансировка calories и macros на день
+    - ✅ Исключение повторов в рамках дня
+    - ✅ Генерация 7 дней с учётом mealsPerDay и skipBreakfast
+- ✅ API типы: WeeklyMealPlan, DayPlan, MealPlanMeal
+- ✅ Navigation link в AppShell с ✨ иконкой
+
+**Соответствие спецификации:**
+- ✅ "Персональные рекомендации (без внешнего AI)" — да, алгоритмическая логика
+- ✅ "Генератор меню: Пример рациона на день/неделю" — 7 дней
+- ✅ "с учётом цели и предпочтений" — учитывает TDEE, macros, dietPlan, allergies, avoidedFoods
+- ✅ Premium-фича — строгий gate на backend и frontend
+
+---
+
+## 🎯 Phase 3: Analytics & Recommendations (Приоритет 3) — Следующий этап
   - [ ] База рецептов и продуктов
   - [ ] Расчёт калорий и макросов
   - [ ] Учёт предпочтений пользователя

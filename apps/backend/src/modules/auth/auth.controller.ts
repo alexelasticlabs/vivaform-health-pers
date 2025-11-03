@@ -1,4 +1,4 @@
-﻿import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
+﻿import { Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -7,6 +7,7 @@ import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dto/login.dto";
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
+import { ForgotPasswordDto, ResetPasswordDto } from "./dto/forgot-password.dto";
 
 @ApiTags("auth")
 @Controller("auth")
@@ -30,5 +31,23 @@ export class AuthController {
   @ApiOkResponse({ description: "Текущий профиль пользователя" })
   me(@CurrentUser() user: CurrentUserPayload) {
     return this.authService.getProfile(user.userId);
+  }
+
+  @Post("forgot-password")
+  @ApiOkResponse({ description: "Запрос на сброс пароля" })
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post("reset-password")
+  @ApiOkResponse({ description: "Сброс пароля по токену" })
+  resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
+  }
+
+  @Get("verify-email")
+  @ApiOkResponse({ description: "Верификация email" })
+  verifyEmail(@Query("token") token: string) {
+    return this.authService.verifyEmail(token);
   }
 }

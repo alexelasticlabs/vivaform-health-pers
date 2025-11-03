@@ -1,106 +1,29 @@
 ﻿import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
-
+import { useState } from "react";
 import { trackConversion } from "../lib/analytics";
 import { useIntersectionObserver } from "../hooks/use-intersection-observer";
 import { AppStoreButtons } from "../components/app-store-buttons";
-
 type ValueProp = {
   title: string;
   description: string;
   icon: string;
 };
-
 type FeatureHighlight = {
   title: string;
   description: string;
   icon: string;
 };
-
 type Testimonial = {
   name: string;
   role: string;
   content: string;
   initials: string;
 };
-
 type FaqItem = {
   id: string;
   question: string;
   answer: string;
 };
-
-type PhoneVariantId = "natural" | "white" | "blue" | "graphite";
-
-type PhoneVariant = {
-  id: PhoneVariantId;
-  label: string;
-  swatch: string;
-  frameGradientLight: string;
-  frameGradientDark: string;
-  buttonGradientLight: string;
-  buttonGradientDark: string;
-  edgeSheenLight: string;
-  edgeSheenDark: string;
-  underGlassTintLight: string;
-  underGlassTintDark: string;
-};
-
-const phoneVariants: PhoneVariant[] = [
-  {
-    id: "natural",
-    label: "Natural titanium",
-    swatch: "#c8ccd3",
-    frameGradientLight: "linear-gradient(180deg, #d8dce2 0%, #c3c8cf 46%, #aeb3bb 100%)",
-    frameGradientDark: "linear-gradient(180deg, #6b6f74 0%, #575b61 48%, #3f4349 100%)",
-    buttonGradientLight: "linear-gradient(180deg, #c1c5cc 0%, #a6abb3 100%)",
-    buttonGradientDark: "linear-gradient(180deg, #575a60 0%, #42454b 100%)",
-    edgeSheenLight: "linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.08) 62%, rgba(255,255,255,0.34) 100%)",
-    edgeSheenDark: "linear-gradient(180deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.06) 64%, rgba(255,255,255,0.18) 100%)",
-    underGlassTintLight: "linear-gradient(160deg, rgba(5,5,8,0.92) 0%, rgba(16,16,22,0.98) 100%)",
-    underGlassTintDark: "linear-gradient(160deg, rgba(5,5,8,0.88) 0%, rgba(14,14,20,0.96) 100%)"
-  },
-  {
-    id: "white",
-    label: "White titanium",
-    swatch: "#e3e6ed",
-    frameGradientLight: "linear-gradient(180deg, #f7f8fb 0%, #e3e7ed 48%, #ccd2d9 100%)",
-    frameGradientDark: "linear-gradient(180deg, #a9adb4 0%, #868b93 48%, #5f636a 100%)",
-    buttonGradientLight: "linear-gradient(180deg, #f0f2f6 0%, #d9dde3 100%)",
-    buttonGradientDark: "linear-gradient(180deg, #8f939b 0%, #6c7077 100%)",
-    edgeSheenLight: "linear-gradient(180deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.18) 70%, rgba(255,255,255,0.48) 100%)",
-    edgeSheenDark: "linear-gradient(180deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0.12) 70%, rgba(255,255,255,0.24) 100%)",
-    underGlassTintLight: "linear-gradient(160deg, rgba(5,5,8,0.92) 0%, rgba(16,16,22,0.98) 100%)",
-    underGlassTintDark: "linear-gradient(160deg, rgba(5,5,8,0.88) 0%, rgba(14,14,20,0.96) 100%)"
-  },
-  {
-    id: "blue",
-    label: "Blue titanium",
-    swatch: "#3f4d65",
-    frameGradientLight: "linear-gradient(180deg, #596580 0%, #455068 50%, #2f3948 100%)",
-    frameGradientDark: "linear-gradient(180deg, #353d4e 0%, #262d3a 50%, #1b212c 100%)",
-    buttonGradientLight: "linear-gradient(180deg, #47556e 0%, #323c4f 100%)",
-    buttonGradientDark: "linear-gradient(180deg, #2e3647 0%, #1f2532 100%)",
-    edgeSheenLight: "linear-gradient(180deg, rgba(173,187,208,0.36) 0%, rgba(118,131,153,0.12) 65%, rgba(142,156,178,0.28) 100%)",
-    edgeSheenDark: "linear-gradient(180deg, rgba(164,176,197,0.22) 0%, rgba(92,104,126,0.08) 68%, rgba(116,129,152,0.2) 100%)",
-    underGlassTintLight: "linear-gradient(160deg, rgba(5,5,8,0.92) 0%, rgba(16,16,22,0.98) 100%)",
-    underGlassTintDark: "linear-gradient(160deg, rgba(5,5,8,0.88) 0%, rgba(14,14,20,0.96) 100%)"
-  },
-  {
-    id: "graphite",
-    label: "Black titanium",
-    swatch: "#2b2e33",
-    frameGradientLight: "linear-gradient(180deg, #4a4d54 0%, #33363d 50%, #1f2126 100%)",
-    frameGradientDark: "linear-gradient(180deg, #2c2f35 0%, #1c1e23 50%, #111318 100%)",
-    buttonGradientLight: "linear-gradient(180deg, #373a40 0%, #1f2126 100%)",
-    buttonGradientDark: "linear-gradient(180deg, #1f2126 0%, #101216 100%)",
-    edgeSheenLight: "linear-gradient(180deg, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0.08) 70%, rgba(255,255,255,0.18) 100%)",
-    edgeSheenDark: "linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 70%, rgba(255,255,255,0.1) 100%)",
-    underGlassTintLight: "linear-gradient(160deg, rgba(5,5,8,0.92) 0%, rgba(16,16,22,0.98) 100%)",
-    underGlassTintDark: "linear-gradient(160deg, rgba(5,5,8,0.88) 0%, rgba(14,14,20,0.96) 100%)"
-  }
-];
-
 const valueProps: ValueProp[] = [
   {
     title: "Personalized",
@@ -118,7 +41,6 @@ const valueProps: ValueProp[] = [
     icon: "🔒"
   }
 ];
-
 const featureHighlights: FeatureHighlight[] = [
   {
     title: "Smart nutrition tracking",
@@ -151,7 +73,6 @@ const featureHighlights: FeatureHighlight[] = [
     icon: "🔗"
   }
 ];
-
 const testimonials: Testimonial[] = [
   {
     name: "Sarah M.",
@@ -172,7 +93,6 @@ const testimonials: Testimonial[] = [
     initials: "LK"
   }
 ];
-
 const faqItems: FaqItem[] = [
   {
     id: "faq-free-trial",
@@ -208,74 +128,18 @@ const faqItems: FaqItem[] = [
     answer: "We use bank-level encryption (AES-256) and never sell or share your data with third parties. You own your health information."
   }
 ];
-
 export const LandingPage = () => {
   const handleStartClick = () => trackConversion("start_quiz_click", { placement: "hero" });
-
   const [whyRef, whyVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
   const [featuresRef, featuresVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
   const [testimonialsRef, testimonialsVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
   
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
-  const [selectedVariantId, setSelectedVariantId] = useState<PhoneVariantId>("natural");
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window === "undefined") {
-      return false;
-    }
-    const root = document.documentElement;
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    return root.classList.contains("dark") || mediaQuery.matches;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-
-    const root = document.documentElement;
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    const updateMode = () => {
-      setIsDarkMode(root.classList.contains("dark") || mediaQuery.matches);
-    };
-
-    updateMode();
-
-    const observer = new MutationObserver(updateMode);
-    observer.observe(root, { attributes: true, attributeFilter: ["class"] });
-
-    const handleMediaChange = () => updateMode();
-
-    if (typeof mediaQuery.addEventListener === "function") {
-      mediaQuery.addEventListener("change", handleMediaChange);
-    } else {
-      mediaQuery.addListener(handleMediaChange);
-    }
-
-    return () => {
-      observer.disconnect();
-      if (typeof mediaQuery.removeEventListener === "function") {
-        mediaQuery.removeEventListener("change", handleMediaChange);
-      } else {
-        mediaQuery.removeListener(handleMediaChange);
-      }
-    };
-  }, []);
-
-  const activeVariant = phoneVariants.find((variant) => variant.id === selectedVariantId) ?? phoneVariants[0];
-  const frameGradient = isDarkMode ? activeVariant.frameGradientDark : activeVariant.frameGradientLight;
-  const buttonGradient = isDarkMode ? activeVariant.buttonGradientDark : activeVariant.buttonGradientLight;
-  const edgeSheen = isDarkMode ? activeVariant.edgeSheenDark : activeVariant.edgeSheenLight;
-  const underGlassTint = isDarkMode ? activeVariant.underGlassTintDark : activeVariant.underGlassTintLight;
-  const buttonShadowLeft = "-3px 0 6px rgba(0, 0, 0, 0.16)";
-  const buttonShadowRight = "3px 0 6px rgba(0, 0, 0, 0.18)";
-
   const heroStats: Array<{ value: string; label: string }> = [
     { value: "125K+", label: "Active users" },
     { value: "4.8★", label: "App Store rating" },
     { value: "92%", label: "Goal completion" }
   ];
-
   return (
     <main className="overflow-hidden">
       {/* Hero Section */}
@@ -285,7 +149,6 @@ export const LandingPage = () => {
             <div className="aspect-[1108/632] w-[69.25rem] bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-500/20" />
           </div>
         </div>
-
         <div className="mx-auto max-w-7xl">
           <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-2">
             {/* Left: Text Content */}
@@ -296,18 +159,16 @@ export const LandingPage = () => {
                   guided by experts
                 </span>
               </h1>
-
               <p className="mt-6 max-w-prose text-lg leading-relaxed text-muted-foreground">
                 Personalized plans, habit coaching, and clear progress—without selling your data.
               </p>
-
               <div className="mt-10 flex flex-col gap-4 sm:flex-row">
                 <Link
-                  to="/register"
+                  to="/quiz"
                   onClick={handleStartClick}
                   className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
                 >
-                  Start your free journey
+                  Get Started
                   <svg
                     className="h-5 w-5 transition-transform group-hover:translate-x-1"
                     fill="none"
@@ -319,13 +180,18 @@ export const LandingPage = () => {
                   </svg>
                 </Link>
                 <Link
+                  to="/premium"
+                  className="inline-flex items-center justify-center rounded-2xl border-2 border-blue-500 bg-blue-50 px-8 py-4 text-base font-semibold text-blue-600 shadow-sm transition-all hover:scale-[1.01] hover:bg-blue-100 hover:shadow-md active:scale-[0.99]"
+                >
+                  View Plans
+                </Link>
+                <Link
                   to="/login"
                   className="inline-flex items-center justify-center rounded-2xl border-2 border-border bg-card px-8 py-4 text-base font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
                 >
                   Log in
                 </Link>
               </div>
-
               <div className="mt-12">
                 <p className="text-sm font-medium text-muted-foreground">Available on every platform</p>
                 <div className="mt-4">
@@ -333,124 +199,108 @@ export const LandingPage = () => {
                 </div>
               </div>
             </div>
-
             {/* Right: Phone Mockup */}
-            <div className="relative flex flex-col items-center gap-6 lg:items-end">
-              <div className="flex items-center gap-3 rounded-full border border-border/60 bg-background/80 px-4 py-2 shadow-sm backdrop-blur-lg">
-                {phoneVariants.map((variant) => {
-                  const isActive = variant.id === selectedVariantId;
-                  return (
-                    <button
-                      key={variant.id}
-                      type="button"
-                      onClick={() => setSelectedVariantId(variant.id)}
-                      aria-pressed={isActive}
-                      className={`relative flex h-6 w-6 items-center justify-center rounded-full transition-all duration-200 hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 ${isActive ? "ring-2 ring-emerald-500/70" : "ring-1 ring-border/70"}`}
-                    >
-                      <span className="sr-only">{variant.label}</span>
-                      <span
-                        className="h-4 w-4 rounded-full"
-                        style={{ background: variant.swatch, boxShadow: "0 4px 8px rgba(15, 23, 42, 0.18)" }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="relative flex items-center justify-center lg:justify-end lg:translate-x-[2%]">
+              <div className="relative">
+                {/* Ambient glow with spotlight effect */}
+                <div className="pointer-events-none absolute inset-0 -z-10">
+                  {/* Ellipse spotlight behind phone */}
+                  <div className="absolute left-[10%] top-[5%] h-[500px] w-[500px] rounded-full bg-gradient-radial from-emerald-300/25 via-teal-300/15 to-transparent blur-[100px]" />
+                  <div className="absolute right-[20%] bottom-[15%] h-[400px] w-[400px] rounded-full bg-gradient-radial from-cyan-300/20 to-transparent blur-[120px]" />
+                </div>
 
-              <div className="relative group">
-                <div
-                  className="relative mx-auto transition-all duration-300 ease-out group-hover:-translate-y-1"
-                  style={{ width: "min(92vw, 390px)" }}
-                >
-                  <div
-                    className="relative overflow-visible rounded-[2rem] p-[10px] shadow-[0_40px_80px_rgba(30,30,30,0.24)]"
-                    style={{ background: frameGradient }}
-                  >
-                    <div
-                      className="pointer-events-none absolute inset-[2px] rounded-[28px]"
-                      style={{ background: edgeSheen, opacity: 0.24 }}
-                    />
-                    <div
-                      className="pointer-events-none absolute inset-[10px] rounded-[1.625rem]"
-                      style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.36) 0%, rgba(255,255,255,0.08) 55%, rgba(255,255,255,0) 100%)" }}
-                    />
+                {/* Floating hint chips with parallax */}
+                <div className="absolute -left-6 top-[35%] z-20 animate-float rounded-2xl border border-white/40 bg-white/70 px-3 py-2 text-xs font-semibold text-gray-700 shadow-[0_12px_32px_rgba(2,6,23,0.12)] backdrop-blur-md transition-transform hover:translate-y-[-2px] dark:border-white/20 dark:bg-white/10 dark:text-white">
+                  +2 glasses 💧
+                </div>
+                <div className="absolute -right-8 top-[55%] z-20 animate-float-delay rounded-2xl border border-white/40 bg-white/65 px-3 py-2 text-xs font-semibold text-gray-700 shadow-[0_12px_32px_rgba(2,6,23,0.12)] backdrop-blur-md transition-transform hover:translate-y-[-2px] dark:border-white/20 dark:bg-white/10 dark:text-white">
+                  Meditation 5min 🧘
+                </div>
 
-                    <div className="relative z-10">
-                      <div
-                        className="absolute -left-[4px] top-[70px] h-[22px] w-[3px] rounded-l-full transition-transform duration-300 group-hover:-translate-y-[1px]"
-                        style={{ background: buttonGradient, boxShadow: buttonShadowLeft }}
-                      />
-                      <div
-                        className="absolute -left-[4px] top-[115px] h-[42px] w-[4px] rounded-l-full transition-transform duration-300 group-hover:-translate-y-[1px]"
-                        style={{ background: buttonGradient, boxShadow: buttonShadowLeft }}
-                      />
-                      <div
-                        className="absolute -left-[4px] top-[165px] h-[42px] w-[4px] rounded-l-full transition-transform duration-300 group-hover:-translate-y-[1px]"
-                        style={{ background: buttonGradient, boxShadow: buttonShadowLeft }}
-                      />
-                      <div
-                        className="absolute -right-[4px] top-[125px] h-[60px] w-[4px] rounded-r-full transition-transform duration-300 group-hover:-translate-y-[1px]"
-                        style={{ background: buttonGradient, boxShadow: buttonShadowRight }}
-                      />
-                      <div
-                        className="absolute -right-[4px] bottom-[110px] h-[34px] w-[4px] rounded-r-full transition-transform duration-300 group-hover:-translate-y-[1px]"
-                        style={{ background: buttonGradient, boxShadow: buttonShadowRight }}
-                      />
-
-                      <div
-                        className="relative overflow-hidden rounded-[1.625rem] p-[6px]"
-                        style={{ background: underGlassTint, boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.08)" }}
-                      >
-                        <div
-                          className="relative overflow-hidden rounded-[1.5rem] bg-white shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] transition-transform duration-300 group-hover:-translate-y-[0.5rem] dark:bg-[#1c1c1e] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-                          style={{ aspectRatio: "1 / 2.05" }}
-                        >
-                          <div className="absolute left-1/2 top-[12px] z-30 h-[28px] w-[32%] -translate-x-1/2 rounded-full bg-black/92 shadow-[0_8px_12px_rgba(0,0,0,0.18)]" />
-                          <div className="flex items-center justify-between px-4 pt-4 text-[11px] font-semibold text-gray-900 dark:text-white">
-                            <span>9:41</span>
-                            <div className="flex items-center gap-1">
-                              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                              </svg>
-                              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                <rect x="1" y="6" width="18" height="12" rx="2" ry="2" />
-                                <path d="M23 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                              </svg>
-                            </div>
+                {/* iPhone 17 Pro Mockup - optimized 85% height */}
+                <div className="relative mx-auto w-[300px] transition-all duration-500 ease-out hover:-translate-y-1 sm:w-[350px]">
+                  {/* Contact shadow directly under phone */}
+                  <div className="absolute bottom-0 left-1/2 h-4 w-[92%] -translate-x-1/2 rounded-full bg-black/12 blur-[22px]" />
+                  
+                  {/* Titanium frame - 10px outer edge */}
+                  <div className="relative overflow-hidden rounded-[3.5rem] bg-gradient-to-b from-gray-200 via-gray-100 to-gray-200 p-[10px] shadow-[0_40px_80px_rgba(2,6,23,0.22)] dark:from-gray-700 dark:via-gray-800 dark:to-gray-700">
+                    
+                    {/* Side buttons - Titanium texture */}
+                    {/* Left side - Action button */}
+                    <div className="absolute -left-[3px] top-[70px] h-[22px] w-[3px] rounded-l-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
+                    {/* Volume up */}
+                    <div className="absolute -left-[4px] top-[115px] h-[42px] w-[4px] rounded-l-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
+                    {/* Volume down */}
+                    <div className="absolute -left-[4px] top-[165px] h-[42px] w-[4px] rounded-l-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
+                    
+                    {/* Right side - Power button */}
+                    <div className="absolute -right-[4px] top-[125px] h-[60px] w-[4px] rounded-r-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
+                    
+                    {/* Under-glass (6px black bezel) */}
+                    <div className="relative overflow-hidden rounded-[2.8rem] bg-black p-[6px]">
+                      {/* Screen - 85% height, with glass highlight */}
+                      <div className="relative overflow-hidden rounded-[2.4rem]" style={{ 
+                        aspectRatio: '9 / 16.6',
+                        background: 'radial-gradient(120% 80% at 20% 10%, #bbffff 0%, transparent 60%), radial-gradient(90% 80% at 80% 90%, #ff77cc 0%, transparent 60%), linear-gradient(180deg, #eaf7ff 0%, #f7f1ff 100%)'
+                      }}>
+                        {/* Vignette overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/5" />
+                        
+                        {/* Glass highlight at top edge */}
+                        <div className="absolute inset-x-4 top-0 h-[3px] bg-gradient-to-b from-white/25 to-transparent" />
+                        
+                        {/* Dynamic Island - 30-32% width, 26-28px height */}
+                        <div className="absolute left-1/2 top-3 z-30 h-[27px] w-[31%] -translate-x-1/2 rounded-full bg-black shadow-[0_8px_16px_rgba(0,0,0,0.18)] transition-opacity hover:opacity-95" />
+                        
+                        {/* Status bar */}
+                        <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-7 pt-2.5 text-xs font-semibold text-gray-900 dark:text-white">
+                          <span>9:41</span>
+                          <div className="flex items-center gap-1.5">
+                            <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+                            </svg>
+                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                              <rect x="1" y="6" width="18" height="12" rx="2" ry="2" />
+                              <path d="M23 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
                           </div>
-
-                          <div className="px-4 pb-[40px] pt-[52px]">
-                            <div className="overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-5 shadow-lg shadow-emerald-500/20">
-                              <div className="flex items-start justify-between">
-                                <div>
-                                  <p className="text-[10px] font-semibold uppercase tracking-wide text-white/85">Today's Progress</p>
-                                  <p className="mt-2.5 text-[28px] font-bold leading-tight text-white">On track ??</p>
-                                </div>
-                                <span className="rounded-xl bg-white/20 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur-sm">Day 24</span>
-                              </div>
-                              <p className="mt-2.5 text-xs font-medium text-white/95">1,540 cal  104g protein  8 glasses</p>
-
-                              <div className="mt-3.5 h-1.5 overflow-hidden rounded-full bg-white/25">
-                                <div className="h-full w-[86%] rounded-full bg-white shadow-sm" />
-                              </div>
-                            </div>
-
-                            <div className="mt-4 grid grid-cols-2 gap-4">
-                              <div className="rounded-2xl border border-gray-200/60 bg-white/95 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-gray-800/70">
-                                <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Weight</p>
-                                <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">68.2</p>
-                                <p className="mt-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">-2.4 kg</p>
-                              </div>
-                              <div className="rounded-2xl border border-gray-200/60 bg-white/95 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-gray-800/70">
-                                <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Streak</p>
-                                <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">24</p>
-                                <p className="mt-0.5 text-[10px] font-medium text-gray-600 dark:text-gray-400">days ??</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="absolute bottom-[10px] left-1/2 h-1 w-[120px] -translate-x-1/2 rounded-full bg-gray-900/12 dark:bg-white/14" />
                         </div>
+
+                        {/* App Content with proper safe areas */}
+                        <div className="absolute inset-0 px-5 pb-5 pt-[56px]">
+                          {/* Main progress card with enhanced spacing */}
+                          <div className="overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-5 shadow-lg">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <p className="text-xs font-semibold uppercase leading-tight tracking-wide text-white/85">Today's Progress</p>
+                                <p className="mt-2.5 text-[26px] font-bold leading-tight text-white">On track 💪</p>
+                              </div>
+                              <span className="rounded-xl bg-white/20 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">Day 24</span>
+                            </div>
+                            <p className="mt-2.5 text-xs font-medium leading-relaxed text-white/95">1,540 cal • 104g protein • 8 glasses</p>
+                            
+                            <div className="mt-3.5 h-1.5 overflow-hidden rounded-full bg-white/25">
+                              <div className="h-full w-[86%] animate-progress-fill rounded-full bg-white shadow-sm" />
+                            </div>
+                          </div>
+
+                          {/* Stats cards */}
+                          <div className="mt-4 grid grid-cols-2 gap-3">
+                            <div className="rounded-xl border border-white/20 bg-white/95 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-gray-800/70">
+                              <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Weight</p>
+                              <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">68.2</p>
+                              <p className="mt-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">-2.4 kg</p>
+                            </div>
+                            <div className="rounded-xl border border-white/20 bg-white/95 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-gray-800/70">
+                              <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Streak</p>
+                              <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">24</p>
+                              <p className="mt-0.5 text-[10px] font-medium text-gray-600 dark:text-gray-400">days 🔥</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Home indicator - more prominent */}
+                        <div className="absolute bottom-2.5 left-1/2 h-1 w-[120px] -translate-x-1/2 rounded-full bg-black/15 dark:bg-white/18" />
                       </div>
                     </div>
                   </div>
@@ -461,8 +311,23 @@ export const LandingPage = () => {
         </div>
       </section>
 
+      {/* Trusted by section */}
+      <section className="border-t border-border/40 bg-surface/60 py-8">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center sm:gap-12">
+            <span className="text-sm font-medium text-muted-foreground">Trusted by teams at</span>
+            <div className="flex flex-wrap items-center justify-center gap-8 opacity-70 transition-opacity hover:opacity-100 sm:gap-12">
+              <div className="flex h-8 items-center justify-center text-lg font-semibold text-muted-foreground">Healthline Labs</div>
+              <div className="flex h-8 items-center justify-center text-lg font-semibold text-muted-foreground">Mindful Nutrition</div>
+              <div className="flex h-8 items-center justify-center text-lg font-semibold text-muted-foreground">Athletica Club</div>
+              <div className="flex h-8 items-center justify-center text-lg font-semibold text-muted-foreground">Wellness Pro</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Social Proof Stats Section */}
-      <section className="bg-surface py-12">
+      <section className="bg-background py-12">
         <div className="mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3">
             {heroStats.map((stat) => (
@@ -474,7 +339,6 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* Why Choose VivaForm Section */}
       <section id="why" className="bg-background py-20 sm:py-24" ref={whyRef}>
         <div
@@ -490,7 +354,6 @@ export const LandingPage = () => {
               Medical expertise meets personalized guidance
             </p>
           </div>
-
           <div className="mx-auto mt-16 max-w-5xl">
             <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
               {valueProps.map((prop) => (
@@ -507,7 +370,6 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* Features Grid */}
       <section id="features" className="bg-surface py-20 sm:py-24" ref={featuresRef}>
         <div
@@ -523,7 +385,6 @@ export const LandingPage = () => {
               Powerful features, effortless experience
             </p>
           </div>
-
           <div className="mx-auto mt-16 max-w-6xl">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {featureHighlights.map((feature) => (
@@ -542,7 +403,6 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* Testimonials */}
       <section id="testimonials" className="bg-background py-20 sm:py-24" ref={testimonialsRef}>
         <div
@@ -558,7 +418,6 @@ export const LandingPage = () => {
               Real results from real people
             </p>
           </div>
-
           <div className="mx-auto max-w-5xl">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
               {testimonials.map((testimonial) => (
@@ -582,7 +441,6 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* FAQ Section */}
       <section id="faq" className="bg-surface py-20 sm:py-24">
         <div className="mx-auto max-w-3xl px-6">
@@ -626,7 +484,6 @@ export const LandingPage = () => {
           </div>
         </div>
       </section>
-
       {/* Final CTA Section */}
       <section id="cta" className="bg-background py-20">
         <div className="mx-auto max-w-4xl px-6">

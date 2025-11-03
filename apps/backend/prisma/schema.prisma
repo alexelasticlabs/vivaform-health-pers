@@ -32,6 +32,7 @@ model User {
   passwordHash  String
   name          String?
   tier          SubscriptionTier @default(FREE)
+  pushToken     String?          // Expo Push Token for notifications
   createdAt     DateTime         @default(now())
   updatedAt     DateTime         @updatedAt
   profile       Profile?
@@ -54,6 +55,40 @@ model Profile {
   goal             GoalType?
   activityLevel    ActivityLevel?
   dietaryPreferences String[]
+  
+  // Quiz-specific fields
+  dietPlan              String?
+  mealsPerDay           Int?
+  skipBreakfast         Boolean?
+  snackBetweenMeals     Boolean?
+  fastFoodFrequency     String?
+  cookAtHomeFrequency   String?
+  sleepHours            Float?
+  exerciseRegularly     Boolean?
+  wakeUpTime            String?
+  dinnerTime            String?
+  foodAllergies         String[]
+  avoidedFoods          String[]
+  mealComplexity        String?
+  tryNewFoods           Boolean?
+  cookingTimeMinutes    Int?
+  eatWhenStressed       Boolean?
+  mainMotivation        String?
+  stressLevel           Int?
+  comfortSource         String?
+  routineConfidence     Int?
+  dailyWaterMl          Int?
+  wantReminders         Boolean?
+  trackActivity         Boolean?
+  connectHealthApp      Boolean?
+  theme                 String?
+  
+  // Calculated fields
+  bmi                   Float?
+  bmr                   Float?
+  tdee                  Float?
+  recommendedCalories   Float?
+  
   updatedAt        DateTime      @updatedAt
   createdAt        DateTime      @default(now())
 }
@@ -120,4 +155,50 @@ model Subscription {
   status             String
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+model MealTemplate {
+  id                   String   @id @default(cuid())
+  name                 String
+  category             String   // "breakfast", "lunch", "dinner", "snack"
+  dietPlans            String[] // ["mediterranean", "carnivore", "anti-inflammatory"]
+  calories             Int
+  protein              Float    // grams
+  fat                  Float    // grams
+  carbs                Float    // grams
+  cookingTimeMinutes   Int
+  complexity           String   // "simple", "medium", "complex"
+  allergens            String[] // ["nuts", "dairy", "gluten", "eggs", "fish", "shellfish", "soy"]
+  avoidedIngredients   String[] // ["meat", "dairy", "gluten", etc.]
+  ingredients          String[]
+  instructions         String?
+  servings             Int      @default(1)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([category])
+  @@index([dietPlans])
+}
+
+model FoodItem {
+  id           String  @id @default(cuid())
+  name         String
+  brand        String?
+  category     String
+  caloriesPer100g Int
+  proteinPer100g  Float
+  fatPer100g      Float
+  carbsPer100g    Float
+  fiberPer100g    Float?
+  sugarPer100g    Float?
+  servingSize     String  // "100g", "1 piece", "1 cup", etc.
+  servingSizeGrams Float? // weight of serving in grams (if applicable)
+  barcode      String? // for future barcode scanning
+  verified     Boolean @default(false) // admin-verified entries
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([name])
+  @@index([category])
+  @@index([barcode])
 }

@@ -1,0 +1,227 @@
+import { Injectable, Logger } from "@nestjs/common";
+import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
+
+import { PrismaService } from "../../common/prisma/prisma.service";
+
+interface SendNotificationDto {
+  userId: string;
+  title: string;
+  body: string;
+  data?: Record<string, any>;
+}
+
+/**
+ * NotificationsService
+ *
+ * Отправка push-уведомлений пользователям через Expo Push Notifications.
+ * Поддерживает индивидуальные и массовые рассылки.
+ */
+@Injectable()
+export class NotificationsService {
+  private readonly logger = new Logger(NotificationsService.name);
+  private expo: Expo;
+
+  constructor(private readonly prisma: PrismaService) {
+    this.expo = new Expo();
+  }
+
+  /**
+   * Регистрация Push Token пользователя
+   */
+  async registerPushToken(userId: string, pushToken: string): Promise<void> {
+    // Validate token format
+    if (!Expo.isExpoPushToken(pushToken)) {
+      throw new Error(`Push token ${pushToken} is not a valid Expo push token`);
+    }
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { pushToken }
+    });
+
+    this.logger.log(`Registered push token for user ${userId}`);
+  }
+
+  /**
+   * Отправка уведомления конкретному пользователю
+   */
+  async sendToUser(dto: SendNotificationDto): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: dto.userId },
+      select: { pushToken: true }
+    });
+
+    if (!user?.pushToken) {
+      this.logger.warn(`User ${dto.userId} has no push token registered`);
+      return;
+    }
+
+    await this.sendPushNotifications([
+      {
+        to: user.pushToken,
+        title: dto.title,
+        body: dto.body,
+        data: dto.data,
+        sound: "default",
+        badge: 1
+      }
+    ]);
+  }
+
+  /**
+   * Массовая рассылка уведомлений всем пользователям с включёнными напоминаниями
+   */
+  async sendToAllWithReminders(title: string, body: string, data?: Record<string, any>): Promise<void> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        pushToken: { not: null },
+        profile: {
+          wantReminders: true
+        }
+      },
+      select: { id: true, pushToken: true }
+    });
+
+    if (users.length === 0) {
+      this.logger.log("No users with push tokens and reminders enabled");
+      return;
+    }
+
+    const messages: ExpoPushMessage[] = users
+      .filter((user) => user.pushToken && Expo.isExpoPushToken(user.pushToken))
+      .map((user) => ({
+        to: user.pushToken!,
+        title,
+        body,
+        data,
+        sound: "default",
+        badge: 1
+      }));
+
+    await this.sendPushNotifications(messages);
+    this.logger.log(`Sent notifications to ${messages.length} users`);
+  }
+
+  /**
+   * Отправка напоминания о воде конкретному пользователю
+   */
+  async sendWaterReminder(userId: string): Promise<void> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        profile: {
+          select: {
+            wantReminders: true,
+            dailyWaterMl: true
+          }
+        }
+      }
+    });
+
+    if (!user?.profile?.wantReminders || !user.pushToken) {
+      return;
+    }
+
+    const waterGoal = user.profile.dailyWaterMl || 2000;
+    const glassesNeeded = Math.ceil(waterGoal / 250);
+
+    await this.sendToUser({
+      userId,
+      title: "💧 Время пить воду!",
+      body: `Не забудьте выпить стакан воды. Цель: ${glassesNeeded} стаканов в день`,
+      data: { type: "water_reminder", waterGoalMl: waterGoal }
+    });
+  }
+
+  /**
+   * Отправка напоминания о взвешивании
+   */
+  async sendWeightTrackingReminder(userId: string): Promise<void> {
+    await this.sendToUser({
+      userId,
+      title: "⚖️ Время взвеситься!",
+      body: "Отслеживайте свой прогресс — запишите текущий вес",
+      data: { type: "weight_reminder" }
+    });
+  }
+
+  /**
+   * Отправка напоминания о приёме пищи
+   */
+  async sendMealReminder(userId: string, mealType: string): Promise<void> {
+    const mealEmojis: Record<string, string> = {
+      breakfast: "🍳",
+      lunch: "🥗",
+      dinner: "🍽️",
+      snack: "🍎"
+    };
+
+    const emoji = mealEmojis[mealType.toLowerCase()] || "🍴";
+
+    await this.sendToUser({
+      userId,
+      title: `${emoji} Время ${mealType}`,
+      body: "Не забудьте записать приём пищи для точного трекинга",
+      data: { type: "meal_reminder", mealType }
+    });
+  }
+
+  /**
+   * Отправка уведомления о новых рекомендациях
+   */
+  async sendRecommendationsNotification(userId: string, count: number): Promise<void> {
+    await this.sendToUser({
+      userId,
+      title: "✨ Новые рекомендации!",
+      body: `У вас ${count} ${this.pluralize(count, "новая рекомендация", "новых рекомендации", "новых рекомендаций")}`,
+      data: { type: "new_recommendations", count }
+    });
+  }
+
+  /**
+   * Низкоуровневая отправка push-уведомлений через Expo API
+   */
+  private async sendPushNotifications(messages: ExpoPushMessage[]): Promise<void> {
+    // Разбиваем на чанки (Expo рекомендует до 100 за раз)
+    const chunks = this.expo.chunkPushNotifications(messages);
+
+    for (const chunk of chunks) {
+      try {
+        const tickets = await this.expo.sendPushNotificationsAsync(chunk);
+        this.handlePushTickets(tickets);
+      } catch (error) {
+        this.logger.error("Failed to send push notifications", error instanceof Error ? error.stack : String(error));
+      }
+    }
+  }
+
+  /**
+   * Обработка результатов отправки
+   */
+  private handlePushTickets(tickets: ExpoPushTicket[]): void {
+    tickets.forEach((ticket, index) => {
+      if (ticket.status === "error") {
+        this.logger.error(
+          `Push notification error for ticket ${index}: ${ticket.message}`,
+          ticket.details ? JSON.stringify(ticket.details) : undefined
+        );
+      }
+    });
+  }
+
+  /**
+   * Вспомогательная функция для склонения слов
+   */
+  private pluralize(count: number, one: string, few: string, many: string): string {
+    const mod10 = count % 10;
+    const mod100 = count % 100;
+
+    if (mod10 === 1 && mod100 !== 11) {
+      return one;
+    }
+    if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) {
+      return few;
+    }
+    return many;
+  }
+}

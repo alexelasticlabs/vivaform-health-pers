@@ -8,6 +8,7 @@ import { useUserStore } from "../../store/user-store";
 const appNav = [
   { to: "/app", label: "Dashboard" },
   { to: "/app/progress", label: "Progress" },
+  { to: "/app/meal-planner", label: "Meal Planner", premium: true },
   { to: "/app/recommendations", label: "Recommendations" },
   { to: "/app/settings", label: "Settings" }
 ];
@@ -45,6 +46,9 @@ export const AppShell = ({ children }: PropsWithChildren) => {
                 }
               >
                 {item.label}
+                {"premium" in item && item.premium && profile?.tier !== "PREMIUM" && (
+                  <span className="ml-1 text-xs">✨</span>
+                )}
               </NavLink>
             ))}
           </nav>

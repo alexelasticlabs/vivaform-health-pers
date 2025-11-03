@@ -9,6 +9,7 @@ import {
   LatestRecommendationsQueryDto,
   RecommendationsQueryDto
 } from "./dto/create-recommendation.dto";
+import { RecommendationsGeneratorService } from "./recommendations-generator.service";
 import { RecommendationsService } from "./recommendations.service";
 
 @ApiTags("recommendations")
@@ -16,7 +17,10 @@ import { RecommendationsService } from "./recommendations.service";
 @UseGuards(JwtAuthGuard)
 @Controller("recommendations")
 export class RecommendationsController {
-  constructor(private readonly recommendationsService: RecommendationsService) {}
+  constructor(
+    private readonly recommendationsService: RecommendationsService,
+    private readonly generatorService: RecommendationsGeneratorService
+  ) {}
 
   @Post()
   @ApiOperation({ summary: "Добавить рекомендацию" })
@@ -34,5 +38,15 @@ export class RecommendationsController {
   @ApiOperation({ summary: "Последние рекомендации" })
   findLatest(@CurrentUser() user: CurrentUserPayload, @Query() query: LatestRecommendationsQueryDto) {
     return this.recommendationsService.findLatest(user.userId, query.limit);
+  }
+
+  @Post("generate")
+  @ApiOperation({ summary: "Сгенерировать персональные рекомендации" })
+  async generate(@CurrentUser() user: CurrentUserPayload) {
+    const count = await this.generatorService.generateForUser(user.userId);
+    return {
+      message: `Generated ${count} recommendations`,
+      count
+    };
   }
 }
