@@ -2,17 +2,20 @@
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, Mail } from "lucide-react";
 
 import { extractErrorMessage, login } from "../api";
 import { useUserStore } from "../store/user-store";
 import { VivaFormLogo } from "../components/viva-form-logo";
+import { AuthLayout } from "../components/auth/auth-layout";
 
 export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
   const navigate = useNavigate();
   const setAuth = useUserStore((state) => state.setAuth);
   const isAuthenticated = useUserStore((state) => state.isAuthenticated);
@@ -42,8 +45,10 @@ export const LoginPage = () => {
       const message = extractErrorMessage(error);
       // Friendly error messages
       if (message.toLowerCase().includes("password")) {
+        setPasswordError("Incorrect password — try again or reset it");
         toast.error("Incorrect password — try again or reset it 🔑");
       } else if (message.toLowerCase().includes("email") || message.toLowerCase().includes("not found")) {
+        setEmailError("That email doesn't seem right");
         toast.error("That email doesn't seem right 🤔");
       } else {
         toast.error(message);
@@ -54,13 +59,19 @@ export const LoginPage = () => {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     
+    // Clear previous errors
+    setEmailError("");
+    setPasswordError("");
+    
     // Client-side validation
     if (!email.trim()) {
+      setEmailError("Please enter your email address");
       toast.error("Please enter your email address");
       return;
     }
     
     if (!password) {
+      setPasswordError("Please enter your password");
       toast.error("Please enter your password");
       return;
     }
@@ -69,102 +80,168 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Background with blur effect */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950 dark:via-teal-950 dark:to-cyan-950" />
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiMwMGJjZDQiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PHBhdGggZD0iTTM2IDE2YzAtNi42MjcgNS4zNzMtMTIgMTItMTJzMTIgNS4zNzMgMTIgMTItNS4zNzMgMTItMTIgMTItMTItNS4zNzMtMTItMTJ6bTAgMzZjMC02LjYyNyA1LjM3My0xMiAxMi0xMnMxMiA1LjM3MyAxMiAxMi01LjM3MyAxMi0xMiAxMi0xMi01LjM3My0xMi0xMnoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-40" />
-      </div>
+    <AuthLayout maxWidthClassName="max-w-[560px]">
+          {/* Login Card */}
+          <div className="rounded-3xl border border-white/20 dark:border-neutral-700/50 bg-white/80 p-6 shadow-xl backdrop-blur-lg dark:bg-neutral-900/70 sm:p-8">
+            {/* Header */}
+            <div className="mb-8 text-center">
+              <div className="mx-auto mb-6 flex justify-center">
+                <VivaFormLogo size="sm" />
+              </div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+                Welcome back
+              </h1>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Continue your healthy journey 🌿
+              </p>
+            </div>
 
-      <section className="mx-auto w-full max-w-md px-6">
-        {/* Semi-transparent card */}
-        <div className="relative rounded-3xl border border-border/50 bg-background/80 backdrop-blur-xl shadow-2xl p-8">
-          {/* Logo and greeting */}
-          <div className="flex flex-col items-center text-center mb-8">
-            <VivaFormLogo size="lg" />
-            <h1 className="mt-6 text-3xl font-bold tracking-tight">Welcome back 👋</h1>
-            <p className="mt-2 text-muted-foreground">Welcome back to your healthy journey 🌿</p>
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Email Input */}
+              <div>
+                <label htmlFor="email" className="mb-2 block text-sm font-medium text-foreground">
+                  Email
+                </label>
+                <div className="relative">
+                  <div className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    <Mail size={18} />
+                  </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="your@email.com"
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "email-error" : undefined}
+                    className={`h-12 w-full rounded-2xl border pl-11 pr-4 text-sm shadow-sm outline-none transition-all focus:ring-2 ${
+                      emailError
+                        ? "border-rose-500/70 bg-rose-50 focus:ring-rose-500/70 dark:bg-rose-950/20 dark:border-rose-400/70"
+                        : "border-border bg-neutral-50 focus:ring-emerald-500/70 dark:bg-neutral-800/60"
+                    }`}
+                    value={email}
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      if (emailError) setEmailError("");
+                    }}
+                    required
+                    disabled={isPending}
+                  />
+                </div>
+                {emailError && (
+                  <p id="email-error" className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">
+                    {emailError}
+                  </p>
+                )}
+              </div>
+
+              {/* Password Input */}
+              <div>
+                <label htmlFor="password" className="mb-2 block text-sm font-medium text-foreground">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    placeholder="Enter your password"
+                    aria-invalid={!!passwordError}
+                    aria-describedby={passwordError ? "password-error" : undefined}
+                    className={`h-12 w-full rounded-2xl border px-4 pr-12 text-sm shadow-sm outline-none transition-all focus:ring-2 ${
+                      passwordError
+                        ? "border-rose-500/70 bg-rose-50 focus:ring-rose-500/70 dark:bg-rose-950/20 dark:border-rose-400/70"
+                        : "border-border bg-neutral-50 focus:ring-emerald-500/70 dark:bg-neutral-800/60"
+                    }`}
+                    value={password}
+                    onChange={(event) => {
+                      setPassword(event.target.value);
+                      if (passwordError) setPasswordError("");
+                    }}
+                    required
+                    disabled={isPending}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 rounded"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    disabled={isPending}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+                {passwordError && (
+                  <p id="password-error" className="mt-1.5 text-xs text-rose-600 dark:text-rose-400">
+                    {passwordError}
+                  </p>
+                )}
+              </div>
+
+              {/* Remember Me and Forgot Password */}
+              <div className="mt-2 flex items-center justify-between text-sm">
+                <label className="flex cursor-pointer items-center gap-2 text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-border accent-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    disabled={isPending}
+                  />
+                  <span>Remember me</span>
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="font-medium text-emerald-600 hover:text-emerald-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 rounded dark:text-emerald-400 dark:hover:text-emerald-300"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="group mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-base font-semibold text-white shadow-md transition-all hover:shadow-lg hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
+                disabled={isPending}
+                aria-busy={isPending}
+              >
+                {isPending ? (
+                  <>
+                    <svg className="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Logging in...
+                  </>
+                ) : (
+                  <>
+                    Log in
+                    <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-neutral-200/60 dark:border-neutral-700/60" />
+              </div>
+            </div>
+
+            {/* Sign up link */}
+            <p className="text-center text-sm text-muted-foreground">
+              Don't have an account?{" "}
+              <Link
+                to="/quiz"
+                className="font-semibold text-emerald-600 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 rounded dark:text-emerald-400"
+              >
+                Get started
+              </Link>
+            </p>
           </div>
-
-          <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="space-y-1">
-          <label htmlFor="email" className="text-sm font-medium">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            className="w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-1">
-          <label htmlFor="password" className="text-sm font-medium">
-            Password
-          </label>
-          <div className="relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              className="w-full rounded-2xl border border-border bg-background px-4 py-3 pr-12 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Remember Me and Forgot Password */}
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-border accent-primary"
-              checked={rememberMe}
-              onChange={(e) => setRememberMe(e.target.checked)}
-            />
-            <span>Remember me</span>
-          </label>
-          <Link
-            to="/forgot-password"
-            className="text-sm text-primary hover:underline"
-          >
-            Forgot password?
-          </Link>
-        </div>
-        <button
-          type="submit"
-          className="w-full rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.02] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100"
-          disabled={isPending}
-          aria-busy={isPending}
-        >
-          {isPending ? "Logging in..." : "Log in"}
-        </button>
-      </form>
-
-      {/* Sign up link */}
-      <div className="mt-6 text-center text-sm text-muted-foreground">
-        Don't have an account?{" "}
-        <Link to="/quiz" className="font-semibold text-primary hover:underline">
-          Get started
-        </Link>
-      </div>
-        </div>
-      </section>
-    </div>
+    </AuthLayout>
   );
 };
