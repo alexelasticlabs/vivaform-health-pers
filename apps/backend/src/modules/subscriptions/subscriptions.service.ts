@@ -90,28 +90,67 @@ export class SubscriptionsService {
     return this.prisma.subscription.findUnique({ where: { userId } });
   }
 
+  private mapStripeStatusToPrisma(status: Stripe.Subscription.Status): string {
+    const statusMap: Record<Stripe.Subscription.Status, string> = {
+      'active': 'ACTIVE',
+      'trialing': 'TRIALING',
+      'canceled': 'CANCELED',
+      'past_due': 'PAST_DUE',
+      'incomplete': 'INCOMPLETE',
+      'incomplete_expired': 'INCOMPLETE_EXPIRED',
+      'unpaid': 'UNPAID',
+      'paused': 'CANCELED'
+    };
+    return statusMap[status] || 'INCOMPLETE';
+  }
+
+  private mapPlanToPrisma(plan: string): string {
+    const planMap: Record<string, string> = {
+      'monthly': 'MONTHLY',
+      'quarterly': 'QUARTERLY',
+      'annual': 'ANNUAL'
+    };
+    return planMap[plan] || 'MONTHLY';
+  }
+
   private async updateSubscriptionRecord(userId: string, subscription: Stripe.Subscription) {
     const priceId = subscription.items.data[0]?.price?.id;
     if (!priceId) {
       throw new BadRequestException("Subscription price not found in Stripe payload");
     }
 
+    const plan = subscription.metadata.plan || 'monthly';
+
     await this.prisma.subscription.upsert({
       where: { userId },
       update: {
         stripeCustomerId: subscription.customer as string,
-        stripeSubscription: subscription.id,
-        priceId,
-        status: subscription.status,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: priceId,
+        plan: this.mapPlanToPrisma(plan) as any,
+        status: this.mapStripeStatusToPrisma(subscription.status) as any,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+        canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+        trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+        metadata: subscription.metadata as any
       },
       create: {
         userId,
         stripeCustomerId: subscription.customer as string,
-        stripeSubscription: subscription.id,
-        priceId,
-        status: subscription.status,
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+        stripeSubscriptionId: subscription.id,
+        stripePriceId: priceId,
+        plan: this.mapPlanToPrisma(plan) as any,
+        status: this.mapStripeStatusToPrisma(subscription.status) as any,
+        currentPeriodStart: new Date(subscription.current_period_start * 1000),
+        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+        cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+        canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+        trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+        metadata: subscription.metadata as any
       }
     });
 
