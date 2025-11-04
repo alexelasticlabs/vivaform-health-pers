@@ -1,7 +1,7 @@
 ﻿import { describe, expect, it, vi, beforeEach } from "vitest";
 
 import { HealthService } from "./health.service";
-import { PrismaService } from "../../common/prisma/prisma.service";
+import type { PrismaService } from "../../common/prisma/prisma.service";
 
 describe("HealthService", () => {
   let service: HealthService;

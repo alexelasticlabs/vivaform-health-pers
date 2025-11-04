@@ -1,8 +1,9 @@
 ﻿import { Injectable, Logger } from "@nestjs/common";
 import * as argon2 from "argon2";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
-import { CreateUserDto } from "./dto/create-user.dto";
+import type { CreateUserDto } from "./dto/create-user.dto";
 
 @Injectable()
 export class UsersService {
@@ -23,6 +24,7 @@ export class UsersService {
         name: true,
         role: true,
         tier: true,
+        mustChangePassword: true,
         emailVerified: true,
         createdAt: true
       }
@@ -43,6 +45,7 @@ export class UsersService {
         name: true,
         role: true,
         tier: true,
+        mustChangePassword: true,
         emailVerified: true,
         createdAt: true
       }
@@ -93,6 +96,7 @@ export class UsersService {
         name: true,
         role: true,
         tier: true,
+        mustChangePassword: true,
         emailVerified: true,
         emailVerifiedAt: true,
         createdAt: true

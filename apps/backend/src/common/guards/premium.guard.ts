@@ -1,4 +1,6 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
+import type { CanActivate, ExecutionContext } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../prisma/prisma.service';
 
 /**

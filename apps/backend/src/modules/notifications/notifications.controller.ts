@@ -5,6 +5,7 @@ import { IsNotEmpty, IsString } from "class-validator";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NotificationsService } from "./notifications.service";
 
 class RegisterPushTokenDto {

@@ -15,7 +15,9 @@ import { ApiTags, ApiOperation, ApiQuery, ApiBearerAuth } from "@nestjs/swagger"
 
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { AdminGuard } from "../../common/guards/admin.guard";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ArticleService } from "./article.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateArticleDto, UpdateArticleDto } from "./dto/article.dto";
 
 @ApiTags("articles")

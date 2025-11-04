@@ -1,4 +1,4 @@
-﻿import { INestApplication } from "@nestjs/common";
+﻿import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import * as argon2 from "argon2";
 import request from "supertest";

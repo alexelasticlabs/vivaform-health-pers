@@ -1,4 +1,5 @@
 ﻿import { Injectable } from "@nestjs/common";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 
 @Injectable()
@@ -6,8 +7,6 @@ export class HealthService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getStatus() {
-    const startTime = Date.now();
-    
     // Check database connectivity
     let dbStatus = 'ok';
     let dbLatency = 0;
@@ -15,7 +14,7 @@ export class HealthService {
       const dbStart = Date.now();
       await this.prisma.$queryRaw`SELECT 1`;
       dbLatency = Date.now() - dbStart;
-    } catch (error) {
+    } catch {
       dbStatus = 'error';
     }
 
@@ -54,7 +53,7 @@ export class HealthService {
         }
       }),
       this.prisma.subscription.count({
-        where: { status: 'active' }
+        where: { status: 'ACTIVE' }
       })
     ]);
 

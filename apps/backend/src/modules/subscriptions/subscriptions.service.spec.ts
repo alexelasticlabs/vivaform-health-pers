@@ -1,11 +1,11 @@
 ﻿import { BadRequestException, NotFoundException } from "@nestjs/common";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockDeep } from "vitest-mock-extended";
 
 import { SubscriptionsService } from "./subscriptions.service";
-import { PrismaService } from "../../common/prisma/prisma.service";
-import { StripeService } from "../stripe/stripe.service";
+import type { PrismaService } from "../../common/prisma/prisma.service";
+import type { StripeService } from "../stripe/stripe.service";
 
 const createStripeService = () => {
   const stripeClient = {

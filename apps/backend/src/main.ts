@@ -1,4 +1,4 @@
-﻿import { ValidationPipe } from "@nestjs/common";
+﻿import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { raw } from "body-parser";
@@ -10,6 +10,7 @@ import { AppModule } from "./app.module";
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
+  const logger = new Logger('Bootstrap');
 
   const port = configService.get<number>("app.port", 4000);
   const corsOrigins = configService.get<string[]>("app.corsOrigins", ["http://localhost:5173"]);
@@ -43,7 +44,7 @@ async function bootstrap() {
       transform: true,
       transformOptions: { enableImplicitConversion: true },
       exceptionFactory: (errors) => {
-        console.error('❌ Validation errors:', JSON.stringify(errors, null, 2));
+        logger.error(`❌ Validation errors: ${JSON.stringify(errors, null, 2)}`);
         return errors;
       }
     })
@@ -65,7 +66,7 @@ async function bootstrap() {
 }
 
 bootstrap().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error(error);
+  const logger = new Logger('Bootstrap');
+  logger.error(error instanceof Error ? error.stack ?? error.message : String(error));
   process.exit(1);
 });

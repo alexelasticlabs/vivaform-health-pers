@@ -2,6 +2,7 @@
 import { PassportStrategy } from "@nestjs/passport";
 import { Strategy } from "passport-local";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AuthService } from "../auth.service";
 
 @Injectable()

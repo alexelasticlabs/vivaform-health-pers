@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { RecommendationsGeneratorService } from "./recommendations-generator.service";
 
 /**

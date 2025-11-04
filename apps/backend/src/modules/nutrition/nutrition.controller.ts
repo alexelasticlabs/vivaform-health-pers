@@ -1,12 +1,16 @@
 ﻿import { BadRequestException, Body, Controller, Get, Post, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateNutritionEntryDto, DailyQueryDto } from "./dto/create-nutrition-entry.dto";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { MealPlanService } from "./meal-plan.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NutritionService } from "./nutrition.service";
 
 @ApiTags("nutrition")

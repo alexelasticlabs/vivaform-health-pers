@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
-import { Transporter } from 'nodemailer';
+import type { Transporter } from 'nodemailer';
 import sgMail from '@sendgrid/mail';
 
 export interface SendEmailDto {

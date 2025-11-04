@@ -1,7 +1,9 @@
 ﻿import { Body, Controller, Get, Param, Post } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags } from "@nestjs/swagger";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateUserDto } from "./dto/create-user.dto";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { UsersService } from "./users.service";
 
 @ApiTags("users")

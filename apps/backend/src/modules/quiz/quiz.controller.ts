@@ -1,6 +1,8 @@
 import { Controller, Post, Body, Get, Patch, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { QuizService as QuizProfileService } from './services/quiz-profile.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SubmitQuizDto, UpdateQuizProfileDto } from './dto/submit-quiz.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';

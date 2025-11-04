@@ -1,6 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../../../common/prisma/prisma.service';
-import { SubmitQuizDto, UpdateQuizProfileDto } from '../dto/submit-quiz.dto';
+import type { SubmitQuizDto, UpdateQuizProfileDto } from '../dto/submit-quiz.dto';
 
 @Injectable()
 export class QuizService {

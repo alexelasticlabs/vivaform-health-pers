@@ -1,9 +1,12 @@
-import { Controller, Post, Headers, RawBodyRequest, Req, BadRequestException, Logger } from '@nestjs/common';
+import { Controller, Post, Headers, Req, BadRequestException, Logger } from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
-import { Request } from 'express';
+import type { Request } from 'express';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { StripeService } from '../stripe/stripe.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
-import Stripe from 'stripe';
+import type Stripe from 'stripe';
 
 @SkipThrottle()
 @Controller('webhooks')

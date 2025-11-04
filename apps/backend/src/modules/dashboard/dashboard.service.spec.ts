@@ -1,10 +1,10 @@
 ﻿import { describe, expect, it, beforeEach, vi } from "vitest";
 
 import { DashboardService } from "./dashboard.service";
-import { NutritionService } from "../nutrition/nutrition.service";
-import { WaterService } from "../water/water.service";
-import { WeightService } from "../weight/weight.service";
-import { RecommendationsService } from "../recommendations/recommendations.service";
+import type { NutritionService } from "../nutrition/nutrition.service";
+import type { WaterService } from "../water/water.service";
+import type { WeightService } from "../weight/weight.service";
+import type { RecommendationsService } from "../recommendations/recommendations.service";
 
 const createDependencies = () => ({
   nutritionService: {

@@ -1,18 +1,18 @@
 ﻿import { UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
+import type { JwtService } from "@nestjs/jwt";
 import { describe, expect, it, beforeEach, vi, afterEach } from "vitest";
 import { verify as argonVerify } from "argon2";
 
-import { jwtConfig } from "../../config";
 import { AuthService } from "./auth.service";
-import { UsersService } from "../users/users.service";
-import { PrismaService } from "../../common/prisma/prisma.service";
+import type { UsersService } from "../users/users.service";
+import type { PrismaService } from "../../common/prisma/prisma.service";
+import type { JwtConfig } from "../../config";
 
 vi.mock("argon2", () => ({
   verify: vi.fn()
 }));
 
-const mockJwtSettings: ReturnType<typeof jwtConfig> = {
+const mockJwtSettings: JwtConfig = {
   secret: "test-secret",
   refreshSecret: "test-refresh-secret",
   accessTokenTtl: 900,
@@ -20,8 +20,8 @@ const mockJwtSettings: ReturnType<typeof jwtConfig> = {
 };
 
 const createJwtService = () => ({
-  signAsync: vi.fn((payload: any, options?: any) => Promise.resolve("token")),
-  verifyAsync: vi.fn((token: string, options?: any) => Promise.resolve({}))
+  signAsync: vi.fn((_payload: any, _options?: any) => Promise.resolve("token")),
+  verifyAsync: vi.fn((_token: string, _options?: any) => Promise.resolve({}))
 });
 
 const createUsersService = () => ({

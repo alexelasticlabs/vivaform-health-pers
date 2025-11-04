@@ -4,9 +4,13 @@ import { ApiOkResponse, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AuthService } from "./auth.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { LoginDto } from "./dto/login.dto";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { RefreshTokenDto } from "./dto/refresh-token.dto";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { ForgotPasswordDto, ResetPasswordDto, RequestTempPasswordDto, ForceChangePasswordDto } from "./dto/forgot-password.dto";
 
 @ApiTags("auth")

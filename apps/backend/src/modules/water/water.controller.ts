@@ -4,7 +4,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateWaterEntryDto, DailyWaterQueryDto } from "./dto/create-water-entry.dto";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { WaterService } from "./water.service";
 
 @ApiTags("water")

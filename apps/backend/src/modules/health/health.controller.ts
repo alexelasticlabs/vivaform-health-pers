@@ -2,6 +2,7 @@
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipThrottle } from "@nestjs/throttler";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { HealthService } from "./health.service";
 
 @SkipThrottle()

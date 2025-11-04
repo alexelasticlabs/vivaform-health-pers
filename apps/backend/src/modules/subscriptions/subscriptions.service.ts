@@ -1,13 +1,12 @@
 ﻿import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { StripeService } from "../stripe/stripe.service";
-import {
-  CreateCheckoutSessionDto,
-  CreatePortalSessionDto,
-  SubscriptionPlan
-} from "./dto/create-checkout-session.dto";
+import type { CreateCheckoutSessionDto, CreatePortalSessionDto } from "./dto/create-checkout-session.dto";
+import type { SubscriptionPlan } from "@prisma/client";
 
 const ACTIVE_STATUSES: Stripe.Subscription.Status[] = [
   "active",

@@ -1,6 +1,8 @@
 import { Injectable, Logger } from "@nestjs/common";
-import { Expo, ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
+import { Expo } from "expo-server-sdk";
+import type { ExpoPushMessage, ExpoPushTicket } from "expo-server-sdk";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 
 interface SendNotificationDto {

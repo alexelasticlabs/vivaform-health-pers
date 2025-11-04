@@ -4,7 +4,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { DailyOverviewQueryDto } from "./dto/daily-overview-query.dto";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { DashboardService } from "./dashboard.service";
 
 @ApiTags("dashboard")

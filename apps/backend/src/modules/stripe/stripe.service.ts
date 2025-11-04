@@ -1,8 +1,12 @@
-﻿import { Inject, Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { ConfigService, ConfigType } from "@nestjs/config";
+﻿import { Inject, Injectable, Logger } from "@nestjs/common";
+import type { OnModuleInit } from "@nestjs/common";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { ConfigService } from "@nestjs/config";
+import type { ConfigType } from "@nestjs/config";
 import Stripe from "stripe";
 
 import { stripeConfig } from "../../config";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 
 @Injectable()
@@ -71,32 +75,61 @@ export class StripeService implements OnModuleInit {
       const subscription = await this.stripe.subscriptions.retrieve(subscriptionId, {
         expand: ['items.data.price.product']
       });
-      
+      const currentPeriodStart = new Date(subscription.current_period_start * 1000);
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-      
-      // Extract priceId from first subscription item
-      const priceId = subscription.items.data[0]?.price?.id || 'unknown';
-      const tier = subscription.status === 'active' ? 'PREMIUM' : 'FREE';
 
-      // Update user tier
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { tier }
-      });
+      const stripePriceId = subscription.items.data[0]?.price?.id || 'unknown';
+      const statusMap: Record<Stripe.Subscription.Status, 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'> = {
+        active: 'ACTIVE',
+        trialing: 'TRIALING',
+        canceled: 'CANCELED',
+        past_due: 'PAST_DUE',
+        incomplete: 'INCOMPLETE',
+        incomplete_expired: 'INCOMPLETE_EXPIRED',
+        unpaid: 'UNPAID',
+        paused: 'CANCELED'
+      } as const;
 
-      // Create subscription record with captured priceId and metadata
-      await this.prisma.subscription.create({
-        data: {
-          userId,
-          stripeSubscription: subscriptionId,
+      const plan = (Object.entries(this.stripeSettings.prices).find(([, id]) => id === stripePriceId)?.[0] || 'MONTHLY') as 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
+      const status = statusMap[subscription.status] || 'INCOMPLETE';
+      const tier = status === 'ACTIVE' || status === 'TRIALING' ? 'PREMIUM' : 'FREE';
+
+      await this.prisma.user.update({ where: { id: userId }, data: { tier } });
+
+      await this.prisma.subscription.upsert({
+        where: { userId },
+        update: {
           stripeCustomerId: subscription.customer as string,
-          status: subscription.status,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId,
+          plan: plan as any,
+          status: status as any,
+          currentPeriodStart,
           currentPeriodEnd,
-          priceId
+          cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+          canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+          trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+          trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+          metadata: subscription.metadata as any
+        },
+        create: {
+          userId,
+          stripeCustomerId: subscription.customer as string,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId,
+          plan: plan as any,
+          status: status as any,
+          currentPeriodStart,
+          currentPeriodEnd,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+          canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+          trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+          trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+          metadata: subscription.metadata as any
         }
       });
 
-      this.logger.log(`✅ Subscription created for user ${userId}: ${subscriptionId} (price: ${priceId}, status: ${subscription.status})`);
+      this.logger.log(`✅ Subscription created for user ${userId}: ${subscriptionId} (price: ${stripePriceId}, status: ${subscription.status})`);
     } catch (error) {
       this.logger.error(`Failed to handle subscription creation for user ${userId}`, error);
       throw error;
@@ -106,13 +139,28 @@ export class StripeService implements OnModuleInit {
   async handlePaymentSucceeded(subscriptionId: string) {
     try {
       const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+      const currentPeriodStart = new Date(subscription.current_period_start * 1000);
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
+      const stripePriceId = subscription.items.data[0]?.price?.id || 'unknown';
+      const statusMap: Record<Stripe.Subscription.Status, 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'> = {
+        active: 'ACTIVE',
+        trialing: 'TRIALING',
+        canceled: 'CANCELED',
+        past_due: 'PAST_DUE',
+        incomplete: 'INCOMPLETE',
+        incomplete_expired: 'INCOMPLETE_EXPIRED',
+        unpaid: 'UNPAID',
+        paused: 'CANCELED'
+      } as const;
+      const status = statusMap[subscription.status] || 'INCOMPLETE';
 
       await this.prisma.subscription.update({
-        where: { stripeSubscription: subscriptionId },
+        where: { stripeSubscriptionId: subscriptionId },
         data: {
+          currentPeriodStart,
           currentPeriodEnd,
-          status: subscription.status
+          stripePriceId,
+          status: status as any
         }
       });
 
@@ -125,25 +173,35 @@ export class StripeService implements OnModuleInit {
 
   async syncSubscriptionStatus(userId: string, subscription: Stripe.Subscription) {
     try {
+      const currentPeriodStart = new Date(subscription.current_period_start * 1000);
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-      const tier = subscription.status === 'active' ? 'PREMIUM' : 'FREE';
-      const priceId = subscription.items.data[0]?.price?.id || 'unknown';
+      const stripePriceId = subscription.items.data[0]?.price?.id || 'unknown';
+      const statusMap: Record<Stripe.Subscription.Status, 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'> = {
+        active: 'ACTIVE',
+        trialing: 'TRIALING',
+        canceled: 'CANCELED',
+        past_due: 'PAST_DUE',
+        incomplete: 'INCOMPLETE',
+        incomplete_expired: 'INCOMPLETE_EXPIRED',
+        unpaid: 'UNPAID',
+        paused: 'CANCELED'
+      } as const;
+      const status = statusMap[subscription.status] || 'INCOMPLETE';
+      const tier = status === 'ACTIVE' || status === 'TRIALING' ? 'PREMIUM' : 'FREE';
 
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { tier }
-      });
+      await this.prisma.user.update({ where: { id: userId }, data: { tier } });
 
       await this.prisma.subscription.update({
-        where: { stripeSubscription: subscription.id },
+        where: { stripeSubscriptionId: subscription.id },
         data: {
-          status: subscription.status,
+          status: status as any,
+          currentPeriodStart,
           currentPeriodEnd,
-          priceId
+          stripePriceId
         }
       });
 
-      this.logger.log(`✅ Subscription ${subscription.id} synced: ${userId}, tier: ${tier}, status: ${subscription.status}, price: ${priceId}`);
+      this.logger.log(`✅ Subscription ${subscription.id} synced: ${userId}, tier: ${tier}, status: ${subscription.status}, price: ${stripePriceId}`);
     } catch (error) {
       this.logger.error(`Failed to sync subscription ${subscription.id} for user ${userId}`, error);
       throw error;
@@ -160,7 +218,7 @@ export class StripeService implements OnModuleInit {
       // Mark subscription as canceled
       await this.prisma.subscription.updateMany({
         where: { userId },
-        data: { status: 'canceled' }
+        data: { status: 'CANCELED' }
       });
 
       this.logger.log(`✅ User ${userId} downgraded to FREE`);

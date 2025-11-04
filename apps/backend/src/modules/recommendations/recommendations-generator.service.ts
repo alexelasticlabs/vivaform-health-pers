@@ -1,10 +1,16 @@
 import { Injectable, Logger } from "@nestjs/common";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NotificationsService } from "../notifications/notifications.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NutritionService } from "../nutrition/nutrition.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { WaterService } from "../water/water.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { WeightService } from "../weight/weight.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { RecommendationsService } from "./recommendations.service";
 
 interface RecommendationRule {

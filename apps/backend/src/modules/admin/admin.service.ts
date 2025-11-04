@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 
 export interface UserStats {
@@ -73,12 +74,11 @@ export class AdminService {
     const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const [totalUsers, freeUsers, premiumUsers, newThisWeek, nutritionToday] = await Promise.all([
+    const [totalUsers, freeUsers, premiumUsers, newThisWeek] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { tier: "FREE" } }),
       this.prisma.user.count({ where: { tier: "PREMIUM" } }),
-      this.prisma.user.count({ where: { createdAt: { gte: weekAgo } } }),
-      this.prisma.nutritionEntry.count({ where: { createdAt: { gte: todayStart } } })
+      this.prisma.user.count({ where: { createdAt: { gte: weekAgo } } })
     ]);
 
     // Приблизительное количество активных пользователей (добавили записи сегодня)

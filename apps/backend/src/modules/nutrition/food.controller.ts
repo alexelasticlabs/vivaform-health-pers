@@ -4,6 +4,7 @@ import { IsOptional, IsString, IsInt, Min, Max } from "class-validator";
 import { Transform } from "class-transformer";
 
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { FoodService } from "./food.service";
 
 class SearchFoodsQueryDto {

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type {
   QuizAnswers,

@@ -1,17 +1,22 @@
 ﻿import { Inject, Injectable, UnauthorizedException, BadRequestException } from "@nestjs/common";
-import { ConfigType } from "@nestjs/config";
+import type { ConfigType } from "@nestjs/config";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
 import { randomBytes } from "crypto";
 
 import { jwtConfig } from "../../config";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { UsersService } from "../users/users.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { EmailService } from "../email/email.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AuditService } from "../audit/audit.service";
-import { LoginDto } from "./dto/login.dto";
-import { RefreshTokenDto } from "./dto/refresh-token.dto";
-import { ForgotPasswordDto, ResetPasswordDto, RequestTempPasswordDto, ForceChangePasswordDto } from "./dto/forgot-password.dto";
+import type { LoginDto } from "./dto/login.dto";
+import type { RefreshTokenDto } from "./dto/refresh-token.dto";
+import type { ForgotPasswordDto, ResetPasswordDto, RequestTempPasswordDto, ForceChangePasswordDto } from "./dto/forgot-password.dto";
 
 @Injectable()
 export class AuthService {
@@ -128,7 +133,7 @@ export class AuthService {
         user,
         tokens
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException("Invalid refresh token");
     }
   }

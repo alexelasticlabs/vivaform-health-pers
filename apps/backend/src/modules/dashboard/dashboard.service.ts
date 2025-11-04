@@ -1,10 +1,14 @@
 ﻿import { Injectable } from "@nestjs/common";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NutritionService } from "../nutrition/nutrition.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { RecommendationsService } from "../recommendations/recommendations.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { WaterService } from "../water/water.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { WeightService } from "../weight/weight.service";
-import { DailyOverviewQueryDto } from "./dto/daily-overview-query.dto";
+import type { DailyOverviewQueryDto } from "./dto/daily-overview-query.dto";
 
 @Injectable()
 export class DashboardService {

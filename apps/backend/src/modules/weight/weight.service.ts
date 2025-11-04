@@ -1,8 +1,9 @@
 ﻿import { Injectable } from "@nestjs/common";
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { getDayRange } from "../../common/utils/get-day-range";
-import { CreateWeightEntryDto, WeightQueryDto } from "./dto/create-weight-entry.dto";
+import type { CreateWeightEntryDto, WeightQueryDto } from "./dto/create-weight-entry.dto";
 
 @Injectable()
 export class WeightService {
