@@ -1,6 +1,8 @@
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
-import { OptionButton } from '../option-button';
+import { OptionPill } from '../options/option-pill';
+import { OptionTile } from '../options/option-tile';
+import { logQuizOptionSelected, logQuizToggleChanged } from '../../../lib/analytics';
 
 export function FoodHabitsStep() {
   const { answers, updateAnswers } = useQuizStore();
@@ -16,15 +18,16 @@ export function FoodHabitsStep() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             How many times per day do you eat?
           </label>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             {[2, 3, 4, 5, 6].map((meals) => (
-              <OptionButton
+              <OptionPill
                 key={meals}
                 selected={answers.habits?.mealsPerDay === meals}
-                onClick={() => updateAnswers({ habits: { mealsPerDay: meals } })}
+                onClick={() => { updateAnswers({ habits: { mealsPerDay: meals } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'food_habits', 'habits.mealsPerDay', meals); } catch {} }}
+                aria-label={`Eat ${meals} times per day`}
               >
-                {meals} {meals === 2 ? 'times' : 'times'}
-              </OptionButton>
+                {meals}x/day
+              </OptionPill>
             ))}
           </div>
         </div>
@@ -34,19 +37,21 @@ export function FoodHabitsStep() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you eat breakfast?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
+          <div className="grid grid-cols-2 gap-2">
+            <OptionPill
               selected={answers.habits?.skipBreakfast === false}
-              onClick={() => updateAnswers({ habits: { skipBreakfast: false } })}
+              onClick={() => { updateAnswers({ habits: { skipBreakfast: false } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'food_habits', 'habits.skipBreakfast', false); } catch {} }}
+              aria-label="Yes, eat breakfast"
             >
               ✅ Yes, regularly
-            </OptionButton>
-            <OptionButton
+            </OptionPill>
+            <OptionPill
               selected={answers.habits?.skipBreakfast === true}
-              onClick={() => updateAnswers({ habits: { skipBreakfast: true } })}
+              onClick={() => { updateAnswers({ habits: { skipBreakfast: true } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'food_habits', 'habits.skipBreakfast', true); } catch {} }}
+              aria-label="No, skip breakfast"
             >
               ❌ No, I skip it
-            </OptionButton>
+            </OptionPill>
           </div>
         </div>
 
@@ -55,19 +60,21 @@ export function FoodHabitsStep() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you snack between meals?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
+          <div className="grid grid-cols-2 gap-2">
+            <OptionPill
               selected={answers.habits?.snackBetweenMeals === true}
-              onClick={() => updateAnswers({ habits: { snackBetweenMeals: true } })}
+              onClick={() => { updateAnswers({ habits: { snackBetweenMeals: true } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'food_habits', 'habits.snackBetweenMeals', true); } catch {} }}
+              aria-label="Yes, snack between meals"
             >
               Yes, often
-            </OptionButton>
-            <OptionButton
+            </OptionPill>
+            <OptionPill
               selected={answers.habits?.snackBetweenMeals === false}
-              onClick={() => updateAnswers({ habits: { snackBetweenMeals: false } })}
+              onClick={() => { updateAnswers({ habits: { snackBetweenMeals: false } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'food_habits', 'habits.snackBetweenMeals', false); } catch {} }}
+              aria-label="No, rarely snack"
             >
               No, rarely
-            </OptionButton>
+            </OptionPill>
           </div>
         </div>
 
@@ -84,13 +91,13 @@ export function FoodHabitsStep() {
               { value: 'often', label: 'Often (several times a week)' },
               { value: 'daily', label: 'Daily' },
             ].map((option) => (
-              <OptionButton
+              <OptionTile
                 key={option.value}
+                title={option.label}
                 selected={answers.habits?.fastFoodFrequency === option.value}
-                onClick={() => updateAnswers({ habits: { fastFoodFrequency: option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily' } })}
-              >
-                {option.label}
-              </OptionButton>
+                onClick={() => { const v = option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily'; updateAnswers({ habits: { fastFoodFrequency: v } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'food_habits', 'habits.fastFoodFrequency', v); } catch {} }}
+                aria-label={`Fast food: ${option.label}`}
+              />
             ))}
           </div>
         </div>
@@ -108,13 +115,13 @@ export function FoodHabitsStep() {
               { value: 'often', label: 'Often' },
               { value: 'always', label: 'Always' },
             ].map((option) => (
-              <OptionButton
+              <OptionTile
                 key={option.value}
+                title={option.label}
                 selected={answers.habits?.cookAtHomeFrequency === option.value}
-                onClick={() => updateAnswers({ habits: { cookAtHomeFrequency: option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily' } })}
-              >
-                {option.label}
-              </OptionButton>
+                onClick={() => { const v = option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily'; updateAnswers({ habits: { cookAtHomeFrequency: v } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'food_habits', 'habits.cookAtHomeFrequency', v); } catch {} }}
+                aria-label={`Cook at home: ${option.label}`}
+              />
             ))}
           </div>
         </div>

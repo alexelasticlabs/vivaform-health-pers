@@ -128,3 +128,56 @@ export const logQuizSubmitError = (clientId: string, error: string) => {
     timestamp: new Date().toISOString(),
   });
 };
+
+// Extended funnel
+export const logQuizStepViewed = (clientId: string, stepId: string) => {
+  trackConversion("quiz_step_viewed", {
+    clientId,
+    stepId,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizOptionSelected = (clientId: string, stepId: string, field: string, value: unknown) => {
+  trackConversion("quiz_option_selected", {
+    clientId,
+    stepId,
+    field,
+    value,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizSliderChanged = (clientId: string, stepId: string, field: string, value: number) => {
+  trackConversion("quiz_slider_changed", {
+    clientId,
+    stepId,
+    field,
+    value,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizToggleChanged = (clientId: string, stepId: string, field: string, value: boolean) => {
+  trackConversion("quiz_toggle_changed", {
+    clientId,
+    stepId,
+    field,
+    value,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizPreviewSaved = (clientId: string) => {
+  trackConversion("quiz_preview_saved", {
+    clientId,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizFinalStepViewed = (clientId: string) => {
+  trackConversion("quiz_final_step_viewed", {
+    clientId,
+    timestamp: new Date().toISOString(),
+  });
+};

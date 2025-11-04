@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Check } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '../store/quiz-store';
-import { submitQuiz } from '../api/quiz';
+import { submitQuiz, saveQuizPreview, getQuizPreview } from '../api/quiz';
 import { useUserStore } from '../store/user-store';
-import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError } from '../lib/analytics';
+import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed } from '../lib/analytics';
 import { QuizProgress } from '../components/quiz/quiz-progress';
 import { IntroStep } from '../components/quiz/steps/intro-step';
 import { BodyMetricsStep } from '../components/quiz/steps/body-metrics-step';
@@ -16,6 +16,7 @@ import { EnergyScheduleStep } from '../components/quiz/steps/energy-schedule-ste
 import { PreferencesStep } from '../components/quiz/steps/preferences-step';
 import { EmotionalStep } from '../components/quiz/steps/emotional-step';
 import { HydrationStep } from '../components/quiz/steps/hydration-step';
+import { FinalStep } from '../components/quiz/steps/final-step';
 
 const TOTAL_STEPS = 10;
 
@@ -45,11 +46,14 @@ export function QuizPage() {
     getDraft,
     lastSaved,
     clientId,
+    mergeServerAnswers,
   } = useQuizStore();
   
   const { debouncedSave } = useQuizAutosave();
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const previewTimerRef = useRef<NodeJS.Timeout | null>(null);
   
   // Calculate BMI preview in real-time
   const bmiPreview = calculateBMI(answers);
@@ -67,6 +71,12 @@ export function QuizPage() {
     if (currentStep > 0 && clientId) {
       const progress = Math.round((currentStep / TOTAL_STEPS) * 100);
       logQuizSectionCompleted(clientId, STEP_NAMES[currentStep - 1], progress);
+    }
+    if (clientId) {
+      logQuizStepViewed(clientId, STEP_NAMES[currentStep] ?? String(currentStep));
+      if (currentStep === TOTAL_STEPS - 1) {
+        logQuizFinalStepViewed(clientId);
+      }
     }
   }, [currentStep, clientId]);
 
@@ -86,6 +96,28 @@ export function QuizPage() {
     }
   }, [answers, debouncedSave]);
 
+  // Debounced server-side preview autosave for authenticated users
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (Object.keys(answers).length === 0) return;
+    if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    previewTimerRef.current = setTimeout(() => {
+      try {
+        const draft = getDraft();
+        void saveQuizPreview(draft).then(() => {
+          if (clientId) logQuizPreviewSaved(clientId);
+        }).catch(() => {
+          // Non-fatal: ignore if endpoint not available
+        });
+      } catch {
+        // ignore
+      }
+    }, 600);
+    return () => {
+      if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
+    };
+  }, [answers, isAuthenticated, getDraft]);
+
   // Redirect authenticated users to dashboard
   useEffect(() => {
     if (isAuthenticated) {
@@ -93,6 +125,25 @@ export function QuizPage() {
       navigate("/app");
     }
   }, [isAuthenticated, navigate]);
+
+  // Restore server preview draft for authenticated users (once)
+  useEffect(() => {
+    let cancelled = false;
+    if (!isAuthenticated) return;
+    (async () => {
+      try {
+        const data = await getQuizPreview();
+        if (!cancelled && data?.answers) {
+          mergeServerAnswers(data.answers);
+        }
+      } catch {
+        // non-fatal
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isAuthenticated, mergeServerAnswers]);
 
   const canGoNext = () => {
     switch (currentStep) {
@@ -136,8 +187,10 @@ export function QuizPage() {
   const handleNext = () => {
     if (!canGoNext()) {
       toast.error('Please answer the question to continue');
+      setValidationMessage('Please answer the question to continue');
       return;
     }
+    setValidationMessage(null);
 
     if (currentStep === TOTAL_STEPS - 1) {
       handleSubmit();
@@ -200,16 +253,20 @@ export function QuizPage() {
         return <EmotionalStep />;
       case 8:
         return <HydrationStep />;
+      case 9:
+        return <FinalStep />;
       default:
         return <div>Step {currentStep + 1}</div>;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
+    <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
       <div className="max-w-4xl mx-auto">
-        {/* Progress bar */}
-        <QuizProgress currentStep={currentStep + 1} totalSteps={TOTAL_STEPS} />
+        {/* Sticky progress under header */}
+        <div className="sticky top-16 z-40 -mx-4 mb-6 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-md md:static md:top-auto md:-mx-0 md:border-none md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
+          <QuizProgress currentStep={currentStep + 1} totalSteps={TOTAL_STEPS} />
+        </div>
         
         {/* Saved indicator */}
         {showSavedIndicator && (
@@ -235,10 +292,15 @@ export function QuizPage() {
           </div>
         )}
 
-        <div className="mb-8">{renderStep()}</div>
+        <div className="mb-2">{renderStep()}</div>
+        {validationMessage && (
+          <div className="mx-auto mb-6 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+            {validationMessage}
+          </div>
+        )}
 
-        {/* Navigation buttons */}
-        <div className="flex gap-4 max-w-2xl mx-auto">
+        {/* Desktop/tablet navigation */}
+        <div className="hidden max-w-2xl mx-auto gap-4 md:flex">
           {currentStep > 0 && (
             <button
               onClick={prevStep}
@@ -258,6 +320,33 @@ export function QuizPage() {
                 : 'Complete Quiz →'
               : 'Next →'}
           </button>
+        </div>
+
+        {/* Mobile sticky CTA */}
+        <div className="md:hidden">
+          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/40 bg-background/90 p-3 backdrop-blur-md">
+            <div className="mx-auto flex max-w-4xl items-center gap-3">
+              {currentStep > 0 && (
+                <button
+                  onClick={prevStep}
+                  className="shrink-0 rounded-xl border-2 border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+                >
+                  ← Back
+                </button>
+              )}
+              <button
+                onClick={handleNext}
+                disabled={!canGoNext() || isSubmitting}
+                className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {currentStep === TOTAL_STEPS - 1
+                  ? isSubmitting
+                    ? 'Saving...'
+                    : 'Complete Quiz →'
+                  : 'Next →'}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

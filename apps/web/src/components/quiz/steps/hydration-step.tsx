@@ -1,130 +1,102 @@
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
-import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
+import { ChoiceToggle } from '../options/choice-toggle';
+import { OptionPill } from '../options/option-pill';
+import { logQuizSliderChanged, logQuizToggleChanged, logQuizOptionSelected } from '../../../lib/analytics';
 
 export function HydrationStep() {
   const { answers, updateAnswers } = useQuizStore();
 
   return (
     <QuizCard
-      title="Гидратация и трекинг"
-      subtitle="Последний шаг! Настроим отслеживание прогресса"
+      title="Hydration & Tracking"
+      subtitle="Final step! Set up helpful reminders and tracking"
+      helpText="Water, reminders and health app sync keep you on track."
     >
       <div className="space-y-6">
         {/* Потребление воды */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Сколько воды вы выпиваете в день? (мл)
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
+            How much water do you drink per day? (ml)
           </label>
           <SliderInput
             value={answers.habits?.dailyWaterMl ?? 2000}
-            onChange={(value) => updateAnswers({ habits: { dailyWaterMl: value } })}
+            onChange={(value) => { updateAnswers({ habits: { dailyWaterMl: value } }); try { logQuizSliderChanged(useQuizStore.getState().clientId, 'hydration', 'habits.dailyWaterMl', value); } catch {} }}
             min={500}
             max={5000}
             step={250}
             label={(value) => {
               const liters = (value / 1000).toFixed(1);
-              return `${value} мл (${liters} л)`;
+              return `${value} ml (${liters} L)`;
             }}
           />
-          <div className="mt-2 text-sm text-gray-600">
-            💡 Рекомендуется: 2000-3000 мл в день (8-12 стаканов)
+          <div className="mt-2 text-sm text-muted-foreground">
+            💡 Recommended: 2000–3000 ml per day (8–12 cups)
           </div>
         </div>
 
         {/* Напоминания */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Хотите получать напоминания о питании и воде?
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
+            Would you like to receive reminders about meals and water?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
-              selected={answers.habits?.wantReminders === true}
-              onClick={() => updateAnswers({ habits: { wantReminders: true } })}
-            >
-              ✅ Да, помогите мне
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.wantReminders === false}
-              onClick={() => updateAnswers({ habits: { wantReminders: false } })}
-            >
-              ❌ Нет, справлюсь сам
-            </OptionButton>
-          </div>
+          <ChoiceToggle
+            label="Enable meal and hydration reminders"
+            selected={answers.habits?.wantReminders === true}
+            onClick={() => { const v = !answers.habits?.wantReminders; updateAnswers({ habits: { wantReminders: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.wantReminders', !!v); } catch {} }}
+          />
         </div>
 
         {/* Трекинг активности */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Вы хотите отслеживать физическую активность?
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
+            Would you like to track physical activity?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
-              selected={answers.habits?.trackActivity === true}
-              onClick={() => updateAnswers({ habits: { trackActivity: true } })}
-            >
-              ✅ Да
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.trackActivity === false}
-              onClick={() => updateAnswers({ habits: { trackActivity: false } })}
-            >
-              ❌ Нет
-            </OptionButton>
-          </div>
+          <ChoiceToggle
+            label="Track physical activity"
+            selected={answers.habits?.trackActivity === true}
+            onClick={() => { const v = !answers.habits?.trackActivity; updateAnswers({ habits: { trackActivity: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.trackActivity', !!v); } catch {} }}
+          />
         </div>
 
         {/* Интеграция с Health Apps */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Подключить Apple Health / Google Fit?
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
+            Connect Apple Health / Google Fit?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
-              selected={answers.habits?.connectHealthApp === true}
-              onClick={() => updateAnswers({ habits: { connectHealthApp: true } })}
-            >
-              ✅ Да, синхронизировать
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.connectHealthApp === false}
-              onClick={() => updateAnswers({ habits: { connectHealthApp: false } })}
-            >
-              ❌ Нет, не нужно
-            </OptionButton>
-          </div>
+          <ChoiceToggle
+            label="Connect Apple Health / Google Fit"
+            selected={answers.habits?.connectHealthApp === true}
+            onClick={() => { const v = !answers.habits?.connectHealthApp; updateAnswers({ habits: { connectHealthApp: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.connectHealthApp', !!v); } catch {} }}
+          />
           {answers.habits?.connectHealthApp && (
-            <div className="mt-2 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-              ℹ️ Интеграция будет доступна после регистрации
+            <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-200">
+              ℹ️ Health app sync will be available after registration
             </div>
           )}
         </div>
 
         {/* Тема приложения */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
-            Выберите тему приложения
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
+            Choose app theme
           </label>
-          <div className="grid grid-cols-3 gap-3">
-            <OptionButton
-              selected={answers.habits?.theme === 'light'}
-              onClick={() => updateAnswers({ habits: { theme: 'light' } })}
-            >
-              ☀️ Светлая
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.theme === 'dark'}
-              onClick={() => updateAnswers({ habits: { theme: 'dark' } })}
-            >
-              🌙 Тёмная
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.theme === 'auto'}
-              onClick={() => updateAnswers({ habits: { theme: 'auto' } })}
-            >
-              🔄 Авто
-            </OptionButton>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { value: 'light', label: '☀️ Light' },
+              { value: 'dark', label: '🌙 Dark' },
+              { value: 'auto', label: '🔄 Auto' },
+            ].map((t) => (
+              <OptionPill
+                key={t.value}
+                selected={answers.habits?.theme === t.value}
+                onClick={() => { updateAnswers({ habits: { theme: t.value } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'hydration', 'habits.theme', t.value); } catch {} }}
+                aria-label={`Theme: ${t.value}`}
+              >
+                {t.label}
+              </OptionPill>
+            ))}
           </div>
         </div>
       </div>

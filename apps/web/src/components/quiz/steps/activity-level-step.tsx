@@ -1,35 +1,39 @@
 import { QuizCard } from '../quiz-card';
-import { OptionButton } from '../option-button';
+import { OptionTile } from '../options/option-tile';
 import { useQuizStore } from '../../../store/quiz-store';
 import { ACTIVITY_LEVELS } from '@vivaform/shared';
+import { logQuizOptionSelected } from '../../../lib/analytics';
 
 export function ActivityLevelStep() {
   const { answers, updateAnswers } = useQuizStore();
 
   const handleSelect = (level: string) => {
     updateAnswers({ habits: { activityLevel: level } });
+    try { logQuizOptionSelected(useQuizStore.getState().clientId, 'activity_level', 'habits.activityLevel', level); } catch {}
   };
 
   return (
     <QuizCard
       title="How active are you on an average day?"
       subtitle="This helps us calculate your daily calorie needs"
+      helpText="We use this to estimate your TDEE (daily energy)."
       emoji="🏃"
     >
       <div className="space-y-3">
         {ACTIVITY_LEVELS.map((level) => (
-          <OptionButton
+          <OptionTile
             key={level.value}
-            label={level.label}
+            title={level.label}
             description={level.description}
             selected={answers.habits?.activityLevel === level.value}
             onClick={() => handleSelect(level.value)}
+            aria-label={`Choose ${level.label}`}
           />
         ))}
       </div>
       {answers.habits?.activityLevel && (
-        <p className="text-center text-sm text-gray-600 mt-4">
-          Good sleep and stable mealtimes help your metabolism stay steady 💫
+        <p className="mt-4 text-center text-sm text-emerald-700 dark:text-emerald-300 animate-in fade-in">
+          Great — we’ll tune your plan to your routine.
         </p>
       )}
     </QuizCard>

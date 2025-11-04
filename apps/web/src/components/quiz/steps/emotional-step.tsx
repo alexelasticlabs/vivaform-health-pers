@@ -1,7 +1,9 @@
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
-import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
+import { OptionTile } from '../options/option-tile';
+import { ChoiceToggle } from '../options/choice-toggle';
+import { logQuizToggleChanged, logQuizOptionSelected, logQuizSliderChanged } from '../../../lib/analytics';
 
 export function EmotionalStep() {
   const { answers, updateAnswers } = useQuizStore();
@@ -10,6 +12,7 @@ export function EmotionalStep() {
     <QuizCard
       title="Emotional Wellbeing"
       subtitle="Understanding your relationship with food helps create a better plan"
+      helpText="Emotions affect appetite and choices. This shapes supportive habits."
     >
       <div className="space-y-6">
         {/* Еда при стрессе */}
@@ -17,20 +20,11 @@ export function EmotionalStep() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you eat more when you're stressed?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
-              selected={answers.habits?.eatWhenStressed === true}
-              onClick={() => updateAnswers({ habits: { eatWhenStressed: true } })}
-            >
-              Yes, stress triggers appetite
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.eatWhenStressed === false}
-              onClick={() => updateAnswers({ habits: { eatWhenStressed: false } })}
-            >
-              No, appetite doesn't change
-            </OptionButton>
-          </div>
+          <ChoiceToggle
+            label="I eat more when I'm stressed"
+            selected={answers.habits?.eatWhenStressed === true}
+            onClick={() => { const v = !answers.habits?.eatWhenStressed; updateAnswers({ habits: { eatWhenStressed: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'emotional', 'habits.eatWhenStressed', !!v); } catch {} }}
+          />
         </div>
 
         {/* Главная мотивация */}
@@ -46,13 +40,13 @@ export function EmotionalStep() {
               { value: 'wellbeing', label: '😊 Overall wellbeing' },
               { value: 'medical', label: '🏥 Medical reasons' },
             ].map((option) => (
-              <OptionButton
+              <OptionTile
                 key={option.value}
+                title={option.label}
                 selected={answers.habits?.mainMotivation === option.value}
-                onClick={() => updateAnswers({ habits: { mainMotivation: option.value as 'health' | 'appearance' | 'performance' | 'wellbeing' | 'medical' } })}
-              >
-                {option.label}
-              </OptionButton>
+                onClick={() => { const v = option.value as 'health' | 'appearance' | 'performance' | 'wellbeing' | 'medical'; updateAnswers({ habits: { mainMotivation: v } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'emotional', 'habits.mainMotivation', v); } catch {} }}
+                aria-label={`Motivation: ${option.label}`}
+              />
             ))}
           </div>
         </div>
@@ -64,7 +58,7 @@ export function EmotionalStep() {
           </label>
           <SliderInput
             value={answers.habits?.stressLevel ?? 5}
-            onChange={(value) => updateAnswers({ habits: { stressLevel: value } })}
+            onChange={(value) => { updateAnswers({ habits: { stressLevel: value } }); try { logQuizSliderChanged(useQuizStore.getState().clientId, 'emotional', 'habits.stressLevel', value); } catch {} }}
             min={1}
             max={10}
             step={1}
@@ -89,13 +83,13 @@ export function EmotionalStep() {
               { value: 'rest', label: '😴 Rest and sleep' },
               { value: 'hobbies', label: '🎨 Hobbies' },
             ].map((option) => (
-              <OptionButton
+              <OptionTile
                 key={option.value}
+                title={option.label}
                 selected={answers.habits?.comfortSource === option.value}
-                onClick={() => updateAnswers({ habits: { comfortSource: option.value as 'food' | 'exercise' | 'social' | 'rest' | 'hobbies' } })}
-              >
-                {option.label}
-              </OptionButton>
+                onClick={() => { const v = option.value as 'food' | 'exercise' | 'social' | 'rest' | 'hobbies'; updateAnswers({ habits: { comfortSource: v } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'emotional', 'habits.comfortSource', v); } catch {} }}
+                aria-label={`Comfort source: ${option.label}`}
+              />
             ))}
           </div>
         </div>
@@ -107,7 +101,7 @@ export function EmotionalStep() {
           </label>
           <SliderInput
             value={answers.habits?.routineConfidence ?? 5}
-            onChange={(value) => updateAnswers({ habits: { routineConfidence: value } })}
+            onChange={(value) => { updateAnswers({ habits: { routineConfidence: value } }); try { logQuizSliderChanged(useQuizStore.getState().clientId, 'emotional', 'habits.routineConfidence', value); } catch {} }}
             min={1}
             max={10}
             step={1}

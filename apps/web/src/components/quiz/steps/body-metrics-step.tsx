@@ -69,14 +69,14 @@ export function BodyMetricsStep() {
     >
       <div className="space-y-6">
         {/* Unit System Toggle */}
-        <div className="flex justify-center gap-2 p-1 bg-gray-100 rounded-lg">
+        <div className="flex justify-center gap-2 rounded-lg border border-border bg-card p-1">
           <button
             type="button"
             onClick={() => setUnitSystem('metric')}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${
               unitSystem === 'metric'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200 shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Metric (cm, kg)
@@ -84,10 +84,10 @@ export function BodyMetricsStep() {
           <button
             type="button"
             onClick={() => setUnitSystem('imperial')}
-            className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+            className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all ${
               unitSystem === 'imperial'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-200 shadow-sm'
+                : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             Imperial (ft, lbs)
@@ -106,10 +106,10 @@ export function BodyMetricsStep() {
           />
         ) : (
           <div className="space-y-3">
-            <label className="text-sm font-medium text-gray-700">Your Height</label>
+            <label className="text-sm font-medium text-foreground/80">Your Height</label>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Feet</label>
+                <label className="mb-1 block text-xs text-muted-foreground">Feet</label>
                 <input
                   type="number"
                   min={4}
@@ -119,11 +119,11 @@ export function BodyMetricsStep() {
                     const feet = parseInt(e.target.value) || 4;
                     setHeightCm(feetInchesToCm(feet, heightInches));
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-2 text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:ring-offset-2"
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500 mb-1 block">Inches</label>
+                <label className="mb-1 block text-xs text-muted-foreground">Inches</label>
                 <input
                   type="number"
                   min={0}
@@ -133,11 +133,11 @@ export function BodyMetricsStep() {
                     const inches = parseInt(e.target.value) || 0;
                     setHeightCm(feetInchesToCm(heightFeet, inches));
                   }}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full rounded-lg border border-border bg-card px-4 py-2 text-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500/70 focus:ring-offset-2"
                 />
               </div>
             </div>
-            <div className="text-center text-sm text-gray-600">
+            <div className="text-center text-sm text-muted-foreground">
               {heightFeet}'{heightInches}" = {heightCm} cm
             </div>
           </div>
@@ -188,21 +188,21 @@ export function BodyMetricsStep() {
         )}
 
         {targetWeightKg < weightKg && (
-          <p className="text-sm text-green-600 text-center">
+          <p className="text-center text-sm text-emerald-700 dark:text-emerald-300">
             Goal: Lose {unitSystem === 'metric' 
               ? `${(weightKg - targetWeightKg).toFixed(1)} kg` 
               : `${(weightLbs - targetWeightLbs).toFixed(1)} lbs`} 📉
           </p>
         )}
         {targetWeightKg > weightKg && (
-          <p className="text-sm text-blue-600 text-center">
+          <p className="text-center text-sm text-sky-700 dark:text-sky-300">
             Goal: Gain {unitSystem === 'metric' 
               ? `${(targetWeightKg - weightKg).toFixed(1)} kg` 
               : `${(targetWeightLbs - weightLbs).toFixed(1)} lbs`} 📈
           </p>
         )}
         {targetWeightKg === weightKg && (
-          <p className="text-sm text-gray-600 text-center">
+          <p className="text-center text-sm text-muted-foreground">
             Goal: Maintain current weight ⚖️
           </p>
         )}

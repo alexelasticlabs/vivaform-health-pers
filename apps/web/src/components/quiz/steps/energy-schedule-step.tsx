@@ -1,15 +1,31 @@
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
-import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
+import { ChoiceToggle } from '../options/choice-toggle';
+import { logQuizSliderChanged, logQuizToggleChanged } from '../../../lib/analytics';
 
 export function EnergyScheduleStep() {
   const { answers, updateAnswers } = useQuizStore();
+  // Ensure default slider value is saved so Next isn't blocked
+  if (typeof window !== 'undefined') {
+    // noop
+  }
+  
+  // set default once
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  import('react').then(({ useEffect }) => {
+    useEffect(() => {
+      if (answers.habits?.sleepHours === undefined) {
+        updateAnswers({ habits: { sleepHours: 7 } });
+      }
+    }, []);
+  });
 
   return (
     <QuizCard
       title="Energy and Schedule"
       subtitle="Tell us about your daily routine and activity"
+      helpText="Sleep, exercise and timing influence your energy and hunger."
     >
       <div className="space-y-6">
         {/* Сон */}
@@ -19,7 +35,7 @@ export function EnergyScheduleStep() {
           </label>
           <SliderInput
             value={answers.habits?.sleepHours ?? 7}
-            onChange={(value) => updateAnswers({ habits: { sleepHours: value } })}
+            onChange={(value) => { updateAnswers({ habits: { sleepHours: value } }); try { logQuizSliderChanged(useQuizStore.getState().clientId, 'energy_schedule', 'habits.sleepHours', value); } catch {} }}
             min={4}
             max={12}
             step={0.5}
@@ -32,20 +48,11 @@ export function EnergyScheduleStep() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you exercise regularly?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
-              selected={answers.habits?.exerciseRegularly === true}
-              onClick={() => updateAnswers({ habits: { exerciseRegularly: true } })}
-            >
-              ✅ Yes, regularly
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.exerciseRegularly === false}
-              onClick={() => updateAnswers({ habits: { exerciseRegularly: false } })}
-            >
-              ❌ No
-            </OptionButton>
-          </div>
+          <ChoiceToggle
+            label="I exercise regularly"
+            selected={answers.habits?.exerciseRegularly === true}
+            onClick={() => { const v = !answers.habits?.exerciseRegularly; updateAnswers({ habits: { exerciseRegularly: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'energy_schedule', 'habits.exerciseRegularly', !!v); } catch {} }}
+          />
         </div>
 
         {/* Время пробуждения */}

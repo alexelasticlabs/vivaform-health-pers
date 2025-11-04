@@ -53,6 +53,7 @@ const socialLinks = [
 export const MarketingShell = ({ children }: PropsWithChildren) => {
   const location = useLocation();
   const isLanding = location.pathname === "/";
+  const isQuiz = location.pathname === "/quiz";
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -72,7 +73,12 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <VivaFormLogo size="md" />
-          {isLanding ? (
+          {isQuiz ? (
+            <div className="flex items-center gap-3">
+              {/* Minimal quiz header: theme toggle optional, Support link */}
+              <a href="#faq" className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition-all hover:border-muted-foreground">Support</a>
+            </div>
+          ) : isLanding ? (
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <NavLink

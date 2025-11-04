@@ -1,5 +1,5 @@
 import { chromium } from '@playwright/test';
-import { spawn } from 'node:child_process';
+import { preview as vitePreview } from 'vite';
 import { setTimeout as delay } from 'node:timers/promises';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -23,12 +23,8 @@ async function waitForServer(url: string, timeoutMs = 15000) {
 async function run() {
   if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  // Start vite preview on a fixed port
-  const preview = spawn(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['preview', '--', '--port', String(PORT)], {
-    cwd: process.cwd(),
-    stdio: 'inherit',
-    shell: false,
-  });
+  // Start vite preview programmatically on a fixed port
+  const server = await vitePreview({ preview: { port: PORT, strictPort: true } });
 
   try {
     await waitForServer(`${BASE_URL}/`);
@@ -65,7 +61,7 @@ async function run() {
 
     await browser.close();
   } finally {
-    preview.kill('SIGTERM');
+    await server.close();
   }
 }
 

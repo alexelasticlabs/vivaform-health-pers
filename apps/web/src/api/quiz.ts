@@ -76,6 +76,24 @@ export interface UpdateQuizProfileRequest {
   answers?: Partial<QuizAnswers>;
 }
 
+export interface SaveQuizPreviewRequest {
+  clientId: string;
+  version: number;
+  answers: QuizAnswers;
+}
+
+export interface SaveQuizPreviewResponse {
+  ok: boolean;
+  savedAt: string;
+}
+
+export interface GetQuizPreviewResponse {
+  clientId: string;
+  version: number;
+  answers: QuizAnswers;
+  savedAt?: string;
+}
+
 /**
  * Submit quiz profile (creates or updates) - authenticated
  */
@@ -97,5 +115,21 @@ export async function getQuizProfile(): Promise<QuizProfile> {
  */
 export async function updateQuizProfile(data: UpdateQuizProfileRequest): Promise<SubmitQuizResponse> {
   const response = await apiClient.patch<SubmitQuizResponse>('/quiz/profile', data);
+  return response.data;
+}
+
+/**
+ * Debounced preview autosave — authenticated users only. Safe to call; errors are non-fatal.
+ */
+export async function saveQuizPreview(data: SaveQuizPreviewRequest): Promise<SaveQuizPreviewResponse> {
+  const response = await apiClient.post<SaveQuizPreviewResponse>('/quiz/preview', data);
+  return response.data;
+}
+
+/**
+ * Fetch saved preview for authenticated user (if exists).
+ */
+export async function getQuizPreview(): Promise<GetQuizPreviewResponse> {
+  const response = await apiClient.get<GetQuizPreviewResponse>('/quiz/preview');
   return response.data;
 }

@@ -57,6 +57,8 @@ interface QuizStore {
   saveToLocalStorage: () => void;
   loadFromLocalStorage: () => void;
   clearDraft: () => void;
+  // Merge server answers (prefer local values)
+  mergeServerAnswers: (server: QuizAnswers) => void;
   
   setSubmitting: (isSubmitting: boolean) => void;
   reset: () => void;
@@ -130,6 +132,25 @@ export const useQuizStore = create<QuizStore>()(
         }));
         
         // Autosave is handled by zustand persist middleware
+      },
+
+      mergeServerAnswers: (server: QuizAnswers) => {
+        const state = get();
+        const local = state.answers;
+        const merged: QuizAnswers = {
+          ...server,
+          ...local,
+          diet: { ...(server.diet ?? {}), ...(local.diet ?? {}) },
+          body: {
+            ...(server.body ?? {}),
+            ...(local.body ?? {}),
+            height: { ...(server.body?.height ?? {}), ...(local.body?.height ?? {}) },
+            weight: { ...(server.body?.weight ?? {}), ...(local.body?.weight ?? {}) },
+          },
+          goals: { ...(server.goals ?? {}), ...(local.goals ?? {}) },
+          habits: { ...(server.habits ?? {}), ...(local.habits ?? {}) },
+        };
+        set({ answers: merged });
       },
 
       saveToLocalStorage: () => {

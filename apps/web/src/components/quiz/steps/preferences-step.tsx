@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
-import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
+import { OptionPill } from '../options/option-pill';
+import { OptionTile } from '../options/option-tile';
+import { ChoiceToggle } from '../options/choice-toggle';
 
 const COMMON_ALLERGENS = [
   'Gluten',
@@ -64,6 +66,7 @@ export function PreferencesStep() {
     <QuizCard
       title="Food Preferences"
       subtitle="Specify your dietary restrictions and preferences"
+      helpText="We’ll exclude allergens and respect your preferences in meal plans."
     >
       <div className="space-y-6">
         {/* Аллергии */}
@@ -73,14 +76,14 @@ export function PreferencesStep() {
           </label>
           <div className="grid grid-cols-2 gap-2 mb-3">
             {COMMON_ALLERGENS.map((allergy) => (
-              <OptionButton
+              <OptionPill
                 key={allergy}
                 selected={allergies.includes(allergy)}
                 onClick={() => toggleAllergy(allergy)}
-                className="text-sm"
+                aria-label={`Allergy: ${allergy}`}
               >
                 {allergy}
-              </OptionButton>
+              </OptionPill>
             ))}
           </div>
           <div className="flex gap-2">
@@ -126,14 +129,14 @@ export function PreferencesStep() {
           </label>
           <div className="grid grid-cols-2 gap-2 mb-3">
             {COMMON_AVOIDED_FOODS.map((food) => (
-              <OptionButton
+              <OptionPill
                 key={food}
                 selected={avoided.includes(food)}
                 onClick={() => toggleAvoided(food)}
-                className="text-sm"
+                aria-label={`Avoid: ${food}`}
               >
                 {food}
-              </OptionButton>
+              </OptionPill>
             ))}
           </div>
           <div className="flex gap-2">
@@ -183,13 +186,13 @@ export function PreferencesStep() {
               { value: 'medium', label: '👨‍🍳 Medium (15-30 min)' },
               { value: 'complex', label: '👨‍🍳 Complex (30+ min)' },
             ].map((option) => (
-              <OptionButton
+              <OptionTile
                 key={option.value}
+                title={option.label}
                 selected={answers.habits?.mealComplexity === option.value}
                 onClick={() => updateAnswers({ habits: { mealComplexity: option.value as 'simple' | 'medium' | 'complex' } })}
-              >
-                {option.label}
-              </OptionButton>
+                aria-label={`Meal complexity: ${option.label}`}
+              />
             ))}
           </div>
         </div>
@@ -199,20 +202,11 @@ export function PreferencesStep() {
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you like trying new dishes?
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            <OptionButton
-              selected={answers.habits?.tryNewFoods === true}
-              onClick={() => updateAnswers({ habits: { tryNewFoods: true } })}
-            >
-              ✅ Yes, I love experimenting
-            </OptionButton>
-            <OptionButton
-              selected={answers.habits?.tryNewFoods === false}
-              onClick={() => updateAnswers({ habits: { tryNewFoods: false } })}
-            >
-              ❌ No, I prefer familiar foods
-            </OptionButton>
-          </div>
+          <ChoiceToggle
+            label="I like trying new dishes"
+            selected={answers.habits?.tryNewFoods === true}
+            onClick={() => updateAnswers({ habits: { tryNewFoods: !answers.habits?.tryNewFoods } })}
+          />
         </div>
 
         {/* Время на готовку */}

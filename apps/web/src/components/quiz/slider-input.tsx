@@ -22,12 +22,12 @@ export function SliderInput({
   
   return (
     <div className="space-y-3">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         {displayLabel && (
-          <label className="text-sm font-medium text-gray-700">{displayLabel}</label>
+          <label className="text-sm font-medium text-foreground/80">{displayLabel}</label>
         )}
         {displayValue && (
-          <span className="text-lg font-bold text-blue-600">{displayValue}</span>
+          <span className="text-lg font-semibold text-emerald-600">{displayValue}</span>
         )}
       </div>
       <input
@@ -37,9 +37,9 @@ export function SliderInput({
         step={step}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-500"
+        className="h-2 w-full appearance-none cursor-pointer rounded-lg bg-muted accent-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2"
       />
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>
           {min} {unit}
         </span>

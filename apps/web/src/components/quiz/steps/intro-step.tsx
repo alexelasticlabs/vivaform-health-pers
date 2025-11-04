@@ -1,35 +1,39 @@
 import { QuizCard } from '../quiz-card';
-import { OptionButton } from '../option-button';
+import { OptionTile } from '../options/option-tile';
 import { useQuizStore } from '../../../store/quiz-store';
 import { DIET_PLANS } from '@vivaform/shared';
+import { logQuizOptionSelected } from '../../../lib/analytics';
 
 export function IntroStep() {
   const { answers, updateAnswers } = useQuizStore();
 
-  const handleSelect = (plan: string) => {
-    updateAnswers({ diet: { plan } });
+  const handleSelect = (value: string) => {
+    updateAnswers({ diet: { plan: value } });
+    try { logQuizOptionSelected(useQuizStore.getState().clientId, 'intro', 'diet.plan', value); } catch {}
   };
 
   return (
     <QuizCard
       title="Which diet plan are you interested in?"
       subtitle="Don't worry — we'll personalize this based on your goals"
+      helpText="We use this to tailor meal templates and ingredient suggestions."
       emoji="🌿"
     >
       <div className="space-y-3">
         {DIET_PLANS.map((plan) => (
-          <OptionButton
+          <OptionTile
             key={plan.value}
-            label={plan.label}
+            title={plan.label}
             description={plan.description}
             selected={answers.diet?.plan === plan.value}
             onClick={() => handleSelect(plan.value)}
+            aria-label={`Choose ${plan.label}`}
           />
         ))}
       </div>
-      {answers.dietPlan && (
-        <p className="text-center text-sm text-gray-600 mt-4 animate-fade-in">
-          Excellent choice — a balanced diet supports long-term health ❤️
+      {answers.diet?.plan && (
+        <p className="text-center text-sm text-emerald-700 dark:text-emerald-300 mt-4 animate-in fade-in">
+          Great choice! We’ll personalize recipes around it. ✓
         </p>
       )}
     </QuizCard>
