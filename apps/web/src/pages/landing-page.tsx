@@ -1,5 +1,8 @@
 ﻿import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { PhoneMockup } from "../components/landing/PhoneMockup";
+import { FloatingTag } from "../components/landing/FloatingTag";
+import { ProgressCard } from "../components/landing/ProgressCard";
 import { useNavigate } from "react-router-dom";
 import { trackConversion } from "../lib/analytics";
 import { useIntersectionObserver } from "../hooks/use-intersection-observer";
@@ -20,6 +23,7 @@ type Testimonial = {
   role: string;
   content: string;
   initials: string;
+  avatarUrl?: string;
 };
 type FaqItem = {
   id: string;
@@ -41,6 +45,11 @@ const valueProps: ValueProp[] = [
     title: "Privacy-First",
     description: "Encrypted, secure, never shared",
     icon: "🔒"
+  },
+  {
+    title: "Scientifically Based",
+    description: "Built on nutrition science and validated methods",
+    icon: "🧪"
   }
 ];
 const featureHighlights: FeatureHighlight[] = [
@@ -80,19 +89,22 @@ const testimonials: Testimonial[] = [
     name: "Sarah M.",
     role: "Lost 8 kg in 3 months",
     content: "VivaForm made tracking effortless. The insights are spot-on and keep me motivated.",
-    initials: "SM"
+    initials: "SM",
+    avatarUrl: "https://i.pravatar.cc/120?img=47"
   },
   {
     name: "James T.",
     role: "Marathon runner",
     content: "Finally, a nutrition app that understands my training needs. Game changer!",
-    initials: "JT"
+    initials: "JT",
+    avatarUrl: "https://i.pravatar.cc/120?img=12"
   },
   {
     name: "Linda K.",
     role: "Vegan for 2 years",
     content: "Best app for plant-based nutrition. Smart recommendations, zero hassle.",
-    initials: "LK"
+    initials: "LK",
+    avatarUrl: "https://i.pravatar.cc/120?img=32"
   }
 ];
 const faqItems: FaqItem[] = [
@@ -106,7 +118,7 @@ const faqItems: FaqItem[] = [
     id: "faq-dietary-needs",
     question: "Is VivaForm suitable for specific dietary needs?",
     answer:
-      "Absolutely! Whether you are vegetarian, vegan, gluten-free, or managing allergies, VivaForm adapts to your unique requirements."
+      "Absolutely. VivaForm supports vegetarian, vegan, pescetarian, dairy-free, gluten-free, and low-FODMAP patterns. You’ll get ingredient suggestions, swaps, and alerts for allergens — all adjustable in Settings."
   },
   {
     id: "faq-difference",
@@ -127,204 +139,83 @@ const faqItems: FaqItem[] = [
   {
     id: "faq-data-security",
     question: "How is my health data protected?",
-    answer: "We use bank-level encryption (AES-256) and never sell or share your data with third parties. You own your health information."
+    answer:
+      "Your data is encrypted in transit (TLS 1.3) and at rest (AES‑256). We’re GDPR compliant, do not sell data, and only use trusted providers like Stripe for payments. You can export or delete your data anytime from your account."
+  },
+  {
+    id: "faq-pricing",
+    question: "How much does VivaForm Premium cost?",
+    answer:
+      "VivaForm Premium starts with a free trial, then $4.99/month or $39.99/year. Cancel anytime from your account."
   }
 ];
+
 export const LandingPage = () => {
   const navigate = useNavigate();
-  const isAuthenticated = useUserStore((state) => state.isAuthenticated);
-  const handleStartClick = () => trackConversion("start_quiz_click", { placement: "hero" });
-  const [whyRef, whyVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
-  const [featuresRef, featuresVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
-  const [testimonialsRef, testimonialsVisible] = useIntersectionObserver({ threshold: 0.1, freezeOnceVisible: true });
-  
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
-  
-  const heroStats: Array<{ value: string; label: string }> = [
-    { value: "125K+", label: "Active users" },
-    { value: "4.8★", label: "App Store rating" },
-    { value: "92%", label: "Goal completion" }
+  const [whyRef, whyVisible] = useIntersectionObserver({ threshold: 0.1 });
+  const [featuresRef, featuresVisible] = useIntersectionObserver({ threshold: 0.1 });
+  const [testimonialsRef, testimonialsVisible] = useIntersectionObserver({ threshold: 0.1 });
+  const [testimonialsContainer, setTestimonialsContainer] = useState<HTMLDivElement | null>(null);
+  const heroStats = [
+    { label: "Active users", value: "125k+" },
+    { label: "Avg. rating", value: "4.9/5" },
+    { label: "Countries", value: "32" }
   ];
+
   return (
-    <main className="overflow-hidden">
+    <main>
+
       {/* Hero Section */}
-      <section className="relative isolate px-6 py-16 sm:py-24 lg:py-32">
-        <div className="absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute left-1/2 top-0 -translate-x-1/2 blur-3xl">
-            <div className="aspect-[1108/632] w-[69.25rem] bg-gradient-to-r from-emerald-400/20 via-teal-400/20 to-cyan-500/20" />
-          </div>
-        </div>
-        <div className="mx-auto max-w-7xl">
-          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-x-16 gap-y-12 lg:grid-cols-2">
-            {/* Left: Text Content */}
-            <div className="flex flex-col justify-center">
-              <h1 className="font-display text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-[3.5rem]">
-                Feel-good nutrition,
-                <span className="block bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 bg-clip-text text-transparent">
-                  guided by experts
-                </span>
+      <section id="hero" className="relative overflow-hidden bg-gradient-to-br from-teal-400 via-cyan-300 to-blue-200 py-20 sm:py-28">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
+            {/* Left: Content */}
+            <div className="relative z-10">
+              <h1 className="font-display text-5xl font-bold leading-tight tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
+                Feel-good nutrition,{" "}
+                <span className="block text-teal-700">guided by experts</span>
               </h1>
-              <p className="mt-6 max-w-prose text-lg leading-relaxed text-muted-foreground">
+              <p className="mt-6 text-lg leading-relaxed text-gray-800 sm:text-xl">
                 Personalized plans, habit coaching, and clear progress—without selling your data.
               </p>
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-                {isAuthenticated ? (
-                  <Link
-                    to="/app"
-                    className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
-                  >
-                    Go to Dashboard
-                    <svg
-                      className="h-5 w-5 transition-transform group-hover:translate-x-1"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </Link>
-                ) : (
-                  <>
-                    <Link
-                      to="/quiz"
-                      onClick={handleStartClick}
-                      className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
-                    >
-                      Get Started
-                      <svg
-                        className="h-5 w-5 transition-transform group-hover:translate-x-1"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        aria-hidden="true"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </Link>
-                    <Link
-                      to="/login"
-                      className="inline-flex items-center justify-center rounded-2xl border-2 border-border bg-card px-8 py-4 text-base font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
-                    >
-                      Log in
-                    </Link>
-                  </>
-                )}
+              
+              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
+                <Link
+                  to="/register"
+                  onClick={() => trackConversion("hero_cta_click", { placement: "hero" })}
+                  className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-xl transition-all hover:scale-[1.02] hover:bg-emerald-700 hover:shadow-2xl active:scale-[0.98]"
+                >
+                  Take the Quiz
+                  <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
               </div>
-              <div className="mt-12">
-                <p className="text-sm font-medium text-muted-foreground">Available on every platform</p>
-                <div className="mt-4">
-                  <AppStoreButtons />
-                </div>
+
+              <p className="mt-8 text-sm font-medium text-gray-700">Available on every platform</p>
+              <div className="mt-4">
+                <AppStoreButtons />
               </div>
             </div>
+
             {/* Right: Phone Mockup */}
-            <div className="relative flex items-center justify-center lg:justify-end lg:translate-x-[2%]">
-              <div className="relative">
-                {/* Ambient glow with spotlight effect */}
-                <div className="pointer-events-none absolute inset-0 -z-10">
-                  {/* Ellipse spotlight behind phone */}
-                  <div className="absolute left-[10%] top-[5%] h-[500px] w-[500px] rounded-full bg-gradient-radial from-emerald-300/25 via-teal-300/15 to-transparent blur-[100px]" />
-                  <div className="absolute right-[20%] bottom-[15%] h-[400px] w-[400px] rounded-full bg-gradient-radial from-cyan-300/20 to-transparent blur-[120px]" />
-                </div>
-
-                {/* Floating hint chips with parallax */}
-                <div className="absolute -left-6 top-[35%] z-20 animate-float rounded-2xl border border-white/40 bg-white/70 px-3 py-2 text-xs font-semibold text-gray-700 shadow-[0_12px_32px_rgba(2,6,23,0.12)] backdrop-blur-md transition-transform hover:translate-y-[-2px] dark:border-white/20 dark:bg-white/10 dark:text-white">
-                  +2 glasses 💧
-                </div>
-                <div className="absolute -right-8 top-[55%] z-20 animate-float-delay rounded-2xl border border-white/40 bg-white/65 px-3 py-2 text-xs font-semibold text-gray-700 shadow-[0_12px_32px_rgba(2,6,23,0.12)] backdrop-blur-md transition-transform hover:translate-y-[-2px] dark:border-white/20 dark:bg-white/10 dark:text-white">
-                  Meditation 5min 🧘
-                </div>
-
-                {/* iPhone 17 Pro Mockup - optimized 85% height */}
-                <div className="relative mx-auto w-[300px] transition-all duration-500 ease-out hover:-translate-y-1 sm:w-[350px]">
-                  {/* Contact shadow directly under phone */}
-                  <div className="absolute bottom-0 left-1/2 h-4 w-[92%] -translate-x-1/2 rounded-full bg-black/12 blur-[22px]" />
-                  
-                  {/* Titanium frame - 10px outer edge */}
-                  <div className="relative overflow-hidden rounded-[3.5rem] bg-gradient-to-b from-gray-200 via-gray-100 to-gray-200 p-[10px] shadow-[0_40px_80px_rgba(2,6,23,0.22)] dark:from-gray-700 dark:via-gray-800 dark:to-gray-700">
-                    
-                    {/* Side buttons - Titanium texture */}
-                    {/* Left side - Action button */}
-                    <div className="absolute -left-[3px] top-[70px] h-[22px] w-[3px] rounded-l-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
-                    {/* Volume up */}
-                    <div className="absolute -left-[4px] top-[115px] h-[42px] w-[4px] rounded-l-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
-                    {/* Volume down */}
-                    <div className="absolute -left-[4px] top-[165px] h-[42px] w-[4px] rounded-l-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
-                    
-                    {/* Right side - Power button */}
-                    <div className="absolute -right-[4px] top-[125px] h-[60px] w-[4px] rounded-r-full bg-gradient-to-b from-gray-300 via-gray-400 to-gray-300 shadow-sm dark:from-gray-600 dark:via-gray-500 dark:to-gray-600" />
-                    
-                    {/* Under-glass (6px black bezel) */}
-                    <div className="relative overflow-hidden rounded-[2.8rem] bg-black p-[6px]">
-                      {/* Screen - 85% height, with glass highlight */}
-                      <div className="relative overflow-hidden rounded-[2.4rem]" style={{ 
-                        aspectRatio: '9 / 16.6',
-                        background: 'radial-gradient(120% 80% at 20% 10%, #bbffff 0%, transparent 60%), radial-gradient(90% 80% at 80% 90%, #ff77cc 0%, transparent 60%), linear-gradient(180deg, #eaf7ff 0%, #f7f1ff 100%)'
-                      }}>
-                        {/* Vignette overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-black/5" />
-                        
-                        {/* Glass highlight at top edge */}
-                        <div className="absolute inset-x-4 top-0 h-[3px] bg-gradient-to-b from-white/25 to-transparent" />
-                        
-                        {/* Dynamic Island - 30-32% width, 26-28px height */}
-                        <div className="absolute left-1/2 top-3 z-30 h-[27px] w-[31%] -translate-x-1/2 rounded-full bg-black shadow-[0_8px_16px_rgba(0,0,0,0.18)] transition-opacity hover:opacity-95" />
-                        
-                        {/* Status bar */}
-                        <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-7 pt-2.5 text-xs font-semibold text-gray-900 dark:text-white">
-                          <span>9:41</span>
-                          <div className="flex items-center gap-1.5">
-                            <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-                            </svg>
-                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                              <rect x="1" y="6" width="18" height="12" rx="2" ry="2" />
-                              <path d="M23 10v4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                            </svg>
-                          </div>
-                        </div>
-
-                        {/* App Content with proper safe areas */}
-                        <div className="absolute inset-0 px-5 pb-5 pt-[56px]">
-                          {/* Main progress card with enhanced spacing */}
-                          <div className="overflow-hidden rounded-2xl border border-white/20 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 p-5 shadow-lg">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className="text-xs font-semibold uppercase leading-tight tracking-wide text-white/85">Today's Progress</p>
-                                <p className="mt-2.5 text-[26px] font-bold leading-tight text-white">On track 💪</p>
-                              </div>
-                              <span className="rounded-xl bg-white/20 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-sm">Day 24</span>
-                            </div>
-                            <p className="mt-2.5 text-xs font-medium leading-relaxed text-white/95">1,540 cal • 104g protein • 8 glasses</p>
-                            
-                            <div className="mt-3.5 h-1.5 overflow-hidden rounded-full bg-white/25">
-                              <div className="h-full w-[86%] animate-progress-fill rounded-full bg-white shadow-sm" />
-                            </div>
-                          </div>
-
-                          {/* Stats cards */}
-                          <div className="mt-4 grid grid-cols-2 gap-3">
-                            <div className="rounded-xl border border-white/20 bg-white/95 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-gray-800/70">
-                              <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Weight</p>
-                              <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">68.2</p>
-                              <p className="mt-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">-2.4 kg</p>
-                            </div>
-                            <div className="rounded-xl border border-white/20 bg-white/95 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-gray-800/70">
-                              <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Streak</p>
-                              <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">24</p>
-                              <p className="mt-0.5 text-[10px] font-medium text-gray-600 dark:text-gray-400">days 🔥</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Home indicator - more prominent */}
-                        <div className="absolute bottom-2.5 left-1/2 h-1 w-[120px] -translate-x-1/2 rounded-full bg-black/15 dark:bg-white/18" />
-                      </div>
-                    </div>
+            <div className="relative flex items-center justify-center lg:justify-end">
+              <PhoneMockup>
+                <ProgressCard />
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-white/20 bg-white/90 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-neutral-900/70">
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Weight</p>
+                    <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">68.2</p>
+                    <p className="mt-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">-2.4 kg</p>
+                  </div>
+                  <div className="rounded-2xl border border-white/20 bg-white/90 p-3.5 shadow-sm backdrop-blur-sm dark:border-gray-700/40 dark:bg-neutral-900/70">
+                    <p className="text-[9px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Streak</p>
+                    <p className="mt-1.5 text-2xl font-bold text-gray-900 dark:text-gray-50">24</p>
+                    <p className="mt-0.5 text-[10px] font-medium text-gray-600 dark:text-gray-400">days 🔥</p>
                   </div>
                 </div>
-              </div>
+              </PhoneMockup>
             </div>
           </div>
         </div>
@@ -373,14 +264,24 @@ export const LandingPage = () => {
               Medical expertise meets personalized guidance
             </p>
           </div>
-          <div className="mx-auto mt-16 max-w-5xl">
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-              {valueProps.map((prop) => (
+          <div className="mx-auto mt-16 max-w-6xl">
+            <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {valueProps.map((prop, idx) => (
                 <div
                   key={prop.title}
                   className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-card-hover"
                 >
-                  <div className="mb-4 text-4xl" aria-hidden="true">{prop.icon}</div>
+                  <div
+                    className={`mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl text-2xl ${[
+                      "bg-gradient-to-br from-emerald-500/10 to-teal-500/20",
+                      "bg-gradient-to-br from-sky-500/10 to-cyan-500/20",
+                      "bg-gradient-to-br from-amber-500/10 to-orange-500/20",
+                      "bg-gradient-to-br from-fuchsia-500/10 to-pink-500/20"
+                    ][idx % 4]}`}
+                    aria-hidden="true"
+                  >
+                    {prop.icon}
+                  </div>
                   <h3 className="mb-3 font-display text-xl font-semibold text-foreground">{prop.title}</h3>
                   <p className="text-sm leading-relaxed text-muted-foreground">{prop.description}</p>
                 </div>
@@ -401,7 +302,7 @@ export const LandingPage = () => {
               Everything you need to succeed
             </h2>
             <p className="mt-4 text-lg text-muted-foreground max-w-prose mx-auto">
-              Powerful features, effortless experience
+              Everything you need — beautifully simple.
             </p>
           </div>
           <div className="mx-auto mt-16 max-w-6xl">
@@ -409,7 +310,7 @@ export const LandingPage = () => {
               {featureHighlights.map((feature) => (
                 <div
                   key={feature.title}
-                  className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-card-hover"
+                  className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:bg-card-hover hover:border-emerald-500/30 hover:bg-gradient-to-br hover:from-emerald-500/5 hover:to-teal-500/5"
                 >
                   <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/20 text-2xl">
                     {feature.icon}
@@ -437,23 +338,62 @@ export const LandingPage = () => {
               Real results from real people
             </p>
           </div>
-          <div className="mx-auto max-w-5xl">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-              {testimonials.map((testimonial) => (
+          <div className="mx-auto max-w-6xl">
+            {/* Mobile: horizontal scroll-snap, Desktop: 3-column grid */}
+            <div className="md:hidden -mx-6 px-6">
+              <div
+                ref={setTestimonialsContainer}
+                className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
+                aria-label="Testimonials carousel"
+              >
+                {testimonials.map((t) => (
+                  <div
+                    key={t.name}
+                    className="min-w-[85%] snap-start rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md"
+                  >
+                    <div className="mb-4 flex items-center gap-3">
+                      {t.avatarUrl ? (
+                        <img
+                          src={t.avatarUrl}
+                          alt={`${t.name} avatar`}
+                          className="h-12 w-12 rounded-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white">
+                          {t.initials}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-semibold text-foreground">{t.name}</p>
+                        <p className="text-xs text-muted-foreground">{t.role}</p>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-relaxed text-muted-foreground">"{t.content}"</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="hidden md:grid grid-cols-1 gap-6 md:grid-cols-3">
+              {testimonials.map((t) => (
                 <div
-                  key={testimonial.name}
+                  key={t.name}
                   className="rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:shadow-md"
                 >
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white">
-                      {testimonial.initials}
-                    </div>
+                  <div className="mb-4 flex items-center gap-3">
+                    {t.avatarUrl ? (
+                      <img src={t.avatarUrl} alt={`${t.name} avatar`} className="h-12 w-12 rounded-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-semibold text-white">
+                        {t.initials}
+                      </div>
+                    )}
                     <div>
-                      <p className="font-semibold text-foreground">{testimonial.name}</p>
-                      <p className="text-xs text-muted-foreground">{testimonial.role}</p>
+                      <p className="font-semibold text-foreground">{t.name}</p>
+                      <p className="text-xs text-muted-foreground">{t.role}</p>
                     </div>
                   </div>
-                  <p className="text-sm leading-relaxed text-muted-foreground">"{testimonial.content}"</p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">"{t.content}"</p>
                 </div>
               ))}
             </div>
@@ -532,10 +472,32 @@ export const LandingPage = () => {
                   Sign in
                 </Link>
               </div>
+              <div className="mt-6 flex flex-wrap justify-center gap-3 text-xs text-emerald-50/90">
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 backdrop-blur">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M20 12V7a2 2 0 0 0-2-2h-3"/><path d="M4 12v5a2 2 0 0 0 2 2h3"/><path d="M5 12h14"/><path d="M9 16V8"/><path d="M15 16V8"/>
+                  </svg>
+                  Stripe Secure Payments
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 backdrop-blur">GDPR Compliant</span>
+                <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 backdrop-blur">Data Encrypted</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Sticky mobile CTA */}
+      <div className="sm:hidden fixed bottom-5 right-5 z-40">
+        <Link
+          to="/quiz"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+          aria-label="Get started"
+        >
+          Get Started
+        </Link>
+      </div>
     </main>
   );
 };
+export default LandingPage;

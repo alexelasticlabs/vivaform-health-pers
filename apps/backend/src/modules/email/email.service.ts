@@ -20,9 +20,9 @@ export class EmailService {
   private readonly fromName: string;
 
   constructor(private configService: ConfigService) {
-    this.emailService = this.configService.get<string>('EMAIL_SERVICE') || 'smtp';
-    this.fromEmail = this.configService.get<string>('EMAIL_FROM') || 'noreply@example.com';
-    this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') || 'VivaForm';
+    this.emailService = this.configService?.get<string>('EMAIL_SERVICE') || 'smtp';
+    this.fromEmail = this.configService?.get<string>('EMAIL_FROM') || 'noreply@example.com';
+    this.fromName = this.configService?.get<string>('EMAIL_FROM_NAME') || 'VivaForm';
 
     if (this.emailService === 'sendgrid') {
       this.initializeSendGrid();
@@ -32,7 +32,7 @@ export class EmailService {
   }
 
   private initializeSendGrid() {
-    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    const apiKey = this.configService?.get<string>('SENDGRID_API_KEY');
     
     if (!apiKey) {
       this.logger.warn('SENDGRID_API_KEY not configured - email sending disabled');
@@ -44,10 +44,10 @@ export class EmailService {
   }
 
   private async initializeSMTP() {
-    const smtpHost = this.configService.get<string>('SMTP_HOST');
-    const smtpPort = parseInt(this.configService.get<string>('SMTP_PORT') || '587', 10);
-    const smtpUser = this.configService.get<string>('SMTP_USER');
-    const smtpPass = this.configService.get<string>('SMTP_PASSWORD');
+    const smtpHost = this.configService?.get<string>('SMTP_HOST');
+    const smtpPort = parseInt(this.configService?.get<string>('SMTP_PORT') || '587', 10);
+    const smtpUser = this.configService?.get<string>('SMTP_USER');
+    const smtpPass = this.configService?.get<string>('SMTP_PASSWORD');
 
     this.logger.log(`📧 Initializing SMTP with host: ${smtpHost}:${smtpPort}`);
     this.logger.log(`👤 SMTP User: ${smtpUser ? smtpUser.substring(0, 6) + '...' : 'NOT SET'}`);
@@ -106,7 +106,7 @@ export class EmailService {
   }
 
   async sendVerificationEmail(email: string, token: string) {
-    const verificationUrl = `${this.configService.get('FRONTEND_URL') || 'http://localhost:5173'}/verify-email?token=${token}`;
+    const verificationUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/verify-email?token=${token}`;
     const subject = 'Подтвердите ваш email - VivaForm';
     const html = this.getVerificationTemplate(verificationUrl);
 
@@ -114,7 +114,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(email: string, token: string) {
-    const resetUrl = `${this.configService.get('FRONTEND_URL') || 'http://localhost:5173'}/reset-password?token=${token}`;
+    const resetUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/reset-password?token=${token}`;
     const subject = 'Reset your VivaForm password';
     const html = this.getPasswordResetTemplate(resetUrl);
 
@@ -142,7 +142,7 @@ export class EmailService {
   }
 
   private async sendViaSendGrid(dto: SendEmailDto): Promise<void> {
-    const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    const apiKey = this.configService?.get<string>('SENDGRID_API_KEY');
     
     if (!apiKey) {
       this.logger.warn(`Email sending skipped - SENDGRID_API_KEY not configured. To: ${dto.to}, Subject: ${dto.subject}`);
@@ -181,7 +181,7 @@ export class EmailService {
     this.logger.log(`📧 Message ID: ${info.messageId}`);
       
     // Log preview URL for Ethereal or development info
-    if (this.configService.get('NODE_ENV') === 'development') {
+    if (this.configService?.get('NODE_ENV') === 'development') {
       const previewUrl = nodemailer.getTestMessageUrl(info);
       if (previewUrl) {
         this.logger.log(`🔗 Preview URL: ${previewUrl}`);

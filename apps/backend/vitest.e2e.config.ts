@@ -6,6 +6,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["src/test/e2e/**/*.e2e-spec.ts"],
+    setupFiles: "./src/test/setup-e2e.ts",
     testTimeout: 30000, // 30 seconds for e2e tests
     hookTimeout: 30000,
     coverage: {

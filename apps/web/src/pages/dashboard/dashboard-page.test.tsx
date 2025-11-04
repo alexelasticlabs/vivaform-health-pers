@@ -15,7 +15,10 @@ vi.mock("../../api", () => ({
     water: { totalMl: 0 },
     weight: { latest: null },
     recommendations: []
-  })
+  }),
+  createWaterEntry: vi.fn().mockResolvedValue({}),
+  createNutritionEntry: vi.fn().mockResolvedValue({}),
+  createWeightEntry: vi.fn().mockResolvedValue({})
 }));
 
 vi.mock("../../api/weight", () => ({

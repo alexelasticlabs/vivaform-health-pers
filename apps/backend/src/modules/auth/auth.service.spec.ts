@@ -91,7 +91,7 @@ describe("AuthService", () => {
 
     const result = await authService.login({ email: "test@example.com", password: "password" });
 
-    expect(result.user).toEqual({ id: user.id, email: user.email, name: user.name, tier: "FREE" });
+    expect(result.user).toEqual({ id: user.id, email: user.email, name: user.name, tier: "FREE", mustChangePassword: false });
     expect(result.tokens).toEqual({ accessToken: "access-token", refreshToken: "refresh-token" });
     expect(usersService.findByEmail).toHaveBeenCalledWith("test@example.com");
   });
