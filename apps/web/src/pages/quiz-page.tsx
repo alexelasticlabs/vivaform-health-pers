@@ -96,24 +96,38 @@ export function QuizPage() {
 
   const canGoNext = () => {
     switch (currentStep) {
-      case 0:
-        return !!answers.dietPlan;
-      case 1:
-        return !!answers.heightCm && !!answers.currentWeightKg;
-      case 2:
-        return !!answers.goalTimeline;
-      case 3:
-        return !!answers.activityLevel;
-      case 4:
-        return answers.mealsPerDay !== undefined;
-      case 5:
-        return answers.sleepHours !== undefined;
-      case 6:
-        return (answers.foodAllergies !== undefined || answers.mealComplexity !== undefined);
-      case 7:
-        return answers.mainMotivation !== undefined;
-      case 8:
-        return answers.dailyWaterMl !== undefined;
+      case 0: {
+        return !!answers.diet?.plan;
+      }
+      case 1: {
+        const hasHeight = !!answers.body?.height?.cm || (answers.body?.height?.ft !== undefined);
+        const hasWeight = !!answers.body?.weight?.kg || !!answers.body?.weight?.lb;
+        return hasHeight && hasWeight;
+      }
+      case 2: {
+        return answers.goals?.etaMonths !== undefined;
+      }
+      case 3: {
+        return !!answers.habits?.activityLevel;
+      }
+      case 4: {
+        return answers.habits?.mealsPerDay !== undefined;
+      }
+      case 5: {
+        return answers.habits?.sleepHours !== undefined;
+      }
+      case 6: {
+        return (
+          answers.habits?.foodAllergies !== undefined ||
+          answers.habits?.mealComplexity !== undefined
+        );
+      }
+      case 7: {
+        return answers.habits?.mainMotivation !== undefined;
+      }
+      case 8: {
+        return answers.habits?.dailyWaterMl !== undefined;
+      }
       default:
         return true;
     }
@@ -192,7 +206,7 @@ export function QuizPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 py-8 px-4">
+    <div className="min-h-screen bg-background py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Progress bar */}
         <QuizProgress currentStep={currentStep + 1} totalSteps={TOTAL_STEPS} />
@@ -207,15 +221,15 @@ export function QuizPage() {
         
         {/* BMI Preview */}
         {bmiPreview && currentStep > 0 && (
-          <div className="max-w-2xl mx-auto mb-6 p-4 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-emerald-200">
+          <div className="max-w-2xl mx-auto mb-6 p-4 bg-white/80 dark:bg-neutral-900/70 backdrop-blur-sm rounded-2xl shadow-lg border border-emerald-200 dark:border-emerald-900/40">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-600">Your BMI</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Your BMI</p>
                 <p className="text-2xl font-bold text-emerald-600">{bmiPreview.bmi}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-gray-600">Category</p>
-                <p className="text-lg font-semibold text-gray-900">{bmiPreview.category}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300">Category</p>
+                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{bmiPreview.category}</p>
               </div>
             </div>
           </div>

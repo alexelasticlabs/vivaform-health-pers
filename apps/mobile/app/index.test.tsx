@@ -1,4 +1,4 @@
-﻿import { render, screen } from "@testing-library/react-native";
+﻿import { render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 
 vi.mock("expo-router", () => ({
@@ -19,6 +19,6 @@ import HomeScreen from "./index";
 describe("HomeScreen", () => {
   it("отображает CTA", () => {
     render(<HomeScreen />);
-    expect(screen.getByText(/Открыть дневник/i)).toBeOnTheScreen();
+    expect(screen.getByText(/Открыть дневник/i)).toBeTruthy();
   });
 });

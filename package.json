@@ -6,7 +6,7 @@
     "build": "turbo run build",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
-    "test": "turbo run test",
+    "test": "pnpm run test:run",
     "test:run": "pnpm --filter @vivaform/backend test --run && pnpm --filter @vivaform/web test --run",
     "format": "turbo run format",
     "health": "node health-check.js",

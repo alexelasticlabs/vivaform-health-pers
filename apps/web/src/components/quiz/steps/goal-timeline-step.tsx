@@ -7,7 +7,7 @@ export function GoalTimelineStep() {
   const { answers, updateAnswers } = useQuizStore();
 
   const handleSelect = (timeline: string) => {
-    const months = timeline === '1' ? 1 : timeline === '3' ? 3 : timeline === '6' ? 6 : 12;
+    const months = timeline === '1_month' ? 1 : timeline === '3_months' ? 3 : timeline === '6_months' ? 6 : 12;
     updateAnswers({ goals: { etaMonths: months } });
   };
 
@@ -22,7 +22,7 @@ export function GoalTimelineStep() {
           <OptionButton
             key={timeline.value}
             label={timeline.label}
-            selected={answers.goalTimeline === timeline.value}
+            selected={answers.goals?.etaMonths === (timeline.value === '1_month' ? 1 : timeline.value === '3_months' ? 3 : timeline.value === '6_months' ? 6 : 12)}
             onClick={() => handleSelect(timeline.value)}
           />
         ))}

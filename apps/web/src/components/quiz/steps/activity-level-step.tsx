@@ -22,12 +22,12 @@ export function ActivityLevelStep() {
             key={level.value}
             label={level.label}
             description={level.description}
-            selected={answers.activityLevel === level.value}
+            selected={answers.habits?.activityLevel === level.value}
             onClick={() => handleSelect(level.value)}
           />
         ))}
       </div>
-      {answers.activityLevel && (
+      {answers.habits?.activityLevel && (
         <p className="text-center text-sm text-gray-600 mt-4">
           Good sleep and stable mealtimes help your metabolism stay steady 💫
         </p>

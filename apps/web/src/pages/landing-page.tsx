@@ -1,5 +1,6 @@
 ﻿import { Link } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { PhoneMockup } from "../components/landing/PhoneMockup";
 // import { FloatingTag } from "../components/landing/FloatingTag"; // not used currently
 import { ProgressCard } from "../components/landing/ProgressCard";
@@ -168,6 +169,33 @@ export const LandingPage = () => {
     return () => clearTimeout(t);
   }, []);
 
+  // Build FAQPage JSON-LD from visible items
+  const faqJsonLd = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqItems.map((item) => ({
+      "@type": "Question",
+      name: item.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: item.answer,
+      },
+    })),
+  }), []);
+
+  // Open FAQ item from URL hash
+  useEffect(() => {
+    const applyHash = () => {
+      if (typeof window === 'undefined') return;
+      const hash = window.location.hash?.slice(1);
+      if (!hash) return;
+      if (faqItems.some((f) => f.id === hash)) setOpenFaqId(hash);
+    };
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    return () => window.removeEventListener('hashchange', applyHash);
+  }, []);
+
   return (
     <main>
 
@@ -177,7 +205,7 @@ export const LandingPage = () => {
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             {/* Left: Content */}
             <div className={`relative z-10 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-              <h1 className="font-display text-5xl font-bold leading-tight tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
+              <h1 className="font-display text-5xl font-bold leading-tight tracking-tight text-gray-900 dark:text-gray-50 sm:text-6xl lg:text-7xl">
                 Discover your perfect nutrition plan.
               </h1>
               <p className="mt-6 text-lg leading-relaxed text-gray-800 dark:text-gray-200 sm:text-xl">
@@ -206,7 +234,6 @@ export const LandingPage = () => {
 
             {/* Right: Phone Mockup */}
             <div className="relative flex items-center justify-center lg:justify-end">
-              <p className="absolute -top-6 left-0 text-xs font-medium text-teal-700/80 dark:text-teal-300/80">Your results preview</p>
               <PhoneMockup>
                 <ProgressCard />
                 <div className="mt-4 grid grid-cols-2 gap-3">
@@ -407,45 +434,83 @@ export const LandingPage = () => {
       </section>
       {/* FAQ Section */}
       <section id="faq" className="bg-surface py-20 sm:py-24">
-        <div className="mx-auto max-w-3xl px-6">
+        <div className="mx-auto max-w-5xl px-6">
           <h2 className="text-center font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Frequently asked questions
           </h2>
-          <div className="mt-12 space-y-3">
-            {faqItems.map((item) => (
-              <div
-                key={item.id}
-                id={item.id}
-                className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md"
-              >
-                <button
-                  type="button"
-                  onClick={() => setOpenFaqId(openFaqId === item.id ? null : item.id)}
-                  className="flex w-full items-center justify-between px-6 py-5 text-left text-base font-semibold text-foreground transition-colors hover:bg-card-hover"
-                >
-                  {item.question}
-                  <svg
-                    className={`h-5 w-5 flex-shrink-0 transition-transform duration-200 ${
-                      openFaqId === item.id ? "rotate-180" : ""
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    aria-hidden="true"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+          <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+            {faqItems.map((item) => {
+              const isOpen = openFaqId === item.id;
+              const headerId = `faq-header-${item.id}`;
+              const panelId = `faq-panel-${item.id}`;
+              return (
                 <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    openFaqId === item.id ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
-                  }`}
+                  key={item.id}
+                  id={item.id}
+                  role="region"
+                  aria-labelledby={headerId}
+                  className="overflow-hidden rounded-2xl border border-neutral-200/60 bg-white/80 shadow-sm transition-all hover:shadow-md dark:border-neutral-700/60 dark:bg-neutral-900/70"
                 >
-                  <p className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">{item.answer}</p>
+                  <button
+                    id={headerId}
+                    type="button"
+                    aria-controls={panelId}
+                    aria-expanded={isOpen}
+                    onClick={() => {
+                      const next = isOpen ? null : item.id;
+                      setOpenFaqId(next);
+                      if (typeof window !== 'undefined') {
+                        window.history.replaceState(null, '', next ? `#${next}` : window.location.pathname);
+                      }
+                    }}
+                    className="flex w-full items-center justify-between px-6 py-5 text-left text-base font-semibold text-foreground transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent dark:focus-visible:ring-offset-neutral-900"
+                  >
+                    {item.question}
+                    <svg
+                      className={`h-5 w-5 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        style={{ overflow: 'hidden' }}
+                      >
+                        <div id={panelId} role="region" aria-live="polite" className="px-6 pb-5 text-sm leading-relaxed text-muted-foreground">
+                          {item.answer}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
+
+          {/* Mini CTA under FAQ */}
+          <div className="mt-10 flex justify-center">
+            <Link
+              to="/quiz"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-emerald-500/40 hover:shadow-md"
+            >
+              Still curious? Take the quiz
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </Link>
+          </div>
+
+          {/* SEO JSON-LD for FAQ */}
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
         </div>
       </section>
       {/* Final CTA Section */}

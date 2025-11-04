@@ -25,21 +25,21 @@ export function OptionButton({
       onClick={onClick}
       className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] ${
         selected
-          ? 'border-blue-500 bg-blue-50 shadow-md'
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
+          ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-md'
+          : 'border-border bg-card hover:bg-card-hover'
       } ${className}`}
     >
       <div className="flex items-start gap-3">
         {emoji && <span className="text-2xl flex-shrink-0">{emoji}</span>}
         <div className="flex-1">
           <div
-            className={`font-semibold ${selected ? 'text-blue-900' : 'text-gray-900'}`}
+            className={`font-semibold ${selected ? 'text-foreground' : 'text-foreground'}`}
           >
             {content}
           </div>
           {description && (
             <div
-              className={`text-sm mt-1 ${selected ? 'text-blue-700' : 'text-gray-600'}`}
+              className={`text-sm mt-1 ${selected ? 'text-emerald-700 dark:text-emerald-300' : 'text-muted-foreground'}`}
             >
               {description}
             </div>
@@ -47,7 +47,7 @@ export function OptionButton({
         </div>
         {selected && (
           <svg
-            className="w-6 h-6 text-blue-500 flex-shrink-0"
+            className="w-6 h-6 text-emerald-500 flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 20 20"
           >

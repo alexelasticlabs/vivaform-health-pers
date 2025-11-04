@@ -22,7 +22,7 @@ export function IntroStep() {
             key={plan.value}
             label={plan.label}
             description={plan.description}
-            selected={answers.dietPlan === plan.value}
+            selected={answers.diet?.plan === plan.value}
             onClick={() => handleSelect(plan.value)}
           />
         ))}

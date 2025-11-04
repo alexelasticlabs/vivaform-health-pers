@@ -20,7 +20,7 @@ export function FoodHabitsStep() {
             {[2, 3, 4, 5, 6].map((meals) => (
               <OptionButton
                 key={meals}
-                selected={answers.mealsPerDay === meals}
+                selected={answers.habits?.mealsPerDay === meals}
                 onClick={() => updateAnswers({ habits: { mealsPerDay: meals } })}
               >
                 {meals} {meals === 2 ? 'times' : 'times'}
