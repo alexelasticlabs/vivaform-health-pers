@@ -25,37 +25,37 @@ const COMMON_AVOIDED_FOODS = [
 ];
 
 export function PreferencesStep() {
-  const { answers, updateAnswer } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
   const [customAllergy, setCustomAllergy] = useState('');
   const [customAvoided, setCustomAvoided] = useState('');
 
-  const allergies = answers.foodAllergies ?? [];
-  const avoided = answers.avoidedFoods ?? [];
+  const allergies = answers.habits?.foodAllergies ?? [];
+  const avoided = answers.habits?.avoidedFoods ?? [];
 
   const toggleAllergy = (allergy: string) => {
     const newAllergies = allergies.includes(allergy)
-      ? allergies.filter((a) => a !== allergy)
+      ? allergies.filter((a: string) => a !== allergy)
       : [...allergies, allergy];
-    updateAnswer('foodAllergies', newAllergies);
+    updateAnswers({ habits: { foodAllergies: newAllergies } });
   };
 
   const toggleAvoided = (food: string) => {
     const newAvoided = avoided.includes(food)
-      ? avoided.filter((f) => f !== food)
+      ? avoided.filter((f: string) => f !== food)
       : [...avoided, food];
-    updateAnswer('avoidedFoods', newAvoided);
+    updateAnswers({ habits: { avoidedFoods: newAvoided } });
   };
 
   const addCustomAllergy = () => {
     if (customAllergy.trim() && !allergies.includes(customAllergy.trim())) {
-      updateAnswer('foodAllergies', [...allergies, customAllergy.trim()]);
+      updateAnswers({ habits: { foodAllergies: [...allergies, customAllergy.trim()] } });
       setCustomAllergy('');
     }
   };
 
   const addCustomAvoided = () => {
     if (customAvoided.trim() && !avoided.includes(customAvoided.trim())) {
-      updateAnswer('avoidedFoods', [...avoided, customAvoided.trim()]);
+      updateAnswers({ habits: { avoidedFoods: [...avoided, customAvoided.trim()] } });
       setCustomAvoided('');
     }
   };
@@ -101,7 +101,7 @@ export function PreferencesStep() {
           </div>
           {allergies.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
-              {allergies.map((allergy) => (
+              {allergies.map((allergy: string) => (
                 <span
                   key={allergy}
                   className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
@@ -154,7 +154,7 @@ export function PreferencesStep() {
           </div>
           {avoided.length > 0 && (
             <div className="mt-2 flex flex-wrap gap-2">
-              {avoided.map((food) => (
+              {avoided.map((food: string) => (
                 <span
                   key={food}
                   className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm"
@@ -185,8 +185,8 @@ export function PreferencesStep() {
             ].map((option) => (
               <OptionButton
                 key={option.value}
-                selected={answers.mealComplexity === option.value}
-                onClick={() => updateAnswer('mealComplexity', option.value as 'simple' | 'medium' | 'complex')}
+                selected={answers.habits?.mealComplexity === option.value}
+                onClick={() => updateAnswers({ habits: { mealComplexity: option.value as 'simple' | 'medium' | 'complex' } })}
               >
                 {option.label}
               </OptionButton>
@@ -201,14 +201,14 @@ export function PreferencesStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.tryNewFoods === true}
-              onClick={() => updateAnswer('tryNewFoods', true)}
+              selected={answers.habits?.tryNewFoods === true}
+              onClick={() => updateAnswers({ habits: { tryNewFoods: true } })}
             >
               ✅ Yes, I love experimenting
             </OptionButton>
             <OptionButton
-              selected={answers.tryNewFoods === false}
-              onClick={() => updateAnswer('tryNewFoods', false)}
+              selected={answers.habits?.tryNewFoods === false}
+              onClick={() => updateAnswers({ habits: { tryNewFoods: false } })}
             >
               ❌ No, I prefer familiar foods
             </OptionButton>
@@ -221,8 +221,8 @@ export function PreferencesStep() {
             How much time are you willing to spend cooking per day?
           </label>
           <SliderInput
-            value={answers.cookingTimeMinutes ?? 30}
-            onChange={(value) => updateAnswer('cookingTimeMinutes', value)}
+            value={answers.habits?.cookingTimeMinutes ?? 30}
+            onChange={(value) => updateAnswers({ habits: { cookingTimeMinutes: value } })}
             min={0}
             max={120}
             step={15}

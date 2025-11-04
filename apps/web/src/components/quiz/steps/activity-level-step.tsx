@@ -4,11 +4,10 @@ import { useQuizStore } from '../../../store/quiz-store';
 import { ACTIVITY_LEVELS } from '@vivaform/shared';
 
 export function ActivityLevelStep() {
-  const { answers, updateAnswer, nextStep } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
 
   const handleSelect = (level: string) => {
-    updateAnswer('activityLevel', level as any);
-    setTimeout(() => nextStep(), 300);
+    updateAnswers({ habits: { activityLevel: level } });
   };
 
   return (

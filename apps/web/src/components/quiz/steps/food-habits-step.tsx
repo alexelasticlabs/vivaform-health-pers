@@ -4,7 +4,7 @@ import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
 
 export function FoodHabitsStep() {
-  const { answers, updateAnswer } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
 
   return (
     <QuizCard
@@ -22,7 +22,7 @@ export function FoodHabitsStep() {
               <OptionButton
                 key={meals}
                 selected={answers.mealsPerDay === meals}
-                onClick={() => updateAnswer('mealsPerDay', meals)}
+                onClick={() => updateAnswers({ habits: { mealsPerDay: meals } })}
               >
                 {meals} {meals === 2 ? 'times' : 'times'}
               </OptionButton>
@@ -37,14 +37,14 @@ export function FoodHabitsStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.skipBreakfast === false}
-              onClick={() => updateAnswer('skipBreakfast', false)}
+              selected={answers.habits?.skipBreakfast === false}
+              onClick={() => updateAnswers({ habits: { skipBreakfast: false } })}
             >
               ✅ Yes, regularly
             </OptionButton>
             <OptionButton
-              selected={answers.skipBreakfast === true}
-              onClick={() => updateAnswer('skipBreakfast', true)}
+              selected={answers.habits?.skipBreakfast === true}
+              onClick={() => updateAnswers({ habits: { skipBreakfast: true } })}
             >
               ❌ No, I skip it
             </OptionButton>
@@ -58,14 +58,14 @@ export function FoodHabitsStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.snackBetweenMeals === true}
-              onClick={() => updateAnswer('snackBetweenMeals', true)}
+              selected={answers.habits?.snackBetweenMeals === true}
+              onClick={() => updateAnswers({ habits: { snackBetweenMeals: true } })}
             >
               Yes, often
             </OptionButton>
             <OptionButton
-              selected={answers.snackBetweenMeals === false}
-              onClick={() => updateAnswer('snackBetweenMeals', false)}
+              selected={answers.habits?.snackBetweenMeals === false}
+              onClick={() => updateAnswers({ habits: { snackBetweenMeals: false } })}
             >
               No, rarely
             </OptionButton>
@@ -87,8 +87,8 @@ export function FoodHabitsStep() {
             ].map((option) => (
               <OptionButton
                 key={option.value}
-                selected={answers.fastFoodFrequency === option.value}
-                onClick={() => updateAnswer('fastFoodFrequency', option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily')}
+                selected={answers.habits?.fastFoodFrequency === option.value}
+                onClick={() => updateAnswers({ habits: { fastFoodFrequency: option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily' } })}
               >
                 {option.label}
               </OptionButton>
@@ -111,8 +111,8 @@ export function FoodHabitsStep() {
             ].map((option) => (
               <OptionButton
                 key={option.value}
-                selected={answers.cookAtHomeFrequency === option.value}
-                onClick={() => updateAnswer('cookAtHomeFrequency', option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily')}
+                selected={answers.habits?.cookAtHomeFrequency === option.value}
+                onClick={() => updateAnswers({ habits: { cookAtHomeFrequency: option.value as 'never' | 'rarely' | 'sometimes' | 'often' | 'daily' } })}
               >
                 {option.label}
               </OptionButton>

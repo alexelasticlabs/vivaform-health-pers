@@ -16,7 +16,7 @@ import { ForgotPasswordPage } from "../pages/forgot-password-page";
 import { ResetPasswordPage } from "../pages/reset-password-page";
 import { ForceChangePasswordPage } from "../pages/force-change-password-page";
 import { EmailVerificationPage } from "../pages/email-verification-page";
-import { PremiumPage } from "../pages/premium-page";
+import PremiumPage from "../pages/premium-page";
 import { MealPlannerPage } from "../pages/meal-planner-page";
 import { AdminPage } from "../pages/admin-page";
 import { ArticlesPage } from "../pages/articles-page";

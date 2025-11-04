@@ -198,17 +198,58 @@ model Recommendation {
   @@index([userId, date])
 }
 
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  CANCELED
+  PAST_DUE
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  UNPAID
+}
+
+enum SubscriptionPlan {
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+}
+
 model Subscription {
-  id                 String   @id @default(cuid())
-  user               User     @relation(fields: [userId], references: [id])
-  userId             String   @unique
-  stripeCustomerId   String
-  stripeSubscription String   @unique
-  priceId            String
-  currentPeriodEnd   DateTime
-  status             String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  id                    String              @id @default(cuid())
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                String              @unique
+  
+  // Stripe identifiers
+  stripeCustomerId      String              @unique
+  stripeSubscriptionId  String              @unique
+  stripePriceId         String
+  
+  // Subscription details
+  plan                  SubscriptionPlan
+  status                SubscriptionStatus
+  
+  // Billing period
+  currentPeriodStart    DateTime
+  currentPeriodEnd      DateTime
+  
+  // Cancellation
+  cancelAtPeriodEnd     Boolean             @default(false)
+  canceledAt            DateTime?
+  
+  // Trial
+  trialStart            DateTime?
+  trialEnd              DateTime?
+  
+  // Metadata
+  metadata              Json?               // Additional data from Stripe
+  
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@index([userId])
+  @@index([stripeCustomerId])
+  @@index([stripeSubscriptionId])
+  @@index([status])
 }
 
 model MealTemplate {

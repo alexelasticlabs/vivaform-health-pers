@@ -4,11 +4,11 @@ import { useQuizStore } from '../../../store/quiz-store';
 import { GOAL_TIMELINES } from '@vivaform/shared';
 
 export function GoalTimelineStep() {
-  const { answers, updateAnswer, nextStep } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
 
   const handleSelect = (timeline: string) => {
-    updateAnswer('goalTimeline', timeline as any);
-    setTimeout(() => nextStep(), 300);
+    const months = timeline === '1' ? 1 : timeline === '3' ? 3 : timeline === '6' ? 6 : 12;
+    updateAnswers({ goals: { etaMonths: months } });
   };
 
   return (

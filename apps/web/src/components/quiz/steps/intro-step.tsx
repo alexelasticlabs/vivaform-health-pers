@@ -4,11 +4,10 @@ import { useQuizStore } from '../../../store/quiz-store';
 import { DIET_PLANS } from '@vivaform/shared';
 
 export function IntroStep() {
-  const { answers, updateAnswer, nextStep } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
 
   const handleSelect = (plan: string) => {
-    updateAnswer('dietPlan', plan as any);
-    setTimeout(() => nextStep(), 300);
+    updateAnswers({ diet: { plan } });
   };
 
   return (

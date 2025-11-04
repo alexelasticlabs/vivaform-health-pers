@@ -4,7 +4,7 @@ import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
 
 export function HydrationStep() {
-  const { answers, updateAnswer } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
 
   return (
     <QuizCard
@@ -18,8 +18,8 @@ export function HydrationStep() {
             Сколько воды вы выпиваете в день? (мл)
           </label>
           <SliderInput
-            value={answers.dailyWaterMl ?? 2000}
-            onChange={(value) => updateAnswer('dailyWaterMl', value)}
+            value={answers.habits?.dailyWaterMl ?? 2000}
+            onChange={(value) => updateAnswers({ habits: { dailyWaterMl: value } })}
             min={500}
             max={5000}
             step={250}
@@ -40,14 +40,14 @@ export function HydrationStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.wantReminders === true}
-              onClick={() => updateAnswer('wantReminders', true)}
+              selected={answers.habits?.wantReminders === true}
+              onClick={() => updateAnswers({ habits: { wantReminders: true } })}
             >
               ✅ Да, помогите мне
             </OptionButton>
             <OptionButton
-              selected={answers.wantReminders === false}
-              onClick={() => updateAnswer('wantReminders', false)}
+              selected={answers.habits?.wantReminders === false}
+              onClick={() => updateAnswers({ habits: { wantReminders: false } })}
             >
               ❌ Нет, справлюсь сам
             </OptionButton>
@@ -61,14 +61,14 @@ export function HydrationStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.trackActivity === true}
-              onClick={() => updateAnswer('trackActivity', true)}
+              selected={answers.habits?.trackActivity === true}
+              onClick={() => updateAnswers({ habits: { trackActivity: true } })}
             >
               ✅ Да
             </OptionButton>
             <OptionButton
-              selected={answers.trackActivity === false}
-              onClick={() => updateAnswer('trackActivity', false)}
+              selected={answers.habits?.trackActivity === false}
+              onClick={() => updateAnswers({ habits: { trackActivity: false } })}
             >
               ❌ Нет
             </OptionButton>
@@ -82,19 +82,19 @@ export function HydrationStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.connectHealthApp === true}
-              onClick={() => updateAnswer('connectHealthApp', true)}
+              selected={answers.habits?.connectHealthApp === true}
+              onClick={() => updateAnswers({ habits: { connectHealthApp: true } })}
             >
               ✅ Да, синхронизировать
             </OptionButton>
             <OptionButton
-              selected={answers.connectHealthApp === false}
-              onClick={() => updateAnswer('connectHealthApp', false)}
+              selected={answers.habits?.connectHealthApp === false}
+              onClick={() => updateAnswers({ habits: { connectHealthApp: false } })}
             >
               ❌ Нет, не нужно
             </OptionButton>
           </div>
-          {answers.connectHealthApp && (
+          {answers.habits?.connectHealthApp && (
             <div className="mt-2 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
               ℹ️ Интеграция будет доступна после регистрации
             </div>
@@ -108,20 +108,20 @@ export function HydrationStep() {
           </label>
           <div className="grid grid-cols-3 gap-3">
             <OptionButton
-              selected={answers.theme === 'light'}
-              onClick={() => updateAnswer('theme', 'light')}
+              selected={answers.habits?.theme === 'light'}
+              onClick={() => updateAnswers({ habits: { theme: 'light' } })}
             >
               ☀️ Светлая
             </OptionButton>
             <OptionButton
-              selected={answers.theme === 'dark'}
-              onClick={() => updateAnswer('theme', 'dark')}
+              selected={answers.habits?.theme === 'dark'}
+              onClick={() => updateAnswers({ habits: { theme: 'dark' } })}
             >
               🌙 Тёмная
             </OptionButton>
             <OptionButton
-              selected={answers.theme === 'auto'}
-              onClick={() => updateAnswer('theme', 'auto')}
+              selected={answers.habits?.theme === 'auto'}
+              onClick={() => updateAnswers({ habits: { theme: 'auto' } })}
             >
               🔄 Авто
             </OptionButton>

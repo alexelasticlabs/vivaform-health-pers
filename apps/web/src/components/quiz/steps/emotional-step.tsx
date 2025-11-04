@@ -4,7 +4,7 @@ import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
 
 export function EmotionalStep() {
-  const { answers, updateAnswer } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
 
   return (
     <QuizCard
@@ -19,14 +19,14 @@ export function EmotionalStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.eatWhenStressed === true}
-              onClick={() => updateAnswer('eatWhenStressed', true)}
+              selected={answers.habits?.eatWhenStressed === true}
+              onClick={() => updateAnswers({ habits: { eatWhenStressed: true } })}
             >
               Yes, stress triggers appetite
             </OptionButton>
             <OptionButton
-              selected={answers.eatWhenStressed === false}
-              onClick={() => updateAnswer('eatWhenStressed', false)}
+              selected={answers.habits?.eatWhenStressed === false}
+              onClick={() => updateAnswers({ habits: { eatWhenStressed: false } })}
             >
               No, appetite doesn't change
             </OptionButton>
@@ -48,8 +48,8 @@ export function EmotionalStep() {
             ].map((option) => (
               <OptionButton
                 key={option.value}
-                selected={answers.mainMotivation === option.value}
-                onClick={() => updateAnswer('mainMotivation', option.value as 'health' | 'appearance' | 'performance' | 'wellbeing' | 'medical')}
+                selected={answers.habits?.mainMotivation === option.value}
+                onClick={() => updateAnswers({ habits: { mainMotivation: option.value as 'health' | 'appearance' | 'performance' | 'wellbeing' | 'medical' } })}
               >
                 {option.label}
               </OptionButton>
@@ -63,8 +63,8 @@ export function EmotionalStep() {
             How would you rate your current stress level?
           </label>
           <SliderInput
-            value={answers.stressLevel ?? 5}
-            onChange={(value) => updateAnswer('stressLevel', value)}
+            value={answers.habits?.stressLevel ?? 5}
+            onChange={(value) => updateAnswers({ habits: { stressLevel: value } })}
             min={1}
             max={10}
             step={1}
@@ -91,8 +91,8 @@ export function EmotionalStep() {
             ].map((option) => (
               <OptionButton
                 key={option.value}
-                selected={answers.comfortSource === option.value}
-                onClick={() => updateAnswer('comfortSource', option.value as 'food' | 'exercise' | 'social' | 'rest' | 'hobbies')}
+                selected={answers.habits?.comfortSource === option.value}
+                onClick={() => updateAnswers({ habits: { comfortSource: option.value as 'food' | 'exercise' | 'social' | 'rest' | 'hobbies' } })}
               >
                 {option.label}
               </OptionButton>
@@ -106,8 +106,8 @@ export function EmotionalStep() {
             How easy is it for you to stick to a new routine?
           </label>
           <SliderInput
-            value={answers.routineConfidence ?? 5}
-            onChange={(value) => updateAnswer('routineConfidence', value)}
+            value={answers.habits?.routineConfidence ?? 5}
+            onChange={(value) => updateAnswers({ habits: { routineConfidence: value } })}
             min={1}
             max={10}
             step={1}

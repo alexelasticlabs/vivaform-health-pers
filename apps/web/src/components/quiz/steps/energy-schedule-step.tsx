@@ -4,7 +4,7 @@ import { OptionButton } from '../option-button';
 import { SliderInput } from '../slider-input';
 
 export function EnergyScheduleStep() {
-  const { answers, updateAnswer } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
 
   return (
     <QuizCard
@@ -18,8 +18,8 @@ export function EnergyScheduleStep() {
             How many hours do you sleep per day?
           </label>
           <SliderInput
-            value={answers.sleepHours ?? 7}
-            onChange={(value) => updateAnswer('sleepHours', value)}
+            value={answers.habits?.sleepHours ?? 7}
+            onChange={(value) => updateAnswers({ habits: { sleepHours: value } })}
             min={4}
             max={12}
             step={0.5}
@@ -34,14 +34,14 @@ export function EnergyScheduleStep() {
           </label>
           <div className="grid grid-cols-2 gap-3">
             <OptionButton
-              selected={answers.exerciseRegularly === true}
-              onClick={() => updateAnswer('exerciseRegularly', true)}
+              selected={answers.habits?.exerciseRegularly === true}
+              onClick={() => updateAnswers({ habits: { exerciseRegularly: true } })}
             >
               ✅ Yes, regularly
             </OptionButton>
             <OptionButton
-              selected={answers.exerciseRegularly === false}
-              onClick={() => updateAnswer('exerciseRegularly', false)}
+              selected={answers.habits?.exerciseRegularly === false}
+              onClick={() => updateAnswers({ habits: { exerciseRegularly: false } })}
             >
               ❌ No
             </OptionButton>
@@ -55,8 +55,8 @@ export function EnergyScheduleStep() {
           </label>
           <input
             type="time"
-            value={answers.wakeUpTime ?? '07:00'}
-            onChange={(e) => updateAnswer('wakeUpTime', e.target.value)}
+            value={answers.habits?.wakeUpTime ?? '07:00'}
+            onChange={(e) => updateAnswers({ habits: { wakeUpTime: e.target.value } })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -68,8 +68,8 @@ export function EnergyScheduleStep() {
           </label>
           <input
             type="time"
-            value={answers.dinnerTime ?? '19:00'}
-            onChange={(e) => updateAnswer('dinnerTime', e.target.value)}
+            value={answers.habits?.dinnerTime ?? '19:00'}
+            onChange={(e) => updateAnswers({ habits: { dinnerTime: e.target.value } })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>

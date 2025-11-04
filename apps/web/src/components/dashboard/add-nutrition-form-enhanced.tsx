@@ -16,8 +16,17 @@ const defaultState: CreateNutritionEntryPayload = {
   carbs: 0
 };
 
-export const AddNutritionFormWithAutocomplete = ({ date }: { date: string }) => {
-  const [form, setForm] = useState<CreateNutritionEntryPayload>({ ...defaultState, date });
+interface AddNutritionFormProps {
+  date: string;
+  defaultMealType?: string;
+}
+
+export const AddNutritionFormWithAutocomplete = ({ date, defaultMealType }: AddNutritionFormProps) => {
+  const [form, setForm] = useState<CreateNutritionEntryPayload>({
+    ...defaultState,
+    date,
+    mealType: defaultMealType || MEAL_TYPES[0]
+  });
   const [selectedFood, setSelectedFood] = useState<FoodItem | null>(null);
   const [amount, setAmount] = useState("100");
   const [showManualInput, setShowManualInput] = useState(false);

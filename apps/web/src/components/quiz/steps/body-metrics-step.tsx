@@ -7,12 +7,12 @@ import { useQuizStore } from '../../../store/quiz-store';
 type UnitSystem = 'metric' | 'imperial';
 
 export function BodyMetricsStep() {
-  const { answers, updateAnswer } = useQuizStore();
+  const { answers, updateAnswers } = useQuizStore();
   const [unitSystem, setUnitSystem] = useState<UnitSystem>('metric');
-  const [heightCm, setHeightCm] = useState(answers.heightCm || 170);
-  const [weightKg, setWeightKg] = useState(answers.currentWeightKg || 70);
+  const [heightCm, setHeightCm] = useState(answers.body?.height?.cm || 170);
+  const [weightKg, setWeightKg] = useState(answers.body?.weight?.kg || 70);
   const [targetWeightKg, setTargetWeightKg] = useState(
-    answers.targetWeightKg || 65,
+    answers.goals?.deltaKg ? (answers.body?.weight?.kg || 70) - answers.goals.deltaKg : 65,
   );
 
   // Conversion helpers
@@ -49,16 +49,17 @@ export function BodyMetricsStep() {
   }, [weightKg, targetWeightKg]);
 
   useEffect(() => {
-    updateAnswer('heightCm', heightCm);
-  }, [heightCm, updateAnswer]);
+    updateAnswers({ body: { height: { cm: heightCm } } });
+  }, [heightCm, updateAnswers]);
 
   useEffect(() => {
-    updateAnswer('currentWeightKg', weightKg);
-  }, [weightKg, updateAnswer]);
+    updateAnswers({ body: { weight: { kg: weightKg } } });
+  }, [weightKg, updateAnswers]);
 
   useEffect(() => {
-    updateAnswer('targetWeightKg', targetWeightKg);
-  }, [targetWeightKg, updateAnswer]);
+    const deltaKg = weightKg - targetWeightKg;
+    updateAnswers({ goals: { deltaKg, type: deltaKg > 0 ? 'lose' : deltaKg < 0 ? 'gain' : 'maintain' } });
+  }, [targetWeightKg, weightKg, updateAnswers]);
 
   return (
     <QuizCard
