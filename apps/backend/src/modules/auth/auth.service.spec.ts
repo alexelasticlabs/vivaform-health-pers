@@ -6,6 +6,7 @@ import { verify as argonVerify } from "argon2";
 import { jwtConfig } from "../../config";
 import { AuthService } from "./auth.service";
 import { UsersService } from "../users/users.service";
+import { PrismaService } from "../../common/prisma/prisma.service";
 
 vi.mock("argon2", () => ({
   verify: vi.fn()
@@ -36,8 +37,14 @@ const createEmailService = () => ({
 const createAuditService = () => ({
   log: vi.fn(),
   logLogin: vi.fn(),
-  logRegistration: vi.fn()
+  logRegistration: vi.fn(),
+  logPasswordResetRequest: vi.fn(),
+  logPasswordReset: vi.fn(),
+  logTempPasswordRequest: vi.fn(),
+  logPasswordChange: vi.fn()
 });
+
+const createPrismaService = () => ({}) as unknown as PrismaService;
 
 describe("AuthService", () => {
   let authService: AuthService;
@@ -45,13 +52,16 @@ describe("AuthService", () => {
   let jwtService: ReturnType<typeof createJwtService>;
   let emailService: ReturnType<typeof createEmailService>;
   let auditService: ReturnType<typeof createAuditService>;
+  let prismaService: PrismaService;
 
   beforeEach(() => {
     usersService = createUsersService();
     jwtService = createJwtService();
     emailService = createEmailService();
     auditService = createAuditService();
+    prismaService = createPrismaService();
     authService = new AuthService(
+      prismaService,
       usersService as unknown as UsersService,
       jwtService as unknown as JwtService,
       emailService as any,

@@ -48,3 +48,11 @@ export const createPortalSession = async (payload: PortalSessionPayload) => {
   const { data } = await apiClient.post<PortalSessionResponse>("/subscriptions/portal", payload);
   return data;
 };
+
+export const syncCheckoutSession = async (sessionId: string) => {
+  const { data } = await apiClient.post<{ success: boolean; message: string }>(
+    "/subscriptions/sync-session",
+    { sessionId }
+  );
+  return data;
+};

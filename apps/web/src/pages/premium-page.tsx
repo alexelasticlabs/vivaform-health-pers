@@ -178,8 +178,8 @@ export default function PremiumPage() {
       }
 
       const { url } = await createCheckoutSession({
-        plan: selectedPlan.toLowerCase() as 'monthly' | 'quarterly' | 'annual',
-        successUrl: `${window.location.origin}/dashboard?premium=success`,
+        plan: selectedPlan.toUpperCase() as 'MONTHLY' | 'QUARTERLY' | 'ANNUAL',
+        successUrl: `${window.location.origin}/app?premium=success`,
         cancelUrl: `${window.location.origin}/premium?canceled=true`,
       });
 

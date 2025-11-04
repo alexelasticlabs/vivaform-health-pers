@@ -24,8 +24,11 @@ export class WebhooksController {
       throw new BadRequestException('Missing stripe-signature header');
     }
 
-    const rawBody = request.rawBody;
+    // Support both Nest rawBody (when app created with { rawBody: true }) and
+    // express raw() middleware (where body is already a Buffer)
+    const rawBody = (request as any).rawBody ?? (request as any).body;
     if (!rawBody) {
+      this.logger.error('❗ Missing raw body on webhook request');
       throw new BadRequestException('Missing raw body');
     }
 
@@ -34,7 +37,7 @@ export class WebhooksController {
     try {
       event = await this.stripeService.constructWebhookEvent(rawBody, signature);
     } catch (error) {
-      this.logger.error(`⚠️ Webhook signature verification failed`, error);
+      this.logger.error(`⚠️ Webhook signature verification failed`, error as any);
       throw new BadRequestException('Invalid signature');
     }
 

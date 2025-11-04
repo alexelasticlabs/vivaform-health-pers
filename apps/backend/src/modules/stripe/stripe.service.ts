@@ -36,7 +36,7 @@ export class StripeService implements OnModuleInit {
       this.logger.error('STRIPE_WEBHOOK_SECRET is not configured! Webhooks will fail.');
     }
 
-    const requiredPrices: Array<keyof ConfigType<typeof stripeConfig>['prices']> = ['monthly', 'quarterly', 'annual'];
+    const requiredPrices: Array<keyof ConfigType<typeof stripeConfig>['prices']> = ['MONTHLY', 'QUARTERLY', 'ANNUAL'];
     for (const priceKey of requiredPrices) {
       if (!this.stripeSettings.prices[priceKey]) {
         this.logger.warn(`Stripe price ${priceKey} is not configured`);
@@ -54,7 +54,7 @@ export class StripeService implements OnModuleInit {
     return this.stripeSettings.webhookSecret;
   }
 
-  priceForPlan(plan: keyof ConfigType<typeof stripeConfig>["prices"]) {
+  priceForPlan(plan: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL') {
     return this.stripeSettings.prices[plan];
   }
 

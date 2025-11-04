@@ -6,6 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { AppModule } from "../../app.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { StripeService } from "../../modules/stripe/stripe.service";
+// Use literal values for enums to avoid Prisma client enum import drift in tests
 
 describe("Subscriptions E2E", () => {
   let app: INestApplication;
@@ -72,17 +73,20 @@ describe("Subscriptions E2E", () => {
     });
 
     it("возвращает подписку если она существует", async () => {
-      // Create subscription manually
+      // Create subscription manually with new schema
       await prisma.subscription.create({
         data: {
           userId,
-          stripeSubscription: "sub_test123",
+          stripeSubscriptionId: "sub_test123",
           stripeCustomerId: "cus_test123",
-          status: "active",
-          priceId: "price_test",
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        }
-      });
+          stripePriceId: "price_test",
+          plan: "MONTHLY" as any,
+          status: "ACTIVE" as any,
+          currentPeriodStart: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          cancelAtPeriodEnd: false
+        } as any
+      } as any);
 
       const response = await request(app.getHttpServer())
         .get("/subscriptions")
@@ -90,8 +94,8 @@ describe("Subscriptions E2E", () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(response.body.stripeSubscription).toBe("sub_test123");
-      expect(response.body.status).toBe("active");
+      expect(response.body.stripeSubscriptionId).toBe("sub_test123");
+      expect(response.body.status).toBe("ACTIVE");
     });
 
     it("требует аутентификацию", async () => {
@@ -118,7 +122,7 @@ describe("Subscriptions E2E", () => {
         .post("/subscriptions/checkout")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({
-          plan: "monthly",
+          plan: "MONTHLY",
           successUrl: "https://example.com/success",
           cancelUrl: "https://example.com/cancel"
         })
@@ -145,7 +149,7 @@ describe("Subscriptions E2E", () => {
         .post("/subscriptions/checkout")
         .set("Authorization", `Bearer ${accessToken}`)
         .send({
-          plan: "monthly"
+          plan: "MONTHLY"
         })
         .expect(400);
     });
@@ -168,13 +172,16 @@ describe("Subscriptions E2E", () => {
       await prisma.subscription.create({
         data: {
           userId,
-          stripeSubscription: "sub_test123",
+          stripeSubscriptionId: "sub_test123",
           stripeCustomerId: "cus_test123",
-          status: "active",
-          priceId: "price_test",
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        }
-      });
+          stripePriceId: "price_test",
+          plan: "MONTHLY" as any,
+          status: "ACTIVE" as any,
+          currentPeriodStart: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          cancelAtPeriodEnd: false
+        } as any
+      } as any);
 
       // Mock Stripe portal session creation
       const mockPortalSession = {
@@ -227,13 +234,16 @@ describe("Subscriptions E2E", () => {
       await prisma.subscription.create({
         data: {
           userId,
-          stripeSubscription: "sub_lifecycle_test",
+          stripeSubscriptionId: "sub_lifecycle_test",
           stripeCustomerId: "cus_lifecycle_test",
-          status: "active",
-          priceId: "price_monthly",
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        }
-      });
+          stripePriceId: "price_monthly",
+          plan: "MONTHLY" as any,
+          status: "ACTIVE" as any,
+          currentPeriodStart: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          cancelAtPeriodEnd: false
+        } as any
+      } as any);
 
       // 3. Update user tier to PREMIUM
       await prisma.user.update({
@@ -251,8 +261,8 @@ describe("Subscriptions E2E", () => {
         .set("Authorization", `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.status).toBe("active");
-      expect(response.body.stripeSubscription).toBe("sub_lifecycle_test");
+      expect(response.body.status).toBe("ACTIVE");
+      expect(response.body.stripeSubscriptionId).toBe("sub_lifecycle_test");
     });
 
     it("cancellation: active → canceled → downgrade to FREE", async () => {
@@ -260,13 +270,16 @@ describe("Subscriptions E2E", () => {
       await prisma.subscription.create({
         data: {
           userId,
-          stripeSubscription: "sub_cancel_test",
+          stripeSubscriptionId: "sub_cancel_test",
           stripeCustomerId: "cus_cancel_test",
-          status: "active",
-          priceId: "price_monthly",
-          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
-        }
-      });
+          stripePriceId: "price_monthly",
+          plan: "MONTHLY" as any,
+          status: "ACTIVE" as any,
+          currentPeriodStart: new Date(Date.now() - 24 * 60 * 60 * 1000),
+          currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          cancelAtPeriodEnd: false
+        } as any
+      } as any);
 
       await prisma.user.update({
         where: { id: userId },
@@ -275,9 +288,9 @@ describe("Subscriptions E2E", () => {
 
       // 2. Cancel subscription (simulating webhook)
       await prisma.subscription.update({
-        where: { stripeSubscription: "sub_cancel_test" },
-        data: { status: "canceled" }
-      });
+        where: { userId },
+        data: { status: "CANCELED" as any }
+      } as any);
 
       await prisma.user.update({
         where: { id: userId },
@@ -291,7 +304,7 @@ describe("Subscriptions E2E", () => {
       const subscription = await prisma.subscription.findFirst({
         where: { userId }
       });
-      expect(subscription?.status).toBe("canceled");
+      expect(subscription?.status).toBe("CANCELED");
     });
   });
 });

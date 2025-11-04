@@ -1,23 +1,23 @@
 ﻿export type SubscriptionTier = "FREE" | "PREMIUM";
-export type SubscriptionPlan = "monthly" | "quarterly" | "annual";
+export type SubscriptionPlan = "MONTHLY" | "QUARTERLY" | "ANNUAL";
 
 export const MEAL_TYPES = ["Breakfast", "Snack", "Lunch", "Dinner"] as const;
 
 export const SUBSCRIPTION_PLANS = [
   {
-    plan: "monthly" as const,
+    plan: "MONTHLY" as const,
     title: "Monthly",
     price: "$4.87",
     description: "Flexible plan — cancel anytime"
   },
   {
-    plan: "quarterly" as const,
+    plan: "QUARTERLY" as const,
     title: "Quarterly",
     price: "$17.63",
     description: "Save about 10%"
   },
   {
-    plan: "annual" as const,
+    plan: "ANNUAL" as const,
     title: "Annual",
     price: "$28.76",
     description: "Save about 50%"

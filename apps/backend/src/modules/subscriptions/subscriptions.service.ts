@@ -31,6 +31,8 @@ export class SubscriptionsService {
   }
 
   async createCheckoutSession(userId: string, dto: CreateCheckoutSessionDto) {
+    console.log('[SubscriptionsService] Creating checkout session', { userId, plan: dto.plan });
+    
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { subscription: true }
@@ -40,16 +42,24 @@ export class SubscriptionsService {
       throw new NotFoundException("User not found");
     }
 
+    console.log('[SubscriptionsService] User found', { userId, hasSubscription: !!user.subscription });
+
     const priceId = this.priceIdForPlan(dto.plan);
+    console.log('[SubscriptionsService] Price ID for plan', { plan: dto.plan, priceId });
+    
     const existingCustomerId = user.subscription?.stripeCustomerId ?? undefined;
+    console.log('[SubscriptionsService] Existing customer ID', { existingCustomerId });
+
+    // Ensure we append session_id correctly whether successUrl already contains query params or not
+    const successUrlHasQuery = dto.successUrl.includes("?");
+    const successUrl = `${dto.successUrl}${successUrlHasQuery ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`;
 
     const session = await this.stripeService.client.checkout.sessions.create({
       mode: "subscription",
-      success_url: `${dto.successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: successUrl,
       cancel_url: dto.cancelUrl,
       customer: existingCustomerId,
       customer_email: existingCustomerId ? undefined : user.email,
-      invoice_creation: { enabled: true },
       billing_address_collection: "auto",
       line_items: [
         {
@@ -88,6 +98,18 @@ export class SubscriptionsService {
 
   async getSubscription(userId: string) {
     return this.prisma.subscription.findUnique({ where: { userId } });
+  }
+
+  async syncCheckoutSession(userId: string, sessionId: string) {
+    const session = await this.stripeService.client.checkout.sessions.retrieve(sessionId);
+    
+    if (session.metadata?.userId !== userId) {
+      throw new BadRequestException("Session does not belong to this user");
+    }
+
+    await this.handleCheckoutCompleted(session);
+    
+    return { success: true, message: "Subscription synced successfully" };
   }
 
   private mapStripeStatusToPrisma(status: Stripe.Subscription.Status): string {

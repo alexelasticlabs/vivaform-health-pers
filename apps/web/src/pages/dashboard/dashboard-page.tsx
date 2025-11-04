@@ -1,10 +1,12 @@
 ﻿import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 import { fetchDailyDashboard, createNutritionEntry, createWaterEntry, createWeightEntry } from "../../api";
 import { fetchWeightHistory } from "../../api/weight";
 import { getQuizProfile } from "../../api/quiz";
+import { syncCheckoutSession } from "../../api/subscriptions";
 import { useUserStore } from "../../store/user-store";
 
 // New Widget Components
@@ -21,12 +23,47 @@ import { AddNutritionFormWithAutocomplete } from "../../components/dashboard/add
 import { AddWeightForm } from "../../components/dashboard/add-weight-form";
 
 export const DashboardPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [modalState, setModalState] = useState<{ type: 'meal' | 'weight' | null; mealType?: string }>({ type: null });
   
   const queryClient = useQueryClient();
   const user = useUserStore((state) => state.profile);
   const isPremium = user?.tier === "PREMIUM";
+
+  // Handle premium activation success
+  useEffect(() => {
+    const handlePremiumSuccess = async () => {
+      if (searchParams.get('premium') === 'success') {
+        const sessionId = searchParams.get('session_id');
+        
+        if (sessionId) {
+          try {
+            await syncCheckoutSession(sessionId);
+            toast.success('🎉 VivaForm+ activated successfully! Welcome to premium!', {
+              duration: 5000,
+            });
+            // Refresh user data to get updated tier
+            queryClient.invalidateQueries({ queryKey: ['me'] });
+          } catch (error) {
+            console.error('Failed to sync subscription:', error);
+            toast.error('Please refresh the page to see your premium status');
+          }
+        } else {
+          toast.success('🎉 VivaForm+ activated successfully! Welcome to premium!', {
+            duration: 5000,
+          });
+        }
+        
+        // Remove the query params
+        searchParams.delete('premium');
+        searchParams.delete('session_id');
+        setSearchParams(searchParams, { replace: true });
+      }
+    };
+    
+    handlePremiumSuccess();
+  }, [searchParams, setSearchParams, queryClient]);
 
   // Fetch dashboard data
   const { data, isLoading } = useQuery({

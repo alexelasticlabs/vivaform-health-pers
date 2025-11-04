@@ -40,4 +40,13 @@ export class SubscriptionsController {
   ) {
     return this.subscriptionsService.createPortalSession(user.userId, dto);
   }
+
+  @Post("sync-session")
+  @ApiOperation({ summary: "Синхронизировать подписку после checkout" })
+  async syncSession(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() body: { sessionId: string }
+  ) {
+    return this.subscriptionsService.syncCheckoutSession(user.userId, body.sessionId);
+  }
 }

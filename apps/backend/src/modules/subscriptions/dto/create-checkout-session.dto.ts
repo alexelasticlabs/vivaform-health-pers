@@ -1,25 +1,18 @@
 ﻿import { IsEnum, IsUrl } from "class-validator";
-
-enum SubscriptionPlan {
-  MONTHLY = "monthly",
-  QUARTERLY = "quarterly",
-  ANNUAL = "annual"
-}
+import { SubscriptionPlan } from "@prisma/client";
 
 export class CreateCheckoutSessionDto {
   @IsEnum(SubscriptionPlan)
   plan!: SubscriptionPlan;
 
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   successUrl!: string;
 
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   cancelUrl!: string;
 }
 
 export class CreatePortalSessionDto {
-  @IsUrl()
+  @IsUrl({ require_tld: false })
   returnUrl!: string;
 }
-
-export { SubscriptionPlan };
