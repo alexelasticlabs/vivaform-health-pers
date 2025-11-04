@@ -11,6 +11,7 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    strictPort: true,
     open: true
   },
   // Vitest picks up this block; TypeScript does not include it in Vite's config type yet.

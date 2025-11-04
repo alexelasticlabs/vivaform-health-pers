@@ -7,6 +7,7 @@ import { SupportWidget } from "../support-widget";
 import { VivaFormLogo } from "../viva-form-logo";
 import { useUserStore } from "../../store/user-store";
 import { useQuizStore } from "../../store/quiz-store";
+import { UserMenu } from "../user-menu";
 
 const marketingNav = [
   { to: "#why", label: "Why VivaForm" },
@@ -61,6 +62,7 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
   const { profile, isAuthenticated, logout } = useUserStore();
   const { reset, answers } = useQuizStore();
   const hasPremium = (profile?.tier ?? "FREE") === "PREMIUM";
+  
 
   const initials = (name?: string | null, email?: string) => {
     const source = name || email || "?";
@@ -102,46 +104,22 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
                   >
                     Go to Dashboard
                   </NavLink>
-                  <div className="relative">
-                    <details className="group" aria-label="User menu">
-                      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm hover:bg-card-hover">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
-                          {initials(profile?.name, profile?.email)}
-                        </div>
-                        <span className="hidden sm:inline">{profile?.name ?? profile?.email}</span>
-                        {hasPremium && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">⭐ Premium</span>
-                        )}
-                        <svg className="h-4 w-4 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                          <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.52a.75.75 0 01-1.08 0L5.25 8.27a.75.75 0 01-.02-1.06z" clipRule="evenodd" />
-                        </svg>
-                      </summary>
-                      <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card p-1 text-sm shadow-lg">
-                        <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/app">Dashboard</Link>
-                        <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/app">Profile</Link>
-                        <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/app/settings">Settings</Link>
-                        <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/premium">Billing</Link>
-                        <button
-                          className="block w-full rounded-lg px-3 py-2 text-left hover:bg-card-hover"
-                          onClick={() => {
-                            reset();
-                            navigate('/quiz');
-                          }}
-                        >
-                          Retake quiz
-                        </button>
-                        <button
-                          className="block w-full rounded-lg px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                          onClick={() => {
-                            logout();
-                            navigate('/');
-                          }}
-                        >
-                          Logout
-                        </button>
-                      </div>
-                    </details>
-                  </div>
+                  <UserMenu
+                    user={{
+                      name: profile?.name || profile?.email || "User",
+                      email: profile?.email || undefined,
+                      avatarUrl: undefined,
+                      initials: initials(profile?.name, profile?.email),
+                      role: profile?.role === 'ADMIN' ? 'admin' : 'user'
+                    }}
+                    plan={hasPremium ? 'premium' : 'free'}
+                    onNavigate={(path: string) => {
+                      if (path === '/quiz') reset();
+                      navigate(path);
+                    }}
+                    onLogout={() => { logout(); navigate('/'); }}
+                    source="marketing"
+                  />
                 </>
               ) : (
                 <>
@@ -183,46 +161,22 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
                     >
                       Go to Dashboard
                     </NavLink>
-                    <div className="relative">
-                      <details className="group" aria-label="User menu">
-                        <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground shadow-sm hover:bg-card-hover">
-                          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
-                            {initials(profile?.name, profile?.email)}
-                          </div>
-                          <span className="hidden sm:inline">{profile?.name ?? profile?.email}</span>
-                          {hasPremium && (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200">⭐ Premium</span>
-                          )}
-                          <svg className="h-4 w-4 opacity-70" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
-                            <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.18l3.71-3.95a.75.75 0 111.08 1.04l-4.25 4.52a.75.75 0 01-1.08 0L5.25 8.27a.75.75 0 01-.02-1.06z" clipRule="evenodd" />
-                          </svg>
-                        </summary>
-                        <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-border bg-card p-1 text-sm shadow-lg">
-                          <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/app">Dashboard</Link>
-                          <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/app">Profile</Link>
-                          <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/app/settings">Settings</Link>
-                          <Link className="block rounded-lg px-3 py-2 hover:bg-card-hover" to="/premium">Billing</Link>
-                          <button
-                            className="block w-full rounded-lg px-3 py-2 text-left hover:bg-card-hover"
-                            onClick={() => {
-                              reset();
-                              navigate('/quiz');
-                            }}
-                          >
-                            Retake quiz
-                          </button>
-                          <button
-                            className="block w-full rounded-lg px-3 py-2 text-left text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={() => {
-                              logout();
-                              navigate('/');
-                            }}
-                          >
-                            Logout
-                          </button>
-                        </div>
-                      </details>
-                    </div>
+                    <UserMenu
+                      user={{
+                        name: profile?.name || profile?.email || "User",
+                        email: profile?.email || undefined,
+                        avatarUrl: undefined,
+                        initials: initials(profile?.name, profile?.email),
+                        role: profile?.role === 'ADMIN' ? 'admin' : 'user'
+                      }}
+                      plan={hasPremium ? 'premium' : 'free'}
+                      onNavigate={(path: string) => {
+                        if (path === '/quiz') reset();
+                        navigate(path);
+                      }}
+                      onLogout={() => { logout(); navigate('/'); }}
+                      source="marketing"
+                    />
                   </>
                 ) : (
                   <>

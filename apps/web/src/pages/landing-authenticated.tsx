@@ -5,7 +5,8 @@ import { useUserStore } from "../store/user-store";
 import { useThemeStore } from "../store/theme-store";
 import { motion } from "framer-motion";
 import { fetchDailyDashboard } from "../api";
-import { getQuizProfile } from "../api/quiz";
+import { tryGetQuizProfile } from "../api/quiz";
+import { useQuizStore } from "../store/quiz-store";
 
 const useCountUp = (to: number, durationMs = 800) => {
   const [val, setVal] = useState(0);
@@ -51,7 +52,7 @@ export function LandingAuthenticated() {
   });
   const { data: quiz } = useQuery({
     queryKey: ["quiz-profile"],
-    queryFn: getQuizProfile,
+    queryFn: tryGetQuizProfile,
     staleTime: 300_000,
   });
 
@@ -67,11 +68,13 @@ export function LandingAuthenticated() {
   const hydrationToday = dash?.water.totalMl ?? 0;
   const caloriesToday = dash?.nutrition.summary.calories ?? 0;
   const mealsCount = dash?.nutrition.entries.length ?? 0;
+  const resetQuiz = useQuizStore((s) => s.reset);
 
   const bmi = useCountUp(computedBmi || 0, 700);
   const hydration = useCountUp(hydrationToday, 700);
   const calories = useCountUp(caloriesToday, 700);
   const meals = useCountUp(mealsCount, 700);
+  const needsQuiz = !quiz || !quiz.heightCm || !quiz.weightKg;
 
   const tips = useMemo(
     () => [
@@ -158,6 +161,14 @@ export function LandingAuthenticated() {
       {/* Hero */}
       <section className="bg-gradient-to-r from-emerald-200/40 to-teal-200/40 py-12 dark:from-emerald-900/20 dark:to-teal-800/20">
         <div className="mx-auto max-w-4xl px-4 text-center">
+              {needsQuiz && (
+                <button
+                  onClick={() => { resetQuiz(); navigate('/quiz'); }}
+                  className="inline-flex items-center justify-center rounded-full border border-amber-300 bg-amber-50 px-6 py-3 text-sm font-semibold text-amber-900 shadow-sm hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-50"
+                >
+                  Complete health quiz
+                </button>
+              )}
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white">
               {initials(profile?.name, profile?.email)}

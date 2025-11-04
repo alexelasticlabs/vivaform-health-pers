@@ -213,3 +213,19 @@ export const logQuizCtaClicked = (
     timestamp: new Date().toISOString(),
   });
 };
+
+// Header user menu analytics
+export const logUserMenuOpened = (source: 'marketing' | 'app') => {
+  trackConversion('user_menu_opened', {
+    source,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logUserMenuItemClicked = (source: 'marketing' | 'app', item: string) => {
+  trackConversion('user_menu_item_clicked', {
+    source,
+    item,
+    timestamp: new Date().toISOString(),
+  });
+};

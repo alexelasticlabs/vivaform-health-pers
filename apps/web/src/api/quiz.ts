@@ -1,4 +1,5 @@
 import { apiClient } from './client';
+import axios from 'axios';
 
 // Quiz answer structure matching backend DTO
 export interface QuizAnswers {
@@ -108,6 +109,21 @@ export async function submitQuiz(data: SubmitQuizRequest): Promise<SubmitQuizRes
 export async function getQuizProfile(): Promise<QuizProfile> {
   const response = await apiClient.get<QuizProfile>('/quiz/profile');
   return response.data;
+}
+
+/**
+ * Safe getter: returns null when profile does not exist (404), throws otherwise
+ */
+export async function tryGetQuizProfile(): Promise<QuizProfile | null> {
+  try {
+    const response = await apiClient.get<QuizProfile>('/quiz/profile');
+    return response.data;
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response?.status === 404) {
+      return null;
+    }
+    throw err;
+  }
 }
 
 /**
