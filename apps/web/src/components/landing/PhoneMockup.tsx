@@ -12,71 +12,149 @@ export const PhoneMockup = ({ children }: PropsWithChildren) => {
       viewport={{ once: true, amount: 0.6 }}
       className="relative mx-auto w-[240px] md:w-[300px]"
     >
-      {/* Realistic contact shadow - soft, spread out */}
-      <div className="absolute -bottom-4 left-1/2 h-6 w-[75%] -translate-x-1/2 rounded-[50%] bg-gradient-radial from-black/30 via-black/15 to-transparent blur-2xl" />
-      
-      {/* Subtle ambient light reflection */}
-      <div className="pointer-events-none absolute -inset-x-6 -top-2 -bottom-8 -z-10">
-        <div className="absolute left-1/2 top-0 h-[350px] w-[350px] -translate-x-1/2 rounded-full bg-gradient-radial from-emerald-400/8 via-cyan-400/5 to-transparent blur-3xl" />
-      </div>
+      {/* Multiple layered shadows for depth */}
+      {/* Primary contact shadow */}
+      <div 
+        className="absolute -bottom-1 left-1/2 h-12 w-[85%] -translate-x-1/2 bg-black/35 blur-[40px]"
+        style={{ 
+          borderRadius: '50%',
+          transform: 'translateX(-50%) scaleY(0.25)'
+        }}
+      />
+      {/* Secondary soft ambient shadow */}
+      <div 
+        className="absolute -bottom-3 left-1/2 h-16 w-[95%] -translate-x-1/2 bg-black/20 blur-[50px]"
+        style={{ 
+          borderRadius: '50%',
+          transform: 'translateX(-50%) scaleY(0.2)'
+        }}
+      />
+      {/* Tertiary outer glow */}
+      <div 
+        className="absolute -bottom-6 left-1/2 h-20 w-[110%] -translate-x-1/2 bg-black/10 blur-[60px]"
+        style={{ 
+          borderRadius: '50%',
+          transform: 'translateX(-50%) scaleY(0.15)'
+        }}
+      />
 
-      {/* iPhone Pro Max frame - photorealistic titanium */}
-      <div className="relative overflow-hidden rounded-[2.8rem] bg-gradient-to-br from-[#e8e9ea] via-[#d1d3d5] to-[#c4c6c8] p-[2px] shadow-[0_8px_32px_rgba(0,0,0,0.18),0_2px_8px_rgba(0,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.6),inset_0_-1px_0_rgba(0,0,0,0.15)]">
+      {/* iPhone 16 Pro frame - Natural Titanium */}
+      <div className="relative overflow-hidden rounded-[2.8rem] shadow-[0_16px_48px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2),0_4px_12px_rgba(0,0,0,0.15)]"
+        style={{
+          background: 'linear-gradient(145deg, #f8f8f9 0%, #e5e6e8 40%, #d8d9db 70%, #d0d1d3 100%)',
+          padding: '2px'
+        }}
+      >
         
-        {/* LEFT SIDE BUTTONS */}
-        {/* Mute switch (top left, very small) */}
+        {/* LEFT SIDE BUTTONS - iPhone 16 style, more prominent */}
+        {/* Mute/Action button (rounded, top) */}
         <div 
-          className="absolute -left-[2px] top-[52px] z-10 h-[12px] w-[2px] rounded-l-sm bg-gradient-to-r from-[#a8abad] via-[#c9cbcd] to-[#d4d6d8] shadow-[inset_-1px_0_1px_rgba(0,0,0,0.3),inset_1px_0_1px_rgba(255,255,255,0.4)]"
+          className="absolute top-[50px] z-30 h-[16px] w-[4px] rounded-l-full"
+          style={{
+            left: '-3px',
+            background: 'linear-gradient(to right, #a5a7a9 0%, #c5c7c9 30%, #dfe1e3 70%, #e8eaec 100%)',
+            boxShadow: `
+              inset -2px 0 3px rgba(0,0,0,0.5),
+              inset 1px 0 2px rgba(255,255,255,0.7),
+              -2px 0 4px rgba(0,0,0,0.3),
+              -1px 0 2px rgba(0,0,0,0.2)
+            `
+          }}
         />
         
-        {/* Volume Up button */}
+        {/* Volume Up button (elongated oval) */}
         <div 
-          className="absolute -left-[2.5px] top-[82px] z-10 h-[28px] w-[2.5px] rounded-l-md bg-gradient-to-r from-[#a8abad] via-[#c9cbcd] to-[#d4d6d8] shadow-[inset_-1px_0_2px_rgba(0,0,0,0.35),inset_1px_0_2px_rgba(255,255,255,0.5)]"
+          className="absolute top-[82px] z-30 h-[36px] w-[4px] rounded-l-full"
+          style={{
+            left: '-3px',
+            background: 'linear-gradient(to right, #a5a7a9 0%, #c5c7c9 30%, #dfe1e3 70%, #e8eaec 100%)',
+            boxShadow: `
+              inset -2px 0 3px rgba(0,0,0,0.5),
+              inset 1px 0 2px rgba(255,255,255,0.7),
+              -2px 0 4px rgba(0,0,0,0.3),
+              -1px 0 2px rgba(0,0,0,0.2)
+            `
+          }}
         />
         
-        {/* Volume Down button */}
+        {/* Volume Down button (elongated oval) */}
         <div 
-          className="absolute -left-[2.5px] top-[118px] z-10 h-[28px] w-[2.5px] rounded-l-md bg-gradient-to-r from-[#a8abad] via-[#c9cbcd] to-[#d4d6d8] shadow-[inset_-1px_0_2px_rgba(0,0,0,0.35),inset_1px_0_2px_rgba(255,255,255,0.5)]"
+          className="absolute top-[126px] z-30 h-[36px] w-[4px] rounded-l-full"
+          style={{
+            left: '-3px',
+            background: 'linear-gradient(to right, #a5a7a9 0%, #c5c7c9 30%, #dfe1e3 70%, #e8eaec 100%)',
+            boxShadow: `
+              inset -2px 0 3px rgba(0,0,0,0.5),
+              inset 1px 0 2px rgba(255,255,255,0.7),
+              -2px 0 4px rgba(0,0,0,0.3),
+              -1px 0 2px rgba(0,0,0,0.2)
+            `
+          }}
         />
         
-        {/* RIGHT SIDE BUTTON */}
-        {/* Power/Lock button (longer) */}
+        {/* RIGHT SIDE BUTTON - Power/Lock (longer, prominent) */}
         <div 
-          className="absolute -right-[2.5px] top-[95px] z-10 h-[42px] w-[2.5px] rounded-r-md bg-gradient-to-l from-[#a8abad] via-[#c9cbcd] to-[#d4d6d8] shadow-[inset_1px_0_2px_rgba(0,0,0,0.35),inset_-1px_0_2px_rgba(255,255,255,0.5)]"
+          className="absolute top-[92px] z-30 h-[48px] w-[4px] rounded-r-full"
+          style={{
+            right: '-3px',
+            background: 'linear-gradient(to left, #a5a7a9 0%, #c5c7c9 30%, #dfe1e3 70%, #e8eaec 100%)',
+            boxShadow: `
+              inset 2px 0 3px rgba(0,0,0,0.5),
+              inset -1px 0 2px rgba(255,255,255,0.7),
+              2px 0 4px rgba(0,0,0,0.3),
+              1px 0 2px rgba(0,0,0,0.2)
+            `
+          }}
         />
 
-        {/* Inner frame/bezel - black rim */}
-        <div className="relative overflow-hidden rounded-[2.7rem] bg-black p-[4px] shadow-[inset_0_0_0_1px_rgba(0,0,0,0.8),inset_0_1px_3px_rgba(0,0,0,0.5)]">
+        {/* Black bezel with enhanced shadows */}
+        <div className="relative overflow-hidden rounded-[2.7rem] bg-black p-[4px]"
+          style={{
+            boxShadow: `
+              inset 0 0 0 1px rgba(0,0,0,0.95),
+              inset 0 2px 6px rgba(0,0,0,0.7),
+              inset 0 -1px 3px rgba(0,0,0,0.5)
+            `
+          }}
+        >
           
-          {/* OLED Screen area */}
+          {/* OLED Screen */}
           <div 
-            className="relative overflow-hidden rounded-[2.35rem] bg-gradient-to-br from-[#f0f4ff] via-[#f7f3ff] to-[#fff0f8]" 
-            style={{ aspectRatio: "9 / 19.5" }}
+            className="relative overflow-hidden rounded-[2.35rem]" 
+            style={{ 
+              aspectRatio: "9 / 19.5",
+              background: 'linear-gradient(180deg, #f0f4ff 0%, #f7f3ff 50%, #fff0f8 100%)',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
+            }}
           >
-            {/* Screen glass effect - very subtle highlights */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/5" />
+            {/* Screen glass overlay with subtle reflections */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-black/6" />
             
             {/* Top glass reflection bar */}
-            <div className="absolute inset-x-2 top-0 h-[1.5px] bg-gradient-to-b from-white/40 to-transparent" />
+            <div className="absolute inset-x-2 top-0 h-[2px] bg-gradient-to-b from-white/50 to-transparent" />
 
-            {/* Dynamic Island - precise proportions */}
+            {/* Dynamic Island - precise iPhone 16 dimensions */}
             <div 
-              className="absolute left-1/2 top-[9px] z-30 h-[20px] w-[28%] -translate-x-1/2 rounded-full bg-black shadow-[0_4px_12px_rgba(0,0,0,0.4),inset_0_0.5px_1px_rgba(0,0,0,0.6)]"
+              className="absolute left-1/2 top-[9px] z-30 h-[21px] w-[29%] -translate-x-1/2 rounded-full bg-black"
+              style={{
+                boxShadow: `
+                  0 5px 15px rgba(0,0,0,0.6),
+                  inset 0 1px 3px rgba(0,0,0,0.9),
+                  inset 0 -1px 1px rgba(255,255,255,0.05)
+                `
+              }}
             />
 
             {/* iOS Status bar */}
             <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-5 pt-[6px] text-[10px] font-semibold text-gray-900">
               <span className="tracking-tight">9:41</span>
               <div className="flex items-center gap-1">
-                {/* Signal bars */}
                 <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
                 </svg>
-                {/* WiFi */}
                 <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 3.5a7 7 0 017 7c0 2-1.5 3.5-3 4l-1.5-2c1-.5 1.5-1.5 1.5-2a4 4 0 00-8 0c0 .5.5 1.5 1.5 2L6 14.5c-1.5-.5-3-2-3-4a7 7 0 017-7z" />
                 </svg>
-                {/* Battery */}
                 <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                   <rect x="1" y="6" width="18" height="12" rx="2" ry="2" />
                   <path d="M23 10v4" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
@@ -84,12 +162,14 @@ export const PhoneMockup = ({ children }: PropsWithChildren) => {
               </div>
             </div>
 
-            {/* App content area */}
+            {/* App content */}
             <div className="absolute inset-0 px-4 pb-3 pt-[42px]">
               {children}
               
-              {/* iOS Home indicator */}
-              <div className="absolute bottom-1.5 left-1/2 h-[3px] w-[90px] -translate-x-1/2 rounded-full bg-black/25" />
+              {/* Home indicator */}
+              <div 
+                className="absolute bottom-1.5 left-1/2 h-[3px] w-[90px] -translate-x-1/2 rounded-full bg-black/30"
+              />
             </div>
           </div>
         </div>
