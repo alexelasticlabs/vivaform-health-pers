@@ -5,7 +5,10 @@ import { PhoneMockup } from "../components/landing/PhoneMockup";
 // import { FloatingTag } from "../components/landing/FloatingTag"; // not used currently
 import { ProgressCard } from "../components/landing/ProgressCard";
 // import { useNavigate } from "react-router-dom"; // navigate not used here
-import { trackConversion } from "../lib/analytics";
+import { logQuizCtaClicked } from "../lib/analytics";
+import { useQuizStore } from "../store/quiz-store";
+import { useUserStore } from "../store/user-store";
+import { LandingAuthenticated } from "./landing-authenticated";
 import { useIntersectionObserver } from "../hooks/use-intersection-observer";
 import { AppStoreButtons } from "../components/app-store-buttons";
 // import { useUserStore } from "../store/user-store"; // not used in landing
@@ -152,6 +155,16 @@ const faqItems: FaqItem[] = [
 ];
 
 export const LandingPage = () => {
+  const isAuthenticated = useUserStore((s) => s.isAuthenticated);
+  const profile = useUserStore((s) => s.profile);
+  const hasPremium = (profile?.tier ?? "FREE") === "PREMIUM";
+  const { answers, currentStep, reset } = useQuizStore();
+  const quizState: "none" | "in_progress" | "completed" = (() => {
+    // Heuristic: if there are any saved answers or progressed beyond step 0 → in_progress
+    if (answers && Object.keys(answers).length > 0) return "in_progress";
+    return "none";
+  })();
+  const clientId = useQuizStore((s) => s.clientId);
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
   const [whyRef, whyVisible] = useIntersectionObserver({ threshold: 0.1 });
   const [featuresRef, featuresVisible] = useIntersectionObserver({ threshold: 0.1 });
@@ -196,6 +209,8 @@ export const LandingPage = () => {
     return () => window.removeEventListener('hashchange', applyHash);
   }, []);
 
+  // Keep landing visually identical; only adjust CTAs based on auth state
+
   return (
     <main>
 
@@ -213,17 +228,46 @@ export const LandingPage = () => {
               </p>
               
               <div className={`mt-10 flex flex-col gap-4 sm:flex-row sm:items-center transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
-                <Link
-                  to="/quiz"
-                  onClick={() => trackConversion("hero_cta_click", { placement: "hero" })}
-                  className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-xl transition-transform hover:scale-105 active:translate-y-[1px] motion-safe:animate-pulse hover:animate-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent dark:focus-visible:ring-emerald-400"
-                >
-                  Take the Quiz
-                  <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-                <p className="text-sm text-gray-700 dark:text-gray-300 sm:ml-2">You’ll create your account after seeing your plan.</p>
+                {(() => {
+                  let href = "/quiz";
+                  let label = "Take the Quiz";
+                  if (isAuthenticated) {
+                    if (quizState === "in_progress") {
+                      href = "/quiz"; label = "Continue quiz";
+                    } else if (hasPremium) {
+                      href = "/app/my-plan"; label = "Open my plan";
+                    } else {
+                      href = "/app"; label = "Go to Dashboard";
+                    }
+                  }
+                  return (
+                    <Link
+                      to={href}
+                      onClick={() => { try { logQuizCtaClicked(clientId, 'landing', label, 'landing_hero'); } catch {} }}
+                      className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-xl transition-transform hover:scale-105 active:translate-y-[1px] motion-safe:animate-pulse hover:animate-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent dark:focus-visible:ring-emerald-400"
+                    >
+                      {label}
+                      <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
+                    </Link>
+                  );
+                })()}
+                {isAuthenticated ? (
+                  <button
+                    onClick={() => { try { reset(); } catch {} }}
+                    className="text-sm font-semibold text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-300 sm:ml-2"
+                  >
+                    Retake quiz
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="text-sm font-semibold text-emerald-700 underline-offset-2 hover:underline dark:text-emerald-300 sm:ml-2"
+                  >
+                    Log in
+                  </Link>
+                )}
               </div>
 
               <p className="mt-8 text-sm font-medium text-gray-700 dark:text-gray-300">Available on every platform</p>
@@ -500,6 +544,7 @@ export const LandingPage = () => {
           <div className="mt-10 flex justify-center">
             <Link
               to="/quiz"
+              onClick={() => { try { logQuizCtaClicked(clientId, 'landing', 'FAQ Mini CTA', 'landing_faq'); } catch {} }}
               className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-emerald-500/40 hover:shadow-md"
             >
               Still curious? Take the quiz
@@ -527,7 +572,7 @@ export const LandingPage = () => {
               <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
                 <Link
                   to="/quiz"
-                  onClick={() => trackConversion("start_quiz_click", { placement: "cta" })}
+                  onClick={() => { try { logQuizCtaClicked(clientId, 'landing', 'Start free today', 'landing_final_cta'); } catch {} }}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-emerald-600 shadow-lg transition-all hover:scale-[1.01] hover:shadow-xl active:scale-[0.99]"
                 >
                   Start free today
@@ -537,6 +582,7 @@ export const LandingPage = () => {
                 </Link>
                 <Link
                   to="/login"
+                  onClick={() => { try { logQuizCtaClicked(clientId, 'landing', 'Sign in', 'landing_final_cta_signin'); } catch {} }}
                   className="inline-flex items-center justify-center rounded-2xl border-2 border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur transition-all hover:scale-[1.01] hover:border-white/60 hover:bg-white/20 active:scale-[0.99]"
                 >
                   Sign in
@@ -559,13 +605,25 @@ export const LandingPage = () => {
 
       {/* Sticky mobile CTA */}
       <div className="sm:hidden fixed bottom-5 right-5 z-40">
-        <Link
-          to="/quiz"
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
-          aria-label="Get started"
-        >
-          Get Started
-        </Link>
+        {(() => {
+          let href = "/quiz";
+          let label = "Get Started";
+          if (isAuthenticated) {
+            if (quizState === "in_progress") { href = "/quiz"; label = "Continue quiz"; }
+            else if (hasPremium) { href = "/app/my-plan"; label = "Open my plan"; }
+            else { href = "/app"; label = "Go to Dashboard"; }
+          }
+          return (
+            <Link
+              to={href}
+              onClick={() => { try { logQuizCtaClicked(clientId, 'landing', label, 'landing_mobile_sticky'); } catch {} }}
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              aria-label={label}
+            >
+              {label}
+            </Link>
+          );
+        })()}
       </div>
     </main>
   );

@@ -5,7 +5,7 @@ import { Check } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '../store/quiz-store';
 import { submitQuiz, saveQuizPreview, getQuizPreview } from '../api/quiz';
 import { useUserStore } from '../store/user-store';
-import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed } from '../lib/analytics';
+import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '../lib/analytics';
 import { QuizProgress } from '../components/quiz/quiz-progress';
 import { IntroStep } from '../components/quiz/steps/intro-step';
 import { BodyMetricsStep } from '../components/quiz/steps/body-metrics-step';
@@ -198,6 +198,12 @@ export function QuizPage() {
   };
 
   const handleNext = () => {
+    // Log CTA and next click
+    if (clientId) {
+      const stepId = STEP_NAMES[currentStep] ?? String(currentStep);
+      logQuizNextClicked(clientId, stepId);
+      // Placement unknown here; specific buttons will also log placement CTA
+    }
     if (!canGoNext()) {
       toast.error('Please answer the question to continue');
       setValidationMessage('Please answer the question to continue');
@@ -210,6 +216,14 @@ export function QuizPage() {
     } else {
       nextStep();
     }
+  };
+
+  const handleBack = () => {
+    if (clientId) {
+      const stepId = STEP_NAMES[currentStep] ?? String(currentStep);
+      logQuizBackClicked(clientId, stepId);
+    }
+    prevStep();
   };
 
   const handleSubmit = async () => {
@@ -319,14 +333,23 @@ export function QuizPage() {
         <div className="hidden max-w-2xl mx-auto gap-4 md:flex">
           {currentStep > 0 && (
             <button
-              onClick={prevStep}
+              onClick={() => {
+                if (clientId) logQuizCtaClicked(clientId, 'desktop_nav', 'Back', STEP_NAMES[currentStep] ?? String(currentStep));
+                handleBack();
+              }}
               className="px-6 py-3 border-2 border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
             >
               ← Back
             </button>
           )}
           <button
-            onClick={handleNext}
+            onClick={() => {
+              if (clientId) {
+                const label = currentStep === TOTAL_STEPS - 1 ? 'Complete Quiz' : 'Next';
+                logQuizCtaClicked(clientId, 'desktop_nav', label, STEP_NAMES[currentStep] ?? String(currentStep));
+              }
+              handleNext();
+            }}
             disabled={!canGoNext() || isSubmitting}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
           >
@@ -344,14 +367,23 @@ export function QuizPage() {
             <div className="mx-auto flex max-w-4xl items-center gap-3">
               {currentStep > 0 && (
                 <button
-                  onClick={prevStep}
+                  onClick={() => {
+                    if (clientId) logQuizCtaClicked(clientId, 'mobile_sticky', 'Back', STEP_NAMES[currentStep] ?? String(currentStep));
+                    handleBack();
+                  }}
                   className="shrink-0 rounded-xl border-2 border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
                 >
                   ← Back
                 </button>
               )}
               <button
-                onClick={handleNext}
+                onClick={() => {
+                  if (clientId) {
+                    const label = currentStep === TOTAL_STEPS - 1 ? 'Complete Quiz' : 'Next';
+                    logQuizCtaClicked(clientId, 'mobile_sticky', label, STEP_NAMES[currentStep] ?? String(currentStep));
+                  }
+                  handleNext();
+                }}
                 disabled={!canGoNext() || isSubmitting}
                 className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
               >

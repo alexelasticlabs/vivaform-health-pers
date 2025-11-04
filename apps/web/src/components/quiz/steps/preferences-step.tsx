@@ -5,6 +5,7 @@ import { SliderInput } from '../slider-input';
 import { OptionPill } from '../options/option-pill';
 import { OptionTile } from '../options/option-tile';
 import { ChoiceToggle } from '../options/choice-toggle';
+import { logQuizOptionSelected, logQuizSliderChanged, logQuizToggleChanged } from '../../../lib/analytics';
 
 const COMMON_ALLERGENS = [
   'Gluten',
@@ -39,6 +40,9 @@ export function PreferencesStep() {
       ? allergies.filter((a: string) => a !== allergy)
       : [...allergies, allergy];
     updateAnswers({ habits: { foodAllergies: newAllergies } });
+    try {
+      logQuizOptionSelected(useQuizStore.getState().clientId, 'preferences', 'habits.foodAllergies', newAllergies);
+    } catch {}
   };
 
   const toggleAvoided = (food: string) => {
@@ -46,18 +50,29 @@ export function PreferencesStep() {
       ? avoided.filter((f: string) => f !== food)
       : [...avoided, food];
     updateAnswers({ habits: { avoidedFoods: newAvoided } });
+    try {
+      logQuizOptionSelected(useQuizStore.getState().clientId, 'preferences', 'habits.avoidedFoods', newAvoided);
+    } catch {}
   };
 
   const addCustomAllergy = () => {
     if (customAllergy.trim() && !allergies.includes(customAllergy.trim())) {
-      updateAnswers({ habits: { foodAllergies: [...allergies, customAllergy.trim()] } });
+      const next = [...allergies, customAllergy.trim()];
+      updateAnswers({ habits: { foodAllergies: next } });
+      try {
+        logQuizOptionSelected(useQuizStore.getState().clientId, 'preferences', 'habits.foodAllergies', next);
+      } catch {}
       setCustomAllergy('');
     }
   };
 
   const addCustomAvoided = () => {
     if (customAvoided.trim() && !avoided.includes(customAvoided.trim())) {
-      updateAnswers({ habits: { avoidedFoods: [...avoided, customAvoided.trim()] } });
+      const next = [...avoided, customAvoided.trim()];
+      updateAnswers({ habits: { avoidedFoods: next } });
+      try {
+        logQuizOptionSelected(useQuizStore.getState().clientId, 'preferences', 'habits.avoidedFoods', next);
+      } catch {}
       setCustomAvoided('');
     }
   };
@@ -69,9 +84,9 @@ export function PreferencesStep() {
       helpText="We’ll exclude allergens and respect your preferences in meal plans."
     >
       <div className="space-y-6">
-        {/* Аллергии */}
+        {/* Allergies */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
             Do you have any food allergies? (select all that apply)
           </label>
           <div className="grid grid-cols-2 gap-2 mb-3">
@@ -93,11 +108,11 @@ export function PreferencesStep() {
               onChange={(e) => setCustomAllergy(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addCustomAllergy()}
               placeholder="Other allergy..."
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2"
             />
             <button
               onClick={addCustomAllergy}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700"
             >
               Add
             </button>
@@ -107,12 +122,12 @@ export function PreferencesStep() {
               {allergies.map((allergy: string) => (
                 <span
                   key={allergy}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-sm"
+                  className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-100 px-3 py-1 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-200"
                 >
                   {allergy}
                   <button
                     onClick={() => toggleAllergy(allergy)}
-                    className="hover:text-red-900"
+                    className="hover:text-red-900 dark:hover:text-red-100"
                   >
                     ×
                   </button>
@@ -122,9 +137,9 @@ export function PreferencesStep() {
           )}
         </div>
 
-        {/* Избегаемые продукты */}
+        {/* Avoided foods */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
             What foods do you avoid? (by personal preference)
           </label>
           <div className="grid grid-cols-2 gap-2 mb-3">
@@ -146,11 +161,11 @@ export function PreferencesStep() {
               onChange={(e) => setCustomAvoided(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && addCustomAvoided()}
               placeholder="Other food..."
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2"
             />
             <button
               onClick={addCustomAvoided}
-              className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm text-white hover:bg-emerald-700"
             >
               Add
             </button>
@@ -160,12 +175,12 @@ export function PreferencesStep() {
               {avoided.map((food: string) => (
                 <span
                   key={food}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm"
+                  className="inline-flex items-center gap-1 rounded-full border border-orange-200 bg-orange-100 px-3 py-1 text-sm text-orange-700 dark:border-orange-900/40 dark:bg-orange-900/20 dark:text-orange-200"
                 >
                   {food}
                   <button
                     onClick={() => toggleAvoided(food)}
-                    className="hover:text-orange-900"
+                    className="hover:text-orange-900 dark:hover:text-orange-100"
                   >
                     ×
                   </button>
@@ -175,9 +190,9 @@ export function PreferencesStep() {
           )}
         </div>
 
-        {/* Сложность блюд */}
+        {/* Meal complexity */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
             What kind of meals do you prefer?
           </label>
           <div className="space-y-2">
@@ -190,33 +205,33 @@ export function PreferencesStep() {
                 key={option.value}
                 title={option.label}
                 selected={answers.habits?.mealComplexity === option.value}
-                onClick={() => updateAnswers({ habits: { mealComplexity: option.value as 'simple' | 'medium' | 'complex' } })}
+                onClick={() => { updateAnswers({ habits: { mealComplexity: option.value as 'simple' | 'medium' | 'complex' } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'preferences', 'habits.mealComplexity', option.value); } catch {} }}
                 aria-label={`Meal complexity: ${option.label}`}
               />
             ))}
           </div>
         </div>
 
-        {/* Готовность пробовать новое */}
+        {/* New dishes preference */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
             Do you like trying new dishes?
           </label>
           <ChoiceToggle
             label="I like trying new dishes"
             selected={answers.habits?.tryNewFoods === true}
-            onClick={() => updateAnswers({ habits: { tryNewFoods: !answers.habits?.tryNewFoods } })}
+            onClick={() => { const v = !answers.habits?.tryNewFoods; updateAnswers({ habits: { tryNewFoods: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'preferences', 'habits.tryNewFoods', !!v); } catch {} }}
           />
         </div>
 
-        {/* Время на готовку */}
+        {/* Cooking time per day */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-3">
+          <label className="mb-3 block text-sm font-medium text-foreground/80">
             How much time are you willing to spend cooking per day?
           </label>
           <SliderInput
             value={answers.habits?.cookingTimeMinutes ?? 30}
-            onChange={(value) => updateAnswers({ habits: { cookingTimeMinutes: value } })}
+            onChange={(value) => { updateAnswers({ habits: { cookingTimeMinutes: value } }); try { logQuizSliderChanged(useQuizStore.getState().clientId, 'preferences', 'habits.cookingTimeMinutes', value); } catch {} }}
             min={0}
             max={120}
             step={15}

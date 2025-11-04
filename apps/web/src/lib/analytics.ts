@@ -181,3 +181,35 @@ export const logQuizFinalStepViewed = (clientId: string) => {
     timestamp: new Date().toISOString(),
   });
 };
+
+// Navigation & CTA clicks
+export const logQuizNextClicked = (clientId: string, stepId: string) => {
+  trackConversion("quiz_next_clicked", {
+    clientId,
+    stepId,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizBackClicked = (clientId: string, stepId: string) => {
+  trackConversion("quiz_back_clicked", {
+    clientId,
+    stepId,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+export const logQuizCtaClicked = (
+  clientId: string,
+  placement: 'desktop_nav' | 'mobile_sticky' | 'landing' | 'other',
+  label: string,
+  stepId?: string,
+) => {
+  trackConversion("quiz_cta_clicked", {
+    clientId,
+    placement,
+    label,
+    stepId,
+    timestamp: new Date().toISOString(),
+  });
+};
