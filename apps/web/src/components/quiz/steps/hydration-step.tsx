@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
 import { SliderInput } from '../slider-input';
@@ -7,6 +8,13 @@ import { logQuizSliderChanged, logQuizToggleChanged, logQuizOptionSelected } fro
 
 export function HydrationStep() {
   const { answers, updateAnswers } = useQuizStore();
+  // Ensure default water value is saved so Next isn't blocked
+  useEffect(() => {
+    if (answers.habits?.dailyWaterMl === undefined) {
+      updateAnswers({ habits: { dailyWaterMl: 2000 } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <QuizCard

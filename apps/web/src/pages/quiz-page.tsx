@@ -54,29 +54,42 @@ export function QuizPage() {
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const previewTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const loggedStartRef = useRef(false);
+  const lastViewedStepRef = useRef<number | null>(null);
+  const lastSectionLoggedRef = useRef<number | null>(null);
   
   // Calculate BMI preview in real-time
   const bmiPreview = calculateBMI(answers);
 
   // Log quiz start on mount
   useEffect(() => {
-    if (clientId) {
+    if (clientId && !loggedStartRef.current) {
       logQuizStart(clientId);
       setQuizStartTime(Date.now());
+      loggedStartRef.current = true;
     }
   }, [clientId]);
 
-  // Log section completion when step changes
+  // Log section completion and step view when step changes (guard against StrictMode double-effects)
   useEffect(() => {
-    if (currentStep > 0 && clientId) {
+    if (!clientId) return;
+
+    // Step viewed
+    if (lastViewedStepRef.current !== currentStep) {
+      logQuizStepViewed(clientId, STEP_NAMES[currentStep] ?? String(currentStep));
+      lastViewedStepRef.current = currentStep;
+    }
+
+    // Section completed (for previous step)
+    if (currentStep > 0 && lastSectionLoggedRef.current !== currentStep) {
       const progress = Math.round((currentStep / TOTAL_STEPS) * 100);
       logQuizSectionCompleted(clientId, STEP_NAMES[currentStep - 1], progress);
+      lastSectionLoggedRef.current = currentStep;
     }
-    if (clientId) {
-      logQuizStepViewed(clientId, STEP_NAMES[currentStep] ?? String(currentStep));
-      if (currentStep === TOTAL_STEPS - 1) {
-        logQuizFinalStepViewed(clientId);
-      }
+
+    // Final step viewed
+    if (currentStep === TOTAL_STEPS - 1) {
+      logQuizFinalStepViewed(clientId);
     }
   }, [currentStep, clientId]);
 
@@ -204,22 +217,25 @@ export function QuizPage() {
     try {
       const draft = getDraft();
       const durationSeconds = quizStartTime ? Math.round((Date.now() - quizStartTime) / 1000) : undefined;
-      
+
+      // Guests: skip submit (requires auth), go to register
+      if (!isAuthenticated) {
+        toast.info('Create a free account to view your full plan.');
+        navigate('/register');
+        return;
+      }
+
       await submitQuiz(draft);
-      
+
       // Log successful submission
       if (clientId) {
         logQuizSubmitSuccess(clientId, undefined, durationSeconds);
       }
-      
+
       toast.success('Your personalized plan is ready! ✨');
-      
-      // Redirect to register or dashboard
-      if (isAuthenticated) {
-        navigate('/app');
-      } else {
-        navigate('/register');
-      }
+
+      // Redirect to dashboard for authenticated users
+      navigate('/app');
     } catch (error) {
       // Log submission error
       if (clientId) {

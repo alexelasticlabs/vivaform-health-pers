@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
 import { SliderInput } from '../slider-input';
@@ -7,19 +8,12 @@ import { logQuizSliderChanged, logQuizToggleChanged } from '../../../lib/analyti
 export function EnergyScheduleStep() {
   const { answers, updateAnswers } = useQuizStore();
   // Ensure default slider value is saved so Next isn't blocked
-  if (typeof window !== 'undefined') {
-    // noop
-  }
-  
-  // set default once
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  import('react').then(({ useEffect }) => {
-    useEffect(() => {
-      if (answers.habits?.sleepHours === undefined) {
-        updateAnswers({ habits: { sleepHours: 7 } });
-      }
-    }, []);
-  });
+  useEffect(() => {
+    if (answers.habits?.sleepHours === undefined) {
+      updateAnswers({ habits: { sleepHours: 7 } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <QuizCard
