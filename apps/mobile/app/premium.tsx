@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
-import { SUBSCRIPTION_PLANS, SubscriptionPlan } from "@vivaform/shared";
+import { SUBSCRIPTION_PLANS, type SubscriptionPlan } from "@vivaform/shared";
 
 import { createCheckoutSession, getSubscription } from "../src/api/subscriptions";
 import { useUserStore } from "../src/store/user-store";
@@ -101,3 +101,91 @@ export default function PremiumScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 16
+  },
+  hero: {
+    gap: 8,
+    paddingVertical: 16
+  },
+  badge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#E6F7F1",
+    color: "#1FA97D",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    fontWeight: "600"
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "700"
+  },
+  subtitle: {
+    color: "#555"
+  },
+  activeTag: {
+    alignSelf: "flex-start",
+    backgroundColor: "#ECFDF5",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 9999
+  },
+  activeTagText: {
+    color: "#065F46",
+    fontWeight: "600"
+  },
+  section: {
+    marginTop: 16,
+    gap: 8
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700"
+  },
+  features: {
+    gap: 6
+  },
+  feature: {
+    color: "#333"
+  },
+  planCard: {
+    padding: 16,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    backgroundColor: "#fff",
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
+  planDisabled: {
+    opacity: 0.6
+  },
+  planTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 4
+  },
+  planDescription: {
+    color: "#555"
+  },
+  planPrice: {
+    fontWeight: "700"
+  },
+  manageButton: {
+    alignSelf: "center",
+    marginTop: 8,
+    backgroundColor: "#1FA97D",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12
+  },
+  manageButtonText: {
+    color: "#fff",
+    fontWeight: "600"
+  }
+});

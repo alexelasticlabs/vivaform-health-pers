@@ -1,4 +1,4 @@
-﻿import { FormEvent, useEffect, useState, useMemo } from "react";
+﻿import { type FormEvent, useEffect, useState, useMemo } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";

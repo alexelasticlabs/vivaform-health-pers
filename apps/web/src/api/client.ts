@@ -1,4 +1,4 @@
-﻿import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+﻿import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 import { useUserStore } from "../store/user-store";
 import type { AuthTokens, AuthUser } from "@vivaform/shared";
@@ -64,7 +64,7 @@ apiClient.interceptors.response.use(
     try {
       if (!refreshPromise) {
         refreshPromise = refreshTokens(tokens.refreshToken).then((data) => {
-          setAuth(data.user, data.tokens);
+          setAuth(data.user, data.tokens.accessToken, data.tokens.refreshToken);
           return data;
         }).finally(() => {
           refreshPromise = null;

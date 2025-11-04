@@ -66,23 +66,7 @@ export function MyPlanPage() {
     return { value: profile.bmi, category, color };
   }, [profile?.bmi]);
 
-  // Convert between units
-  const convertHeight = (cm: number, to: 'imperial' | 'metric') => {
-    if (to === 'imperial') {
-      const totalInches = cm / 2.54;
-      const feet = Math.floor(totalInches / 12);
-      const inches = Math.round(totalInches % 12);
-      return { ft: feet, in: inches };
-    }
-    return { cm };
-  };
-
-  const convertWeight = (kg: number, to: 'imperial' | 'metric') => {
-    if (to === 'imperial') {
-      return { lb: Math.round(kg * 2.20462) };
-    }
-    return { kg };
-  };
+  // (Unit conversion helpers can be added on-demand when UI requires them)
 
   // Handle form updates
   const handleUpdate = (section: keyof QuizAnswers, data: any) => {

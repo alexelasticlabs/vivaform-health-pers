@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useSearchParams } from "react-router-dom";
 
-import { fetchDailyDashboard, createNutritionEntry, createWaterEntry, createWeightEntry } from "../../api";
+import { fetchDailyDashboard, createWaterEntry } from "../../api";
 import { fetchWeightHistory } from "../../api/weight";
 import { getQuizProfile } from "../../api/quiz";
 import { syncCheckoutSession } from "../../api/subscriptions";
@@ -118,7 +118,8 @@ export const DashboardPage = () => {
   };
 
   // Calculate goals (mock for now, should come from backend/quiz)
-  const calorieGoal = quizProfile?.recommendedCalories || 2000;
+  // TODO: wire up recommended calories from quiz results when available in API response
+  const calorieGoal = 2000;
   const proteinGoal = Math.round((calorieGoal * 0.3) / 4); // 30% of cals, 4 cal/g
   const fatGoal = Math.round((calorieGoal * 0.3) / 9); // 30% of cals, 9 cal/g
   const carbsGoal = Math.round((calorieGoal * 0.4) / 4); // 40% of cals, 4 cal/g

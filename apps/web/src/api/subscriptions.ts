@@ -1,4 +1,4 @@
-﻿import { SubscriptionPlan, SubscriptionTier } from "@vivaform/shared";
+﻿import type { SubscriptionPlan, SubscriptionTier } from "@vivaform/shared";
 
 import { apiClient } from "./client";
 

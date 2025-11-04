@@ -65,7 +65,6 @@ export const initAnalytics = () => {
 
   if (!META_PIXEL_ID && !GOOGLE_ADS_ID) {
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
       console.info("[analytics] Meta Pixel and Google Ads IDs are not provided. Skipping initialization.");
     }
     return;
@@ -84,7 +83,6 @@ export const initAnalytics = () => {
 
 export const trackConversion = (event: string, payload?: Record<string, unknown>) => {
   if (import.meta.env.DEV) {
-    // eslint-disable-next-line no-console
     console.info(`[analytics] ${event}`, payload);
   }
 

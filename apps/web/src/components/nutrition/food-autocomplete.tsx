@@ -10,9 +10,9 @@ interface FoodAutocompleteProps {
   className?: string;
 }
 
-interface SearchFoodsResponse {
-  data: FoodItem[];
-}
+// interface SearchFoodsResponse {
+//   data: FoodItem[];
+// }
 
 /**
  * FoodAutocomplete

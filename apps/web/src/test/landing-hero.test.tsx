@@ -13,7 +13,7 @@ describe("Landing Hero", () => {
 
   it("renders headline and CTAs", () => {
     setup();
-    expect(screen.getByText(/Feel-good nutrition/i)).toBeInTheDocument();
+    expect(screen.getByText(/Discover your perfect nutrition plan/i)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Take the Quiz/i })).toBeInTheDocument();
     // "Log in" removed from hero per new design
   });

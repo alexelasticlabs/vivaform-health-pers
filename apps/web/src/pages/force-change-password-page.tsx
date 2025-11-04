@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
@@ -14,12 +14,12 @@ export function ForceChangePasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { profile, setAuth } = useUserStore();
-
-  // Redirect if user doesn't need to change password
-  if (!profile?.mustChangePassword) {
-    navigate('/app', { replace: true });
-    return null;
-  }
+  const shouldRedirect = !profile?.mustChangePassword;
+  useEffect(() => {
+    if (shouldRedirect) {
+      navigate('/app', { replace: true });
+    }
+  }, [shouldRedirect, navigate]);
 
   // Password strength calculator
   const passwordStrength = useMemo(() => {
@@ -79,6 +79,10 @@ export function ForceChangePasswordPage() {
       setIsLoading(false);
     }
   };
+
+  if (shouldRedirect) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-gray-900 dark:to-gray-800 p-4">

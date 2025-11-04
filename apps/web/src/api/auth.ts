@@ -1,4 +1,4 @@
-﻿import { AuthTokens, AuthUser } from "@vivaform/shared";
+﻿import type { AuthTokens, AuthUser } from "@vivaform/shared";
 
 import { apiClient } from "./client";
 

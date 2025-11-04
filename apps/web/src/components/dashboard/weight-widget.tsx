@@ -1,4 +1,4 @@
-import { Plus, Scale, TrendingDown, TrendingUp, Minus } from 'lucide-react';
+import { Plus, Scale, TrendingDown, TrendingUp } from 'lucide-react';
 import { useEffect } from 'react';
 import type { WeightEntry } from '@vivaform/shared';
 
@@ -29,16 +29,19 @@ export function WeightWidget({ latest, history, heightCm, onAddWeight }: WeightW
     : 0;
 
   // Analytics: Track widget view
+  const recentHistoryLength = recentHistory.length;
+  const bmiCategoryLabel = bmiCategory?.label || 'unknown';
+
   useEffect(() => {
     if (window.gtag && latest) {
       window.gtag('event', 'dashboard_widget_view', {
         widget_name: 'weight',
         has_bmi: !!bmi,
-        has_trend: recentHistory.length >= 2,
-        bmi_category: bmiCategory?.label || 'unknown'
+        has_trend: recentHistoryLength >= 2,
+        bmi_category: bmiCategoryLabel
       });
     }
-  }, [latest?.id]);
+  }, [latest, bmi, recentHistoryLength, bmiCategoryLabel]);
 
   const handleAddWeight = () => {
     if (window.gtag) {

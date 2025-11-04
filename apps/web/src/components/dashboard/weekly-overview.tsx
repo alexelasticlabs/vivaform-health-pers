@@ -83,7 +83,7 @@ export function WeeklyOverview({ data, goal }: WeeklyOverviewProps) {
       {/* Chart */}
       <div className="mt-6 h-48 w-full">
         <div className="flex h-full items-end justify-between gap-2">
-          {data.map((day, index) => {
+          {data.map((day) => {
             const value = day[selectedMetric];
             const height = (value / maxValue) * 100;
             const isAboveGoal = selectedMetric === 'calories' && value > goal;

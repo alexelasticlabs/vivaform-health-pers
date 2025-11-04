@@ -1,4 +1,4 @@
-﻿import { FormEvent, useEffect, useState } from "react";
+﻿import { type FormEvent, useEffect, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -30,9 +30,10 @@ export const LoginPage = () => {
     mutationFn: login,
     onSuccess: (data) => {
       setAuth(data.user, data.tokens.accessToken, data.tokens.refreshToken);
-      
+
       // Check if user must change password (after temp password login)
-      if (data.user.mustChangePassword) {
+      const mustChange = (data as any)?.user?.mustChangePassword;
+      if (mustChange) {
         toast.info("Please set a new password to continue 🔒");
         navigate("/force-change-password");
         return;

@@ -1,7 +1,6 @@
 import { useQuizStore } from '../../../store/quiz-store';
 import { QuizCard } from '../quiz-card';
 import { OptionButton } from '../option-button';
-import { SliderInput } from '../slider-input';
 
 export function FoodHabitsStep() {
   const { answers, updateAnswers } = useQuizStore();

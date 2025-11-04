@@ -1,13 +1,13 @@
 ﻿import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { PhoneMockup } from "../components/landing/PhoneMockup";
-import { FloatingTag } from "../components/landing/FloatingTag";
+// import { FloatingTag } from "../components/landing/FloatingTag"; // not used currently
 import { ProgressCard } from "../components/landing/ProgressCard";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom"; // navigate not used here
 import { trackConversion } from "../lib/analytics";
 import { useIntersectionObserver } from "../hooks/use-intersection-observer";
 import { AppStoreButtons } from "../components/app-store-buttons";
-import { useUserStore } from "../store/user-store";
+// import { useUserStore } from "../store/user-store"; // not used in landing
 type ValueProp = {
   title: string;
   description: string;
@@ -151,49 +151,54 @@ const faqItems: FaqItem[] = [
 ];
 
 export const LandingPage = () => {
-  const navigate = useNavigate();
   const [openFaqId, setOpenFaqId] = useState<string | null>(null);
   const [whyRef, whyVisible] = useIntersectionObserver({ threshold: 0.1 });
   const [featuresRef, featuresVisible] = useIntersectionObserver({ threshold: 0.1 });
   const [testimonialsRef, testimonialsVisible] = useIntersectionObserver({ threshold: 0.1 });
-  const [testimonialsContainer, setTestimonialsContainer] = useState<HTMLDivElement | null>(null);
+  const [heroVisible, setHeroVisible] = useState(false);
   const heroStats = [
     { label: "Active users", value: "125k+" },
     { label: "Avg. rating", value: "4.9/5" },
     { label: "Countries", value: "32" }
   ];
 
+  useEffect(() => {
+    // trigger gentle fade-in on mount
+    const t = setTimeout(() => setHeroVisible(true), 50);
+    return () => clearTimeout(t);
+  }, []);
+
   return (
     <main>
 
       {/* Hero Section */}
-      <section id="hero" className="relative overflow-hidden bg-gradient-to-br from-teal-400 via-cyan-300 to-blue-200 py-20 sm:py-28">
+      <section id="hero" className="relative overflow-hidden bg-gradient-to-b from-teal-100 to-emerald-50 py-20 sm:py-28 dark:from-teal-900/30 dark:to-emerald-900/20">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
             {/* Left: Content */}
-            <div className="relative z-10">
+            <div className={`relative z-10 transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
               <h1 className="font-display text-5xl font-bold leading-tight tracking-tight text-gray-900 sm:text-6xl lg:text-7xl">
-                Feel-good nutrition,{" "}
-                <span className="block text-teal-700">guided by experts</span>
+                Discover your perfect nutrition plan.
               </h1>
-              <p className="mt-6 text-lg leading-relaxed text-gray-800 sm:text-xl">
-                Personalized plans, habit coaching, and clear progress—without selling your data.
+              <p className="mt-6 text-lg leading-relaxed text-gray-800 dark:text-gray-200 sm:text-xl">
+                Take our 2-minute quiz and unlock your personalized health journey — registration comes after your results.
               </p>
               
-              <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className={`mt-10 flex flex-col gap-4 sm:flex-row sm:items-center transition-all duration-700 ${heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}`}>
                 <Link
-                  to="/register"
+                  to="/quiz"
                   onClick={() => trackConversion("hero_cta_click", { placement: "hero" })}
-                  className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-8 py-4 text-base font-semibold text-white shadow-xl transition-all hover:scale-[1.02] hover:bg-emerald-700 hover:shadow-2xl active:scale-[0.98]"
+                  className="group inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 px-8 py-4 text-base font-semibold text-white shadow-xl transition-transform hover:scale-105 active:translate-y-[1px] motion-safe:animate-pulse hover:animate-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-300 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent dark:focus-visible:ring-emerald-400"
                 >
                   Take the Quiz
                   <svg className="h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
+                <p className="text-sm text-gray-700 dark:text-gray-300 sm:ml-2">You’ll create your account after seeing your plan.</p>
               </div>
 
-              <p className="mt-8 text-sm font-medium text-gray-700">Available on every platform</p>
+              <p className="mt-8 text-sm font-medium text-gray-700 dark:text-gray-300">Available on every platform</p>
               <div className="mt-4">
                 <AppStoreButtons />
               </div>
@@ -201,6 +206,7 @@ export const LandingPage = () => {
 
             {/* Right: Phone Mockup */}
             <div className="relative flex items-center justify-center lg:justify-end">
+              <p className="absolute -top-6 left-0 text-xs font-medium text-teal-700/80 dark:text-teal-300/80">Your results preview</p>
               <PhoneMockup>
                 <ProgressCard />
                 <div className="mt-4 grid grid-cols-2 gap-3">
@@ -342,7 +348,6 @@ export const LandingPage = () => {
             {/* Mobile: horizontal scroll-snap, Desktop: 3-column grid */}
             <div className="md:hidden -mx-6 px-6">
               <div
-                ref={setTestimonialsContainer}
                 className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
                 aria-label="Testimonials carousel"
               >
@@ -456,7 +461,7 @@ export const LandingPage = () => {
               </p>
               <div className="mt-10 flex flex-col gap-4 sm:flex-row sm:justify-center">
                 <Link
-                  to="/register"
+                  to="/quiz"
                   onClick={() => trackConversion("start_quiz_click", { placement: "cta" })}
                   className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-8 py-4 text-base font-semibold text-emerald-600 shadow-lg transition-all hover:scale-[1.01] hover:shadow-xl active:scale-[0.99]"
                 >

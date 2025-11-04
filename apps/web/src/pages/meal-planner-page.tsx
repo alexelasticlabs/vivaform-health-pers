@@ -10,9 +10,22 @@ export function MealPlannerPage() {
   const navigate = useNavigate();
   const profile = useUserStore((state) => state.profile);
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const isPremium = !!profile && profile.tier === "PREMIUM";
 
-  // Premium gate: проверяем tier перед загрузкой
-  if (!profile || profile.tier !== "PREMIUM") {
+  // Загружаем meal plan с backend
+  const {
+    data: mealPlan,
+    isLoading,
+    error,
+    refetch
+  } = useQuery({
+    queryKey: ["meal-plan"],
+    queryFn: getMealPlan,
+    retry: false,
+    enabled: isPremium
+  });
+
+  if (!isPremium) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-yellow-50 p-4">
         <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
@@ -41,18 +54,6 @@ export function MealPlannerPage() {
       </div>
     );
   }
-
-  // Загружаем meal plan с backend
-  const {
-    data: mealPlan,
-    isLoading,
-    error,
-    refetch
-  } = useQuery({
-    queryKey: ["meal-plan"],
-    queryFn: getMealPlan,
-    retry: false
-  });
 
   if (isLoading) {
     return (

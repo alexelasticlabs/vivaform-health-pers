@@ -1,5 +1,6 @@
-﻿import { PropsWithChildren, useEffect, useState } from "react";
-import { Link, NavLink } from "react-router-dom";
+﻿import type { PropsWithChildren } from "react";
+import { useEffect, useState } from "react";
+import { Link, NavLink, useLocation } from "react-router-dom";
 
 import { ThemeToggle } from "../theme-toggle";
 import { SupportWidget } from "../support-widget";
@@ -50,6 +51,8 @@ const socialLinks = [
 ];
 
 export const MarketingShell = ({ children }: PropsWithChildren) => {
+  const location = useLocation();
+  const isLanding = location.pathname === "/";
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -62,39 +65,59 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <header 
+      <header
         className={`sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-md transition-all ${
           scrolled ? "shadow-sm" : ""
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <VivaFormLogo size="md" />
-          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-            {marketingNav.map((item) => (
-              <a 
-                key={item.label} 
-                href={item.to} 
-                className="text-muted-foreground transition-colors hover:text-foreground"
+          {isLanding ? (
+            <div className="flex items-center gap-3">
+              <ThemeToggle />
+              <NavLink
+                to="/login"
+                className="rounded-xl border-2 border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
               >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-          <div className="flex items-center gap-3">
-            <ThemeToggle />
-            <NavLink 
-              to="/login" 
-              className="rounded-xl border-2 border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
-            >
-              Log in
-            </NavLink>
-            <NavLink 
-              to="/register" 
-              className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
-            >
-              Get started
-            </NavLink>
-          </div>
+                Log in
+              </NavLink>
+              <NavLink
+                to="/quiz"
+                className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-transform hover:scale-105 active:translate-y-[1px]"
+              >
+                Take the Quiz
+              </NavLink>
+            </div>
+          ) : (
+            <>
+              <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+                {marketingNav.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.to}
+                    className="text-muted-foreground transition-colors hover:text-foreground"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </nav>
+              <div className="flex items-center gap-3">
+                <ThemeToggle />
+                <NavLink
+                  to="/login"
+                  className="rounded-xl border-2 border-border bg-card px-4 py-2 text-sm font-semibold text-foreground shadow-sm transition-all hover:scale-[1.01] hover:border-muted-foreground hover:shadow-md active:scale-[0.99]"
+                >
+                  Log in
+                </NavLink>
+                <NavLink
+                  to="/register"
+                  className="rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-[1.01] hover:shadow-xl hover:shadow-emerald-500/30 active:scale-[0.99]"
+                >
+                  Get started
+                </NavLink>
+              </div>
+            </>
+          )}
         </div>
       </header>
       

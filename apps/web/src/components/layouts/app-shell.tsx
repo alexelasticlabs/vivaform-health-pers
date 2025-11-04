@@ -1,4 +1,4 @@
-﻿import { PropsWithChildren } from "react";
+﻿import type { PropsWithChildren } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 

@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 
 type FloatingTagProps = PropsWithChildren<{
   className?: string;
@@ -10,6 +10,8 @@ type FloatingTagProps = PropsWithChildren<{
 
 export const FloatingTag = ({ className, initial, label }: FloatingTagProps) => {
   const prefersReducedMotion = useReducedMotion();
+  // Framer Motion typing workaround for React 19 strict TS builds
+  const MDiv = motion.div as any;
   const drift = prefersReducedMotion
     ? {}
     : {
@@ -26,7 +28,7 @@ export const FloatingTag = ({ className, initial, label }: FloatingTagProps) => 
       };
 
   return (
-    <motion.div
+    <MDiv
       aria-label={label}
       initial={{ opacity: 0, scale: 0.98, ...initial }}
       whileInView={{ opacity: 1, scale: 1 }}
@@ -39,6 +41,6 @@ export const FloatingTag = ({ className, initial, label }: FloatingTagProps) => 
       )}
     >
       {label}
-    </motion.div>
+    </MDiv>
   );
 };

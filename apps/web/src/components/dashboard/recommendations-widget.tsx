@@ -38,7 +38,7 @@ export function RecommendationsWidget({ recommendations, isPremium, updatedAt }:
         displayed_recommendations: displayedRecs.length
       });
     }
-  }, [recommendations.length, isPremium]);
+  }, [recommendations.length, isPremium, displayedRecs.length]);
 
   const timeAgo = updatedAt ? getTimeAgo(new Date(updatedAt)) : null;
 

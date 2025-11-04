@@ -1,11 +1,13 @@
-import { PropsWithChildren } from "react";
+import type { PropsWithChildren } from "react";
 import { m, useReducedMotion } from "framer-motion";
 
 export const PhoneMockup = ({ children }: PropsWithChildren) => {
   const prefersReducedMotion = useReducedMotion();
+  // Framer Motion typing workaround for React 19 strict TS builds
+  const MDiv = m.div as any;
 
   return (
-    <m.div
+    <MDiv
       aria-label="Phone mockup"
       initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.98 }}
       whileInView={prefersReducedMotion ? {} : { opacity: 1, scale: 1 }}
@@ -39,7 +41,7 @@ export const PhoneMockup = ({ children }: PropsWithChildren) => {
       />
 
       {/* iPhone 16 Pro frame - Natural Titanium */}
-      <div className="relative overflow-hidden rounded-[2.8rem] shadow-[0_16px_48px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2),0_4px_12px_rgba(0,0,0,0.15)]"
+      <div className="relative overflow-hidden rounded-[2.8rem] shadow-[0_16px_48px_rgba(0,0,0,0.3),0_8px_24px_rgba(0,0,0,0.2),0_4px_12px_rgba(0,0,0,0.15)] ring-1 ring-neutral-900/10 dark:ring-white/10"
         style={{
           background: 'linear-gradient(145deg, #f8f8f9 0%, #e5e6e8 40%, #d8d9db 70%, #d0d1d3 100%)',
           padding: '2px'
@@ -120,15 +122,14 @@ export const PhoneMockup = ({ children }: PropsWithChildren) => {
           
           {/* OLED Screen */}
           <div 
-            className="relative overflow-hidden rounded-[2.35rem]" 
+            className="relative overflow-hidden rounded-[2.35rem] bg-gradient-to-b from-slate-50 via-indigo-50 to-rose-50 dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-950"
             style={{ 
               aspectRatio: "9 / 19.5",
-              background: 'linear-gradient(180deg, #f0f4ff 0%, #f7f3ff 50%, #fff0f8 100%)',
               boxShadow: '0 1px 3px rgba(0,0,0,0.12)'
             }}
           >
             {/* Screen glass overlay with subtle reflections */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/8 via-transparent to-black/6" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/10 dark:from-white/5 dark:to-black/20" />
             
             {/* Top glass reflection bar */}
             <div className="absolute inset-x-2 top-0 h-[2px] bg-gradient-to-b from-white/50 to-transparent" />
@@ -146,7 +147,7 @@ export const PhoneMockup = ({ children }: PropsWithChildren) => {
             />
 
             {/* iOS Status bar */}
-            <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-5 pt-[6px] text-[10px] font-semibold text-gray-900">
+            <div className="absolute left-0 right-0 top-0 z-20 flex items-center justify-between px-5 pt-[6px] text-[10px] font-semibold text-gray-900 dark:text-gray-100">
               <span className="tracking-tight">9:41</span>
               <div className="flex items-center gap-1">
                 <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
@@ -168,12 +169,12 @@ export const PhoneMockup = ({ children }: PropsWithChildren) => {
               
               {/* Home indicator */}
               <div 
-                className="absolute bottom-1.5 left-1/2 h-[3px] w-[90px] -translate-x-1/2 rounded-full bg-black/30"
+                className="absolute bottom-1.5 left-1/2 h-[3px] w-[90px] -translate-x-1/2 rounded-full bg-black/30 dark:bg-white/20"
               />
             </div>
           </div>
         </div>
       </div>
-    </m.div>
+    </MDiv>
   );
 };

@@ -21,7 +21,7 @@ export const AuthBootstrapper = () => {
 
     fetchCurrentUser()
       .then((user) => {
-        setAuth(user, tokens);
+        setAuth(user, tokens.accessToken, tokens.refreshToken);
       })
       .catch((error) => {
         console.error("Failed to bootstrap auth", error);
