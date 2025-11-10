@@ -112,17 +112,43 @@ export class FoodService {
    * Получение популярных продуктов (на основе частоты использования)
    */
   async getPopularFoods(limit = 20) {
-    // TODO: Реализовать подсчёт по количеству использований в NutritionEntry
-    // Пока возвращаем самые популярные категории
-    return this.prisma.foodItem.findMany({
-      where: {
-        verified: true,
-        category: {
-          in: ['Fruits', 'Vegetables', 'Meat', 'Dairy', 'Grains']
-        }
-      },
-      orderBy: { name: 'asc' },
-      take: limit
+    // Агрегируем по NutritionEntry.food
+    const popularByCount = await this.prisma.nutritionEntry.groupBy({
+      by: ['food'],
+      _count: { food: true },
+      orderBy: { _count: { food: 'desc' } },
+      take: limit * 2 // запас, т.к. часть может не найтись в FoodItem
     });
+
+    if (popularByCount.length === 0) {
+      // Fallback: самые часто встречающиеся проверенные продукты
+      return this.prisma.foodItem.findMany({
+        where: { verified: true },
+        orderBy: { updatedAt: 'desc' },
+        take: limit
+      });
+    }
+
+    // Пытаемся сопоставить FoodItem по имени
+    const names = popularByCount.map(p => p.food);
+    const items = await this.prisma.foodItem.findMany({
+      where: { name: { in: names } }
+    });
+
+    // Сортируем по популярности согласно popularByCount
+    const orderMap = new Map(popularByCount.map((p, idx) => [p.food, idx] as const));
+    const matched = items.sort((a, b) => (orderMap.get(a.name)! - orderMap.get(b.name)!)).slice(0, limit);
+
+    // Если нашли меньше лимита, дозаполним проверенными продуктами
+    if (matched.length < limit) {
+      const extra = await this.prisma.foodItem.findMany({
+        where: { id: { notIn: matched.map(m => m.id) }, verified: true },
+        orderBy: { updatedAt: 'desc' },
+        take: limit - matched.length
+      });
+      return [...matched, ...extra];
+    }
+
+    return matched;
   }
 }

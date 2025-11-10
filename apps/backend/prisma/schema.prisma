@@ -32,133 +32,134 @@ enum GoalType {
 }
 
 model User {
-  id            String           @id @default(cuid())
-  email         String           @unique
-  passwordHash  String
-  name          String?
-  role          UserRole         @default(USER)
-  tier          SubscriptionTier @default(FREE)
-  emailVerified Boolean          @default(false)
-  emailVerifiedAt DateTime?
-  mustChangePassword Boolean      @default(false)
-  pushToken     String?          // Expo Push Token for notifications
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  profile       Profile?
-  quizProfile   QuizProfile?
-  nutrition     NutritionEntry[]
-  water         WaterEntry[]
-  weight        WeightEntry[]
-  recommendations Recommendation[]
-  subscription  Subscription?
-  articles      Article[]
+  id                  String               @id @default(cuid())
+  email               String               @unique
+  passwordHash        String
+  name                String?
+  role                UserRole             @default(USER)
+  tier                SubscriptionTier     @default(FREE)
+  emailVerified       Boolean              @default(false)
+  emailVerifiedAt     DateTime?
+  mustChangePassword  Boolean              @default(false)
+  pushToken           String? // Expo Push Token for notifications
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  profile             Profile?
+  quizProfile         QuizProfile?
+  nutrition           NutritionEntry[]
+  water               WaterEntry[]
+  weight              WeightEntry[]
+  recommendations     Recommendation[]
+  subscription        Subscription?
+  articles            Article[]
   passwordResetTokens PasswordResetToken[]
-  tempPasswords TempPassword[]
+  tempPasswords       TempPassword[]
+  auditLogs           AuditLog[]
 }
 
 model Profile {
-  id               String        @id @default(cuid())
-  user             User          @relation(fields: [userId], references: [id])
-  userId           String        @unique
-  gender           String?
-  birthDate        DateTime?
-  heightCm         Int?
-  currentWeightKg  Float?
-  targetWeightKg   Float?
-  goal             GoalType?
-  activityLevel    ActivityLevel?
+  id                 String         @id @default(cuid())
+  user               User           @relation(fields: [userId], references: [id])
+  userId             String         @unique
+  gender             String?
+  birthDate          DateTime?
+  heightCm           Int?
+  currentWeightKg    Float?
+  targetWeightKg     Float?
+  goal               GoalType?
+  activityLevel      ActivityLevel?
   dietaryPreferences String[]
-  
+
   // Quiz-specific fields
-  dietPlan              String?
-  mealsPerDay           Int?
-  skipBreakfast         Boolean?
-  snackBetweenMeals     Boolean?
-  fastFoodFrequency     String?
-  cookAtHomeFrequency   String?
-  sleepHours            Float?
-  exerciseRegularly     Boolean?
-  wakeUpTime            String?
-  dinnerTime            String?
-  foodAllergies         String[]
-  avoidedFoods          String[]
-  mealComplexity        String?
-  tryNewFoods           Boolean?
-  cookingTimeMinutes    Int?
-  eatWhenStressed       Boolean?
-  mainMotivation        String?
-  stressLevel           Int?
-  comfortSource         String?
-  routineConfidence     Int?
-  dailyWaterMl          Int?
-  wantReminders         Boolean?
-  trackActivity         Boolean?
-  connectHealthApp      Boolean?
-  theme                 String?
-  
+  dietPlan            String?
+  mealsPerDay         Int?
+  skipBreakfast       Boolean?
+  snackBetweenMeals   Boolean?
+  fastFoodFrequency   String?
+  cookAtHomeFrequency String?
+  sleepHours          Float?
+  exerciseRegularly   Boolean?
+  wakeUpTime          String?
+  dinnerTime          String?
+  foodAllergies       String[]
+  avoidedFoods        String[]
+  mealComplexity      String?
+  tryNewFoods         Boolean?
+  cookingTimeMinutes  Int?
+  eatWhenStressed     Boolean?
+  mainMotivation      String?
+  stressLevel         Int?
+  comfortSource       String?
+  routineConfidence   Int?
+  dailyWaterMl        Int?
+  wantReminders       Boolean?
+  trackActivity       Boolean?
+  connectHealthApp    Boolean?
+  theme               String?
+
   // Calculated fields
-  bmi                   Float?
-  bmr                   Float?
-  tdee                  Float?
-  recommendedCalories   Float?
-  
-  updatedAt        DateTime      @updatedAt
-  createdAt        DateTime      @default(now())
+  bmi                 Float?
+  bmr                 Float?
+  tdee                Float?
+  recommendedCalories Float?
+
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 }
 
 // QuizProfile stores the complete quiz data with normalized fields
 model QuizProfile {
-  id               String   @id @default(cuid())
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           String   @unique
-  
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
   // Tracking fields
-  clientId         String?  // For analytics - links to pre-registration draft
-  version          Int      @default(1) // Schema version for migrations
-  
+  clientId String? // For analytics - links to pre-registration draft
+  version  Int     @default(1) // Schema version for migrations
+
   // Raw quiz answers (JSON) - stores complete user responses
-  answers          Json     // Full structure: { diet: {...}, body: {...}, goals: {...}, habits: {...}, ... }
-  
+  answers Json // Full structure: { diet: {...}, body: {...}, goals: {...}, habits: {...}, ... }
+
   // Normalized/cached fields for quick access and calculations
   // Diet
-  dietPlan         String?  // e.g., "Mediterranean", "Vegetarian", "Keto"
-  
+  dietPlan String? // e.g., "Mediterranean", "Vegetarian", "Keto"
+
   // Body metrics
-  heightCm         Float?
-  weightKg         Float?
-  bmi              Float?   // Calculated: kg / (m^2)
-  
+  heightCm Float?
+  weightKg Float?
+  bmi      Float? // Calculated: kg / (m^2)
+
   // Goals
-  goalType         String?  // "lose", "maintain", "gain"
-  goalDeltaKg      Float?   // Target weight change (positive or negative)
-  etaMonths        Int?     // Expected timeline in months
-  
+  goalType    String? // "lose", "maintain", "gain"
+  goalDeltaKg Float? // Target weight change (positive or negative)
+  etaMonths   Int? // Expected timeline in months
+
   // Habits (commonly queried fields)
-  mealsPerDay      Int?
+  mealsPerDay        Int?
   cookingTimeMinutes Int?
-  exerciseRegularly Boolean?
-  
+  exerciseRegularly  Boolean?
+
   // Metadata
-  completedAt      DateTime? // When quiz was fully completed
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-  
+  completedAt DateTime? // When quiz was fully completed
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
   @@index([userId])
   @@index([clientId])
 }
 
 model NutritionEntry {
-  id          String   @id @default(cuid())
-  user        User     @relation(fields: [userId], references: [id])
-  userId      String
-  date        DateTime
-  mealType    String
-  food        String
-  calories    Int
-  protein     Float
-  fat         Float
-  carbs       Float
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  date      DateTime
+  mealType  String
+  food      String
+  calories  Int
+  protein   Float
+  fat       Float
+  carbs     Float
+  createdAt DateTime @default(now())
 
   @@index([userId, date])
 }
@@ -215,36 +216,36 @@ enum SubscriptionPlan {
 }
 
 model Subscription {
-  id                    String              @id @default(cuid())
-  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId                String              @unique
-  
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+
   // Stripe identifiers
-  stripeCustomerId      String              @unique
-  stripeSubscriptionId  String              @unique
-  stripePriceId         String
-  
+  stripeCustomerId     String @unique
+  stripeSubscriptionId String @unique
+  stripePriceId        String
+
   // Subscription details
-  plan                  SubscriptionPlan
-  status                SubscriptionStatus
-  
+  plan   SubscriptionPlan
+  status SubscriptionStatus
+
   // Billing period
-  currentPeriodStart    DateTime
-  currentPeriodEnd      DateTime
-  
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+
   // Cancellation
-  cancelAtPeriodEnd     Boolean             @default(false)
-  canceledAt            DateTime?
-  
+  cancelAtPeriodEnd Boolean   @default(false)
+  canceledAt        DateTime?
+
   // Trial
-  trialStart            DateTime?
-  trialEnd              DateTime?
-  
+  trialStart DateTime?
+  trialEnd   DateTime?
+
   // Metadata
-  metadata              Json?               // Additional data from Stripe
-  
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  metadata Json? // Additional data from Stripe
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([userId])
   @@index([stripeCustomerId])
@@ -253,45 +254,45 @@ model Subscription {
 }
 
 model MealTemplate {
-  id                   String   @id @default(cuid())
-  name                 String
-  category             String   // "breakfast", "lunch", "dinner", "snack"
-  dietPlans            String[] // ["mediterranean", "carnivore", "anti-inflammatory"]
-  calories             Int
-  protein              Float    // grams
-  fat                  Float    // grams
-  carbs                Float    // grams
-  cookingTimeMinutes   Int
-  complexity           String   // "simple", "medium", "complex"
-  allergens            String[] // ["nuts", "dairy", "gluten", "eggs", "fish", "shellfish", "soy"]
-  avoidedIngredients   String[] // ["meat", "dairy", "gluten", etc.]
-  ingredients          String[]
-  instructions         String?
-  servings             Int      @default(1)
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                 String   @id @default(cuid())
+  name               String
+  category           String // "breakfast", "lunch", "dinner", "snack"
+  dietPlans          String[] // ["mediterranean", "carnivore", "anti-inflammatory"]
+  calories           Int
+  protein            Float // grams
+  fat                Float // grams
+  carbs              Float // grams
+  cookingTimeMinutes Int
+  complexity         String // "simple", "medium", "complex"
+  allergens          String[] // ["nuts", "dairy", "gluten", "eggs", "fish", "shellfish", "soy"]
+  avoidedIngredients String[] // ["meat", "dairy", "gluten", etc.]
+  ingredients        String[]
+  instructions       String?
+  servings           Int      @default(1)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   @@index([category])
   @@index([dietPlans])
 }
 
 model FoodItem {
-  id           String  @id @default(cuid())
-  name         String
-  brand        String?
-  category     String
-  caloriesPer100g Int
-  proteinPer100g  Float
-  fatPer100g      Float
-  carbsPer100g    Float
-  fiberPer100g    Float?
-  sugarPer100g    Float?
-  servingSize     String  // "100g", "1 piece", "1 cup", etc.
+  id               String   @id @default(cuid())
+  name             String
+  brand            String?
+  category         String
+  caloriesPer100g  Int
+  proteinPer100g   Float
+  fatPer100g       Float
+  carbsPer100g     Float
+  fiberPer100g     Float?
+  sugarPer100g     Float?
+  servingSize      String // "100g", "1 piece", "1 cup", etc.
   servingSizeGrams Float? // weight of serving in grams (if applicable)
-  barcode      String? // for future barcode scanning
-  verified     Boolean @default(false) // admin-verified entries
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  barcode          String? // for future barcode scanning
+  verified         Boolean  @default(false) // admin-verified entries
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@index([name])
   @@index([category])
@@ -299,21 +300,21 @@ model FoodItem {
 }
 
 model Article {
-  id           String   @id @default(cuid())
-  title        String
-  slug         String   @unique
-  excerpt      String?
-  content      String   @db.Text
-  category     String   // "Nutrition", "Fitness", "Mental Health", "Recipes", "Tips"
-  coverImage   String?
-  tags         String[] @default([])
-  published    Boolean  @default(false)
-  publishedAt  DateTime?
-  viewCount    Int      @default(0)
-  author       User     @relation(fields: [authorId], references: [id])
-  authorId     String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  excerpt     String?
+  content     String    @db.Text
+  category    String // "Nutrition", "Fitness", "Mental Health", "Recipes", "Tips"
+  coverImage  String?
+  tags        String[]  @default([])
+  published   Boolean   @default(false)
+  publishedAt DateTime?
+  viewCount   Int       @default(0)
+  author      User      @relation(fields: [authorId], references: [id])
+  authorId    String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([slug])
   @@index([category])
@@ -322,13 +323,13 @@ model Article {
 }
 
 model PasswordResetToken {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId])
   @@index([tokenHash])
@@ -336,14 +337,29 @@ model PasswordResetToken {
 }
 
 model TempPassword {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   hash      String
   expiresAt DateTime
   usedAt    DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String?
+  action    String
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }

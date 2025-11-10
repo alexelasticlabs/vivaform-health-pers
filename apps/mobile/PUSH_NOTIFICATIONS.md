@@ -4,33 +4,36 @@
 
 Чтобы push-уведомления работали в production, нужно:
 
-1. **Обновить app.json/app.config.ts**
+1. Настроить `app.config.ts`
    
-   Добавьте `projectId` в конфигурацию Expo:
+   В разделе `extra.eas.projectId` должен быть указан UUID вашего проекта Expo. Рекомендуемый способ — через переменную окружения:
 
-   ```json
-   {
-     "expo": {
-       "extra": {
-         "eas": {
-           "projectId": "your-project-id-from-expo-dev"
-         }
-       }
+   ```bash
+   # .env / CI vars
+   EXPO_PUBLIC_EAS_PROJECT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   ```
+
+   Файл `apps/mobile/app.config.ts` уже читает эту переменную:
+
+   ```ts
+   extra: {
+     eas: {
+       projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || ""
      }
    }
    ```
 
-2. **Обновить хук usePushNotifications**
+2. Хук регистрации `usePushNotifications`
 
-   В файле `apps/mobile/src/hooks/use-push-notifications.ts` замените:
-   
-   ```typescript
-   projectId: "your-project-id" // TODO
+   Хук не содержит хардкода и берёт `projectId` из `expo-constants`:
+
+   ```ts
+   const projectId = Constants?.expoConfig?.extra?.eas?.projectId || Constants?.easConfig?.projectId;
    ```
-   
-   на реальный projectId из вашего Expo проекта.
 
-3. **Настроить APNs (iOS) и FCM (Android)**
+   Убедитесь, что переменная окружения задана на CI/локально. Ручная подстановка `"your-project-id"` не требуется.
+
+3. Настроить APNs (iOS) и FCM (Android)
 
    Следуйте официальной документации Expo:
    - https://docs.expo.dev/push-notifications/push-notifications-setup/
@@ -42,6 +45,7 @@
 3. Получает Expo Push Token
 4. Отправляет токен на backend через `POST /notifications/register-device`
 5. Backend сохраняет токен в поле `user.pushToken`
+6. При выходе из аккаунта выполняется `DELETE /notifications/register-device` и токен отвязывается
 
 ## Тестирование локально
 

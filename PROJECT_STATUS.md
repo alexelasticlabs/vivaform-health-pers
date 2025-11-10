@@ -64,6 +64,10 @@
   3. Получает Expo Push Token
   4. Отправляет `POST /notifications/register-device`
   5. Backend сохраняет в `user.pushToken`
+- Дополнительно:
+  - Добавлен `DELETE /notifications/register-device` для дерегистрации токена при логауте
+  - Хук `usePushNotifications` сбрасывает внутренний флаг при смене пользователя и отвязывает токен при выходе
+  - EXPO projectId берётся из `EXPO_PUBLIC_EAS_PROJECT_ID`, хардкод больше не требуется
 
 ---
 
@@ -75,7 +79,7 @@
 - ✅ Turbo Build: **2/2 packages успешно**
 
 ### Тесты
-- ✅ Backend: **11/11 passed** (4 test suites)
+- ✅ Backend: **13/13 passed** (4 test suites)
   - `auth.service.spec.ts` - 4 теста
   - `dashboard.service.spec.ts` - 2 теста
   - `health.service.spec.ts` - 1 тест
@@ -95,18 +99,11 @@
 
 ### Критично перед запуском
 
-- [ ] **Expo Push Notifications Setup**
+- [ ] Expo Push Notifications Setup
   - [ ] Создать проект в https://expo.dev/
   - [ ] Получить `projectId`
-  - [ ] Обновить `apps/mobile/app.config.ts`:
-    ```typescript
-    extra: {
-      eas: { projectId: "your-project-id" }
-    }
-    ```
-  - [ ] Обновить `apps/mobile/src/hooks/use-push-notifications.ts` (строка 39)
-  - [ ] Настроить APNs credentials для iOS
-  - [ ] Настроить FCM credentials для Android
+  - [ ] Установить `EXPO_PUBLIC_EAS_PROJECT_ID` в переменных окружения (без правок кода)
+  - [ ] Настроить APNs/FCM креденшелы
 
 - [ ] **Environment Variables**
   - [ ] `DATABASE_URL` - production PostgreSQL

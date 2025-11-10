@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import * as Notifications from "expo-notifications";
+import Constants from "expo-constants";
 import { Platform } from "react-native";
 
-import { registerDevice } from "../api/notifications";
+import { registerDevice, unregisterDevice } from "../api/notifications";
 import { useUserStore } from "../store/user-store";
 
 /**
@@ -12,6 +13,24 @@ import { useUserStore } from "../store/user-store";
 export function usePushNotifications() {
   const profile = useUserStore((state) => state.profile);
   const hasRegistered = useRef(false);
+  const lastUserId = useRef<string | null>(null);
+
+  // Сброс флага при смене пользователя
+  useEffect(() => {
+    const currentId = profile?.id ?? null;
+    if (currentId !== lastUserId.current) {
+      hasRegistered.current = false;
+      lastUserId.current = currentId;
+    }
+  }, [profile?.id]);
+
+  // Дерегистрация токена при логауте (когда профиль стал null)
+  useEffect(() => {
+    if (profile === null) {
+      // Fire-and-forget: если к этому моменту токен ещё валиден, запрос выполнится
+      void unregisterDevice().catch(() => undefined);
+    }
+  }, [profile]);
 
   useEffect(() => {
     if (!profile || hasRegistered.current) {
@@ -34,9 +53,15 @@ export function usePushNotifications() {
           return;
         }
 
+        const projectId = Constants?.expoConfig?.extra?.eas?.projectId || Constants?.easConfig?.projectId;
+        if (!projectId) {
+          console.warn("Expo projectId is missing; set EXPO_PUBLIC_EAS_PROJECT_ID in env");
+          return;
+        }
+
         // Получаем Expo Push Token
         const tokenData = await Notifications.getExpoPushTokenAsync({
-          projectId: "your-project-id" // TODO: заменить на реальный projectId из app.json
+          projectId
         });
 
         const pushToken = tokenData.data;

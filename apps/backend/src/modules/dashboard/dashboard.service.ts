@@ -1,4 +1,4 @@
-﻿import { Injectable } from "@nestjs/common";
+﻿import { Injectable, Optional } from "@nestjs/common";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NutritionService } from "../nutrition/nutrition.service";
@@ -8,6 +8,8 @@ import { RecommendationsService } from "../recommendations/recommendations.servi
 import { WaterService } from "../water/water.service";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { WeightService } from "../weight/weight.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { PrismaService } from "../../common/prisma/prisma.service";
 import type { DailyOverviewQueryDto } from "./dto/daily-overview-query.dto";
 
 @Injectable()
@@ -16,18 +18,30 @@ export class DashboardService {
     private readonly nutritionService: NutritionService,
     private readonly waterService: WaterService,
     private readonly weightService: WeightService,
-    private readonly recommendationsService: RecommendationsService
+    private readonly recommendationsService: RecommendationsService,
+    @Optional() private readonly prisma?: PrismaService
   ) {}
 
   async getDailyOverview(userId: string, query: DailyOverviewQueryDto) {
     const { date } = query;
 
-    const [nutritionEntries, waterEntries, latestWeight, weightProgress, recommendations] = await Promise.all([
+    const profilePromise = this.prisma
+      ? this.prisma.profile.findUnique({
+          where: { userId },
+          select: {
+            recommendedCalories: true,
+            dailyWaterMl: true
+          }
+        })
+      : Promise.resolve(null as any);
+
+    const [nutritionEntries, waterEntries, latestWeight, weightProgress, recommendations, profile] = await Promise.all([
       this.nutritionService.findDaily(userId, date),
       this.waterService.findDaily(userId, date),
       this.weightService.getLatest(userId),
       this.weightService.getProgress(userId, { limit: 30 }),
-      this.recommendationsService.findDaily(userId, date)
+      this.recommendationsService.findDaily(userId, date),
+      profilePromise
     ]);
 
     const nutritionSummary = nutritionEntries.reduce(
@@ -43,6 +57,30 @@ export class DashboardService {
 
     const totalWaterMl = waterEntries.reduce((total, entry) => total + entry.amountMl, 0);
 
+    // Цели: если есть recommendedCalories, рассчитываем макросы (30/30/40), иначе null
+    let goals: any;
+    if (profile?.recommendedCalories) {
+      const calorieGoal = Math.round(profile.recommendedCalories);
+      const proteinGoal = Math.round((calorieGoal * 0.3) / 4);
+      const fatGoal = Math.round((calorieGoal * 0.3) / 9);
+      const carbsGoal = Math.round((calorieGoal * 0.4) / 4);
+      goals = {
+        calories: calorieGoal,
+        protein: proteinGoal,
+        fat: fatGoal,
+        carbs: carbsGoal,
+        waterMl: profile?.dailyWaterMl || 2000
+      };
+    } else {
+      goals = {
+        calories: null,
+        protein: null,
+        fat: null,
+        carbs: null,
+        waterMl: profile?.dailyWaterMl || 2000
+      };
+    }
+
     return {
       date: date ?? new Date().toISOString(),
       nutrition: {
@@ -57,7 +95,8 @@ export class DashboardService {
         latest: latestWeight,
         progress: weightProgress
       },
-      recommendations
+      recommendations,
+      goals
     };
   }
 }

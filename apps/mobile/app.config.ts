@@ -23,7 +23,10 @@ const defineConfig = (): ExpoConfig => {
       environment,
       apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000",
       checkoutSuccessUrl: process.env.EXPO_PUBLIC_CHECKOUT_SUCCESS_URL ?? "https://vivaform.app/checkout-success",
-      checkoutCancelUrl: process.env.EXPO_PUBLIC_CHECKOUT_CANCEL_URL ?? "https://vivaform.app/checkout-cancel"
+      checkoutCancelUrl: process.env.EXPO_PUBLIC_CHECKOUT_CANCEL_URL ?? "https://vivaform.app/checkout-cancel",
+      eas: {
+        projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || ""
+      }
     },
     plugins: ["expo-router", "expo-secure-store", "expo-notifications"],
     experiments: {

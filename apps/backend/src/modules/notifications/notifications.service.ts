@@ -28,6 +28,17 @@ export class NotificationsService {
   }
 
   /**
+   * Дерегистрация Push Token пользователя
+   */
+  async unregisterPushToken(userId: string): Promise<void> {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { pushToken: null }
+    });
+    this.logger.log(`Unregistered push token for user ${userId}`);
+  }
+
+  /**
    * Регистрация Push Token пользователя
    */
   async registerPushToken(userId: string, pushToken: string): Promise<void> {
@@ -202,7 +213,7 @@ export class NotificationsService {
     while (attempt < maxRetries) {
       try {
         const tickets = await this.expo.sendPushNotificationsAsync(chunk);
-        this.handlePushTickets(tickets, chunk);
+        await this.handlePushTickets(tickets, chunk);
         return; // Success
       } catch (error) {
         attempt++;
@@ -225,22 +236,60 @@ export class NotificationsService {
   /**
    * Обработка результатов отправки с логированием проблемных токенов
    */
-  private handlePushTickets(tickets: ExpoPushTicket[], messages: ExpoPushMessage[]): void {
-    tickets.forEach((ticket, index) => {
+  private async handlePushTickets(tickets: ExpoPushTicket[], messages: ExpoPushMessage[]): Promise<void> {
+    for (let index = 0; index < tickets.length; index++) {
+      const ticket = tickets[index];
       if (ticket.status === "error") {
-        const pushToken = messages[index]?.to;
-        
+        const pushToken = messages[index]?.to as string | undefined;
         this.logger.error(
           `Push notification error for token ${pushToken}: ${ticket.message}`,
           ticket.details ? JSON.stringify(ticket.details) : undefined
         );
 
-        // Если токен невалидный - логируем для дальнейшей очистки
-        if (ticket.details?.error === 'DeviceNotRegistered') {
-          this.logger.warn(`Token ${pushToken} is no longer valid - should be removed from database`);
+        // Если токен невалидный - удаляем его из БД
+        if (pushToken && ticket.details?.error === 'DeviceNotRegistered') {
+          try {
+            await this.prisma.user.updateMany({
+              where: { pushToken },
+              data: { pushToken: null }
+            });
+            this.logger.warn(`Removed invalid push token ${pushToken} from database`);
+          } catch (err) {
+            this.logger.error(`Failed to remove invalid push token ${pushToken}`, err instanceof Error ? err.stack : String(err));
+          }
         }
       }
+    }
+  }
+
+  /**
+   * Периодическая очистка невалидных токенов (best-effort)
+   */
+  async cleanupInvalidTokens(): Promise<number> {
+    // Expo токены имеют формат ExpoPushToken[xxxxxxxxxxxxxxxxxxxxxx]
+    // Удалим любые, которые не соответствуют формату
+    const users = await this.prisma.user.findMany({
+      where: { pushToken: { not: null } },
+      select: { id: true, pushToken: true }
     });
+
+    const invalidIds: string[] = [];
+    for (const u of users) {
+      const token = u.pushToken!;
+      if (!Expo.isExpoPushToken(token)) {
+        invalidIds.push(u.id);
+      }
+    }
+
+    if (invalidIds.length > 0) {
+      await this.prisma.user.updateMany({
+        where: { id: { in: invalidIds } },
+        data: { pushToken: null }
+      });
+    }
+
+    this.logger.log(`Cleanup invalid tokens: removed ${invalidIds.length} tokens`);
+    return invalidIds.length;
   }
 
   /**

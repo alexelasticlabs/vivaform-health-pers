@@ -17,7 +17,7 @@
 ### Audit Logging ✅
 - [x] AuditService для критичных событий (auth, payments, GDPR)
 - [x] Structured logging для Sentry/CloudWatch integration
-- [ ] **TODO**: Создать миграцию для таблицы `AuditLog` в Prisma
+- [x] Таблица `AuditLog` добавлена и сохранение включено (prisma migration)
 
 ### Stripe Integration ✅
 - [x] Boot-time config validation (OnModuleInit)
@@ -36,7 +36,7 @@
 - [x] Retry-логика с exponential backoff (3 попытки)
 - [x] Логирование DeviceNotRegistered токенов
 - [x] Валидация Expo push tokens
-- [ ] **TODO**: Периодическая очистка невалидных токенов из БД
+- [x] Периодическая очистка невалидных токенов из БД (cron + немедленное удаление)
 
 ### Quiz Endpoints ✅
 - [x] /quiz/preview - анонимный доступ для маркетинговой воронки
@@ -125,29 +125,18 @@ CORS_ORIGINS=https://vivaform.app,https://www.vivaform.app
 VITE_API_URL=https://api.vivaform.app
 ```
 
+### Mobile (app.config.ts/env)
+```bash
+EXPO_PUBLIC_API_URL=https://api.vivaform.app
+EXPO_PUBLIC_EAS_PROJECT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
+
 ---
 
 ## Database Migrations
 
 ### Pending Migrations
-1. **AuditLog table** - для audit logging системы:
-```prisma
-model AuditLog {
-  id        String   @id @default(cuid())
-  userId    String?
-  action    String
-  metadata  Json?
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime @default(now())
-
-  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([action])
-  @@index([createdAt])
-}
-```
+- [x] **AuditLog table** - для audit logging системы (применена)
 
 ### Migration Commands
 ```bash
@@ -163,7 +152,7 @@ pnpm --filter @vivaform/backend prisma migrate deploy
 ## Deployment Steps
 
 ### Pre-deployment
-1. ✅ Все тесты проходят (backend: 11/11)
+1. ✅ Все тесты проходят (backend: 13/13)
 2. ✅ TypeScript компиляция чистая
 3. [ ] Integration тесты проходят
 4. [ ] Security scan (npm audit, Snyk)

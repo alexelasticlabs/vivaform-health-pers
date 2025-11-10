@@ -1,0 +1,17 @@
+﻿// ...existing code...
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  resource  String?
+  metadata  String? // JSON string
+  ip        String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ...existing code...

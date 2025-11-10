@@ -60,16 +60,16 @@ export class AuditService {
         timestamp: new Date().toISOString()
       });
 
-      // TODO: Создать таблицу AuditLog в Prisma schema и раскомментировать
-      // await this.prisma.auditLog.create({
-      //   data: {
-      //     userId: dto.userId,
-      //     action: dto.action,
-      //     metadata: dto.metadata || {},
-      //     ipAddress: dto.ipAddress,
-      //     userAgent: dto.userAgent
-      //   }
-      // });
+      // Сохранение в БД
+      await (this.prisma as any).auditLog.create({
+        data: {
+          userId: dto.userId || null,
+          action: dto.action,
+          metadata: dto.metadata ? (dto.metadata as unknown as any) : undefined,
+          ipAddress: dto.ipAddress,
+          userAgent: dto.userAgent
+        }
+      });
     } catch (error) {
       // Не бросаем ошибку, чтобы не блокировать основной поток
       this.logger.error(`Failed to write audit log: ${dto.action}`, error);

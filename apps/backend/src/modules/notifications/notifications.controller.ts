@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Post, Delete, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { IsNotEmpty, IsString } from "class-validator";
 
@@ -26,6 +26,13 @@ export class NotificationsController {
   async registerDevice(@CurrentUser() user: CurrentUserPayload, @Body() dto: RegisterPushTokenDto) {
     await this.notificationsService.registerPushToken(user.userId, dto.pushToken);
     return { message: "Push token registered successfully" };
+  }
+
+  @Delete("register-device")
+  @ApiOperation({ summary: "Дерегистрация Push Token устройства" })
+  async unregisterDevice(@CurrentUser() user: CurrentUserPayload) {
+    await this.notificationsService.unregisterPushToken(user.userId);
+    return { message: "Push token unregistered" };
   }
 
   @Post("test-water-reminder")

@@ -139,13 +139,12 @@ export const DashboardPage = () => {
     setModalState({ type: null });
   };
 
-  // Calculate goals (mock for now, should come from backend/quiz)
-  // TODO: wire up recommended calories from quiz results when available in API response
-  const calorieGoal = 2000;
-  const proteinGoal = Math.round((calorieGoal * 0.3) / 4); // 30% of cals, 4 cal/g
-  const fatGoal = Math.round((calorieGoal * 0.3) / 9); // 30% of cals, 9 cal/g
-  const carbsGoal = Math.round((calorieGoal * 0.4) / 4); // 40% of cals, 4 cal/g
-  const waterGoal = 2000; // ml
+  // Calculate goals (получаем из API dashboard.goals либо fallback)
+  const calorieGoal = data?.goals?.calories ?? 2000;
+  const proteinGoal = data?.goals?.protein ?? Math.round((calorieGoal * 0.3) / 4);
+  const fatGoal = data?.goals?.fat ?? Math.round((calorieGoal * 0.3) / 9);
+  const carbsGoal = data?.goals?.carbs ?? Math.round((calorieGoal * 0.4) / 4);
+  const waterGoal = data?.goals?.waterMl ?? 2000; // ml
 
   // Derived values
   const caloriesConsumed = data?.nutrition.summary.calories || 0;

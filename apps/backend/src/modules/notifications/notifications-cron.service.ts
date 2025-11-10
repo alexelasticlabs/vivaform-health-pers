@@ -165,4 +165,20 @@ export class NotificationsCronService {
       this.logger.error(`Failed to send ${mealType} reminders`, error instanceof Error ? error.stack : String(error));
     }
   }
+
+  /**
+   * Ночной job для очистки невалидных токенов раз в сутки
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_2AM, {
+    name: "cleanup-invalid-push-tokens",
+    timeZone: "Europe/Moscow"
+  })
+  async cleanupInvalidTokens() {
+    try {
+      const removed = await this.notificationsService.cleanupInvalidTokens();
+      this.logger.log(`Invalid push tokens cleanup removed: ${removed}`);
+    } catch (error) {
+      this.logger.error("Failed to cleanup invalid push tokens", error instanceof Error ? error.stack : String(error));
+    }
+  }
 }

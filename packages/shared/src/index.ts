@@ -100,6 +100,13 @@ export type DailyDashboardResponse = {
     };
   };
   recommendations: RecommendationEntry[];
+  goals?: {
+    calories: number | null;
+    protein: number | null;
+    fat: number | null;
+    carbs: number | null;
+    waterMl: number | null;
+  };
 };
 
 export type CreateNutritionEntryPayload = {
