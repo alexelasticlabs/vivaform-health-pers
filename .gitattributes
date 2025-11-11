@@ -14,9 +14,9 @@
 *.md   text eol=lf
 *.sql  text eol=lf
 *.sh   text eol=lf
+*.snap text eol=lf
 
 # Windows scripts keep CRLF
 *.bat  text eol=crlf
 *.cmd  text eol=crlf
 *.ps1  text eol=crlf
-
