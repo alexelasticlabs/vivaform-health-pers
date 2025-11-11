@@ -1,19 +1,19 @@
-﻿import { Body, Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+﻿import { Body, Controller, Get, Post, Req, UseGuards, SetMetadata } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import {
-  CreateCheckoutSessionDto,
-  CreatePortalSessionDto
-} from "./dto/create-checkout-session.dto";
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SubscriptionsService } from "./subscriptions.service";
-import { AuditService, AuditAction } from "../audit/audit.service";
-import { UseGuards, SetMetadata } from "@nestjs/common";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { AuditService } from "../audit/audit.service";
 import { StripeSubscriptionGuard, PREMIUM_ONLY_KEY } from "../../common/middleware/stripe-subscription.guard";
+import type { CreateCheckoutSessionDto, CreatePortalSessionDto } from "./dto/create-checkout-session.dto";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { SyncCheckoutSessionDto } from './dto/sync-checkout-session.dto';
+
+export const PremiumOnly = () => SetMetadata(PREMIUM_ONLY_KEY, true);
 
 @ApiTags("subscriptions")
 @ApiBearerAuth()
@@ -37,10 +37,11 @@ export class SubscriptionsController {
   @ApiOperation({ summary: "Создать Stripe Checkout для VivaForm+" })
   @ApiResponse({ status: 200, description: 'Сессия создана', schema: { example: { url: 'https://checkout.stripe.com/session/abc', id: 'cs_test_123' } } })
   @ApiResponse({ status: 400, description: 'Некорректный план или данные' })
-  async checkout(@Req() req: any, @Body() body: any) {
-    const result = await this.subscriptionsService.createCheckoutSession(req.user.id, body);
-    await this.audit.logSubscriptionChange(req.user.id, AuditAction.SUBSCRIPTION_UPGRADED, { priceId: result.id, tier: body.plan });
-    return result;
+  async checkout(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: CreateCheckoutSessionDto
+  ) {
+    return this.subscriptionsService.createCheckoutSession(user.userId, dto);
   }
 
   @Post("portal")
@@ -49,8 +50,11 @@ export class SubscriptionsController {
   @ApiResponse({ status: 403, description: 'Требуется премиум-подписка' })
   @PremiumOnly()
   @UseGuards(StripeSubscriptionGuard)
-  async portal(@Req() req: any) {
-    return this.subscriptionsService.createPortalSession(req.user.id, { returnUrl: req.query.returnUrl || req.headers.origin || 'http://localhost:5173/app' });
+  async portal(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body() dto: CreatePortalSessionDto
+  ) {
+    return this.subscriptionsService.createPortalSession(user.userId, dto);
   }
 
   @Post("sync-session")
@@ -59,10 +63,28 @@ export class SubscriptionsController {
   @ApiResponse({ status: 400, description: 'Сессия не принадлежит пользователю' })
   async syncSession(
     @CurrentUser() user: CurrentUserPayload,
-    @Body() body: { sessionId: string }
+    @Body() body: SyncCheckoutSessionDto
   ) {
     return this.subscriptionsService.syncCheckoutSession(user.userId, body.sessionId);
   }
-}
 
-export const PremiumOnly = () => SetMetadata(PREMIUM_ONLY_KEY, true);
+  @Get('history')
+  @ApiOperation({ summary: 'История изменений подписки (audit log)' })
+  @ApiResponse({ status: 200, description: 'История', schema: { example: { items: [{ id: 'log1', action: 'SUBSCRIPTION_CREATED', createdAt: '2025-01-01T00:00:00.000Z', metadata: { tier: 'PREMIUM', amount: 1299, currency: 'USD' } }], total: 1, page: 1, pageSize: 10, hasNext: false } } })
+  async history(@CurrentUser() user: CurrentUserPayload, @Req() req: any) {
+    const page = parseInt(req.query.page ?? '1', 10) || 1;
+    const pageSize = Math.min(parseInt(req.query.pageSize ?? '10', 10) || 10, 50);
+    const from = req.query.from ? new Date(String(req.query.from)) : undefined;
+    const to = req.query.to ? new Date(String(req.query.to)) : undefined;
+    const actions = req.query.actions ? String(req.query.actions).split(',') : undefined;
+    return this.subscriptionsService.getHistory(user.userId, page, pageSize, { from, to, actions } as any);
+  }
+
+  @Get('premium-view')
+  @ApiOperation({ summary: 'Аудит: пользователь открыл /premium' })
+  @ApiResponse({ status: 200, description: 'Лог записан', schema: { example: { ok: true } } })
+  async premiumView(@CurrentUser() user: CurrentUserPayload, @Req() req: any) {
+    await this.audit.logPremiumPageView(user?.userId, req.ip);
+    return { ok: true };
+  }
+}

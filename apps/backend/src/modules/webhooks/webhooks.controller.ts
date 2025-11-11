@@ -89,7 +89,7 @@ export class WebhooksController {
     }
     
     const subscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId);
-    await this.subscriptionsService.handleSubscriptionUpdated(subscription);
+    await this.subscriptionsService.handleSubscriptionUpdated(subscription, invoice);
     this.logger.log(`✅ Subscription ${subscriptionId} updated`);
   }
 

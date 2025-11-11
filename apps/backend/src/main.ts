@@ -12,17 +12,23 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
 
-  const port = configService.get<number>("app.port", 4000);
-  const corsOrigins = configService.get<string[]>("app.corsOrigins", ["http://localhost:5173"]);
+  const corsOrigins = configService.get<string[]>("app.corsOrigins", ["http://localhost:5173", "http://localhost:5174"]);
 
   app.enableCors({
-    origin: corsOrigins,
-    credentials: true
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || corsOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    },
+    methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+    allowedHeaders: ['Content-Type','Authorization','Accept','X-Requested-With'],
+    credentials: true,
+    maxAge: 86400
   });
 
   app.use("/webhooks/stripe", raw({ type: "application/json" }));
 
-  // Security: Helmet with Content Security Policy
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -31,7 +37,7 @@ async function bootstrap() {
           styleSrc: ["'self'", "'unsafe-inline'"],
           scriptSrc: ["'self'"],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'"]
+          connectSrc: ["'self'"].concat(corsOrigins)
         }
       },
       crossOriginEmbedderPolicy: false
@@ -42,11 +48,7 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      transformOptions: { enableImplicitConversion: true },
-      exceptionFactory: (errors) => {
-        logger.error(`❌ Validation errors: ${JSON.stringify(errors, null, 2)}`);
-        return errors;
-      }
+      transformOptions: { enableImplicitConversion: true }
     })
   );
 
@@ -62,7 +64,9 @@ async function bootstrap() {
     SwaggerModule.setup("/docs", app, document);
   }
 
+  const port = configService.get<number>("app.port", 4000);
   await app.listen(port);
+  logger.log(`🚀 Backend started on port ${port} (CORS: ${corsOrigins.join(', ')})`);
 }
 
 bootstrap().catch((error) => {

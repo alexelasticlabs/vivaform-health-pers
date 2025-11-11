@@ -1,7 +1,7 @@
 ﻿import { registerAs } from "@nestjs/config";
 
 const parseOrigins = (value?: string) =>
-  value?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? ["http://localhost:5173"];
+  value?.split(",").map((origin) => origin.trim()).filter(Boolean) ?? ["http://localhost:5173", "http://localhost:5174"];
 
 export const appConfig = registerAs("app", () => ({
   port: Number(process.env.PORT ?? 4000),

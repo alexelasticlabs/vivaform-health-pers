@@ -18,9 +18,9 @@ export class StripeSubscriptionGuard implements CanActivate {
 
     const req = context.switchToHttp().getRequest<any>();
     const user = req?.user;
-    if (!user?.id) throw new ForbiddenException('Authentication required');
+    if (!user?.userId) throw new ForbiddenException('Authentication required');
 
-    const dbUser = await this.prisma.user.findUnique({ where: { id: user.id }, select: { tier: true } });
+    const dbUser = await this.prisma.user.findUnique({ where: { id: user.userId }, select: { tier: true } });
     if (!dbUser || dbUser.tier !== 'PREMIUM') {
       throw new ForbiddenException('Premium subscription required');
     }

@@ -3,15 +3,17 @@ import type Stripe from "stripe";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { mockDeep } from "vitest-mock-extended";
 
-import { SubscriptionsService } from "./subscriptions.service";
+import { SubscriptionsService } from './subscriptions.service';
 import type { PrismaService } from "../../common/prisma/prisma.service";
 import type { StripeService } from "../stripe/stripe.service";
+import type { AuditService } from "../audit/audit.service";
 
 const createStripeService = () => {
   const stripeClient = {
     checkout: {
       sessions: {
-        create: vi.fn()
+        create: vi.fn(),
+        retrieve: vi.fn()
       }
     },
     billingPortal: {
@@ -22,7 +24,7 @@ const createStripeService = () => {
     subscriptions: {
       retrieve: vi.fn()
     }
-  } as unknown as typeof Stripe.Stripe;
+  } as unknown as any;
 
   return {
     client: stripeClient,
@@ -34,11 +36,13 @@ describe("SubscriptionsService", () => {
   let prisma: PrismaService;
   let stripeService: StripeService;
   let service: SubscriptionsService;
+  let audit: AuditService;
 
   beforeEach(() => {
     prisma = mockDeep<PrismaService>();
     stripeService = createStripeService();
-    service = new SubscriptionsService(prisma, stripeService);
+    audit = { logSubscriptionChange: vi.fn() } as unknown as AuditService;
+    service = new SubscriptionsService(prisma, stripeService, audit as any);
   });
 
   it("создаёт checkout session", async () => {
@@ -60,7 +64,7 @@ describe("SubscriptionsService", () => {
     });
 
     expect(result.url).toBe("https://checkout");
-    expect(stripeService.client.checkout.sessions.create).toHaveBeenCalledWith(
+    expect((stripeService.client.checkout.sessions.create as any)).toHaveBeenCalledWith(
       expect.objectContaining({
         success_url: "https://app/success?session_id={CHECKOUT_SESSION_ID}",
         cancel_url: "https://app/cancel"
@@ -86,6 +90,8 @@ describe("SubscriptionsService", () => {
       customer: "cus_1",
       status: "active",
       current_period_end: Math.floor(Date.now() / 1000),
+      current_period_start: Math.floor(Date.now() / 1000) - 1000,
+      cancel_at_period_end: false,
       items: {
         data: [
           {
@@ -94,7 +100,8 @@ describe("SubscriptionsService", () => {
         ]
       },
       metadata: {
-        userId: "user-1"
+        userId: "user-1",
+        plan: 'monthly'
       }
     } as unknown as Stripe.Subscription;
 
@@ -108,6 +115,11 @@ describe("SubscriptionsService", () => {
       where: { id: "user-1" },
       data: { tier: "PREMIUM" }
     });
+    expect((audit.logSubscriptionChange as any)).toHaveBeenCalledWith(
+      "user-1",
+      expect.any(String),
+      expect.objectContaining({ subscriptionId: "sub_1" })
+    );
   });
 
   it("бросает ошибку, если metadata не содержит userId", async () => {

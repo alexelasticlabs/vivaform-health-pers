@@ -19,6 +19,7 @@ export class EmailService {
   private readonly emailService: string;
   private readonly fromEmail: string;
   private readonly fromName: string;
+  private smtpInitPromise?: Promise<void>;
 
   constructor(private configService: ConfigService) {
     this.emailService = this.configService?.get<string>('EMAIL_SERVICE') || 'smtp';
@@ -28,7 +29,9 @@ export class EmailService {
     if (this.emailService === 'sendgrid') {
       this.initializeSendGrid();
     } else {
-      this.initializeSMTP();
+      this.smtpInitPromise = this.initializeSMTP().catch((err) => {
+        this.logger.error('SMTP initialization failed', err);
+      });
     }
   }
 
@@ -56,7 +59,7 @@ export class EmailService {
 
     if (!smtpUser || !smtpPass) {
       this.logger.warn('⚠️ SMTP credentials not configured. Emails will be logged only.');
-      this.createEtherealTransporter();
+      await this.createEtherealTransporter();
       return;
     }
 
@@ -99,6 +102,7 @@ export class EmailService {
     }
   }
 
+  /** @public Welcome email used after user registration */
   async sendWelcomeEmail(email: string, name: string) {
     const subject = 'Добро пожаловать в VivaForm! 🎉';
     const html = this.getWelcomeTemplate(name);
@@ -106,6 +110,7 @@ export class EmailService {
     await this.sendEmail({ to: email, subject, html });
   }
 
+  /** @public Verification email triggered during signup */
   async sendVerificationEmail(email: string, token: string) {
     const verificationUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/verify-email?token=${token}`;
     const subject = 'Подтвердите ваш email - VivaForm';
@@ -166,6 +171,12 @@ export class EmailService {
 
   private async sendViaSMTP(dto: SendEmailDto): Promise<void> {
     if (!this.transporter) {
+      // Ensure initialization attempted before sending
+      if (this.smtpInitPromise) {
+        await this.smtpInitPromise.catch(() => undefined);
+      }
+    }
+    if (!this.transporter) {
       this.logger.warn(`Email sending skipped - SMTP not configured. To: ${dto.to}, Subject: ${dto.subject}`);
       return;
     }
@@ -195,7 +206,7 @@ export class EmailService {
   private getWelcomeTemplate(name: string): string {
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
@@ -238,7 +249,7 @@ export class EmailService {
   private getVerificationTemplate(verificationUrl: string): string {
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
@@ -274,7 +285,7 @@ export class EmailService {
   private getPasswordResetTemplate(resetUrl: string): string {
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
@@ -318,7 +329,7 @@ export class EmailService {
   private getTempPasswordTemplate(tempPassword: string): string {
     return `
       <!DOCTYPE html>
-      <html>
+      <html lang="en">
         <head>
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }

@@ -37,7 +37,7 @@ export class FoodService {
       ]
     };
 
-    const foods = await this.prisma.foodItem.findMany({
+    return this.prisma.foodItem.findMany({
       where: whereCondition,
       orderBy: [
         { verified: 'desc' }, // Verified foods first
@@ -60,8 +60,6 @@ export class FoodService {
         verified: true
       }
     });
-
-    return foods;
   }
 
   /**

@@ -110,32 +110,24 @@ export class AuthService {
   }
 
   async refresh(dto: RefreshTokenDto) {
+    let payload: { sub: string; email: string; type?: string } | null = null;
     try {
-      const payload = await this.jwtService.verifyAsync<{ sub: string; email: string; type?: string }>(
+      payload = await this.jwtService.verifyAsync<{ sub: string; email: string; type?: string }>(
         dto.refreshToken,
-        {
-          secret: this.jwtSettings.refreshSecret
-        }
+        { secret: this.jwtSettings.refreshSecret }
       );
-
-      if (payload.type !== "refresh") {
-        throw new UnauthorizedException("Invalid refresh token");
-      }
-
-      const user = await this.usersService.findById(payload.sub);
-      if (!user) {
-        throw new UnauthorizedException("User not found");
-      }
-
-      const tokens = await this.signTokens(user.id, user.email, user.role, user.tier);
-
-      return {
-        user,
-        tokens
-      };
-    } catch {
+    } catch (err) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+    if (!payload || payload.type !== "refresh") {
       throw new UnauthorizedException("Invalid refresh token");
     }
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) {
+      throw new UnauthorizedException("User not found");
+    }
+    const tokens = await this.signTokens(user.id, user.email, user.role, user.tier);
+    return { user, tokens };
   }
 
   async getProfile(userId: string) {
@@ -231,35 +223,20 @@ export class AuthService {
   }
 
   async verifyEmail(token: string) {
-    try {
-      const payload = await this.jwtService.verifyAsync<{ sub: string; email: string; type: string }>(
-        token,
-        {
-          secret: this.jwtSettings.secret
-        }
-      );
-
-      if (payload.type !== "email_verification") {
-        throw new BadRequestException("Invalid verification token");
-      }
-
-      const user = await this.usersService.findById(payload.sub);
-      if (!user) {
-        throw new BadRequestException("User not found");
-      }
-
-      // Mark email as verified
-      await this.usersService.verifyEmail(user.id);
-
-      return {
-        message: "Email successfully verified"
-      };
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException("Invalid or expired verification token");
+    const payload = await this.jwtService.verifyAsync<{ sub: string; email: string; type: string }>(
+      token,
+      { secret: this.jwtSettings.secret }
+    );
+    if (!payload || payload.type !== "email_verification") {
+      throw new BadRequestException("Invalid verification token");
     }
+    const user = await this.usersService.findById(payload.sub);
+    if (!user) {
+      throw new BadRequestException("User not found");
+    }
+
+    await this.usersService.verifyEmail(user.id);
+    return { message: "Email successfully verified" };
   }
 
   /**

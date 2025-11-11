@@ -320,9 +320,9 @@ export class MealPlanService {
     mealType: string,
     targetCalories: number,
     targetMacros: MacroTargets,
-    currentProtein: number,
-    currentFat: number,
-    currentCarbs: number,
+    _currentProtein: number,
+    _currentFat: number,
+    _currentCarbs: number,
     alreadySelected: MealPlanMeal[]
   ): any | null {
     // Фильтруем по категории

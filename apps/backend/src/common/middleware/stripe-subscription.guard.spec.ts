@@ -1,14 +1,14 @@
 ﻿import { describe, it, expect } from 'vitest';
 import { ForbiddenException } from '@nestjs/common';
-import { StripeSubscriptionGuard, PREMIUM_ONLY_KEY } from './stripe-subscription.guard';
+import { StripeSubscriptionGuard } from './stripe-subscription.guard';
 
-function makeContext(user?: { id?: string }) {
+function makeContext(user?: { userId?: string }) {
   return {
     switchToHttp: () => ({
       getRequest: () => ({ user })
     }),
     getHandler: () => ({}),
-    getClass: () => ({})
+    getClass: () => ({}) // test helper only
   } as any;
 }
 
@@ -17,7 +17,7 @@ describe('StripeSubscriptionGuard', () => {
     const prisma = {} as any;
     const reflector = { get: (_key: string) => false } as any;
     const guard = new StripeSubscriptionGuard(prisma, reflector);
-    const result = await guard.canActivate(makeContext({ id: 'u1' }));
+    const result = await guard.canActivate(makeContext({ userId: 'u1' }));
     expect(result).toBe(true);
   });
 
@@ -32,14 +32,13 @@ describe('StripeSubscriptionGuard', () => {
     const prisma = { user: { findUnique: async () => ({ tier: 'FREE' }) } } as any;
     const reflector = { get: (_: string) => true } as any;
     const guard = new StripeSubscriptionGuard(prisma, reflector);
-    await expect(guard.canActivate(makeContext({ id: 'u1' }))).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(guard.canActivate(makeContext({ userId: 'u1' }))).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('allows when user is premium', async () => {
     const prisma = { user: { findUnique: async () => ({ tier: 'PREMIUM' }) } } as any;
     const reflector = { get: (_: string) => true } as any;
     const guard = new StripeSubscriptionGuard(prisma, reflector);
-    await expect(guard.canActivate(makeContext({ id: 'u1' }))).resolves.toBe(true);
+    await expect(guard.canActivate(makeContext({ userId: 'u1' }))).resolves.toBe(true);
   });
 });
-

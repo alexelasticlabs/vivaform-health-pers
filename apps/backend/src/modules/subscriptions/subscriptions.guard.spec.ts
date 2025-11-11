@@ -1,8 +1,9 @@
 ﻿import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { ExecutionContext, ForbiddenException } from '@nestjs/common';
+import type { ExecutionContext } from '@nestjs/common';
+import { ForbiddenException } from '@nestjs/common';
 import { StripeSubscriptionGuard } from '../../common/middleware/stripe-subscription.guard';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { Reflector } from '@nestjs/core';
+import type { PrismaService } from '../../common/prisma/prisma.service';
+import type { Reflector } from '@nestjs/core';
 
 class PrismaMock {
   user = {
@@ -28,7 +29,7 @@ describe('StripeSubscriptionGuard', () => {
 
   it('пропускает маршрут если не отмечен как премиум', async () => {
     (reflector.get as any).mockReturnValue(false);
-    const can = await guard.canActivate(makeContext({ id: 'u1' }));
+    const can = await guard.canActivate(makeContext({ userId: 'u1' }));
     expect(can).toBe(true);
   });
 
@@ -40,13 +41,13 @@ describe('StripeSubscriptionGuard', () => {
   it('блокирует если пользователь не премиум', async () => {
     (reflector.get as any).mockReturnValue(true);
     (prisma.user.findUnique as any).mockResolvedValue({ tier: 'FREE' });
-    await expect(guard.canActivate(makeContext({ id: 'u1' }))).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(guard.canActivate(makeContext({ userId: 'u1' }))).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('пропускает если пользователь премиум', async () => {
     (reflector.get as any).mockReturnValue(true);
     (prisma.user.findUnique as any).mockResolvedValue({ tier: 'PREMIUM' });
-    const can = await guard.canActivate(makeContext({ id: 'u1' }));
+    const can = await guard.canActivate(makeContext({ userId: 'u1' }));
     expect(can).toBe(true);
   });
 });

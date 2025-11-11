@@ -5,6 +5,7 @@ import type Stripe from "stripe";
 import { PrismaService } from "../../common/prisma/prisma.service";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { StripeService } from "../stripe/stripe.service";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AuditService, AuditAction } from "../audit/audit.service";
 import type { CreateCheckoutSessionDto, CreatePortalSessionDto } from "./dto/create-checkout-session.dto";
 import type { SubscriptionPlan } from "@prisma/client";
@@ -113,7 +114,9 @@ export class SubscriptionsService {
     await this.audit.logSubscriptionChange(userId, AuditAction.SUBSCRIPTION_CREATED, {
       subscriptionId: (session.subscription as string) || undefined,
       priceId: session.metadata?.price as string | undefined,
-      tier: 'PREMIUM'
+      tier: 'PREMIUM',
+      amount: (session as any).amount_total || (session as any).amount_subtotal || undefined,
+      currency: ((session as any).currency || 'usd').toUpperCase()
     });
     
     return { success: true, message: "Subscription synced successfully" };
@@ -198,26 +201,50 @@ export class SubscriptionsService {
     }
 
     const subscription = await this.stripeService.client.subscriptions.retrieve(subscriptionId);
-    const userId = subscription.metadata.userId ?? (session.metadata?.userId as string | undefined);
+    const userId = (subscription as any).metadata.userId ?? (session.metadata?.userId as string | undefined);
 
     if (!userId) {
       throw new BadRequestException("Subscription metadata does not contain userId");
     }
 
-    await this.updateSubscriptionRecord(userId, subscription);
+    await this.updateSubscriptionRecord(userId, subscription as any);
   }
 
-  async handleSubscriptionUpdated(subscription: Stripe.Subscription) {
-    const userId = subscription.metadata.userId;
+  private extractBillingInfo(invoice?: Stripe.Invoice, subscription?: Stripe.Subscription) {
+    if (invoice) {
+      const amount = invoice.total ?? invoice.amount_due ?? undefined;
+      const currency = (invoice.currency || 'usd').toUpperCase();
+      return { amount, currency };
+    }
+    if (subscription) {
+      // Попытка взять из последнего invoice через pending_update (ограниченно). Иначе null.
+      return { amount: undefined, currency: undefined };
+    }
+    return { amount: undefined, currency: undefined };
+  }
+
+  async handleSubscriptionUpdated(subscription: Stripe.Subscription, invoice?: Stripe.Invoice) {
+    const userId = (subscription as any).metadata.userId;
     if (!userId) {
       throw new BadRequestException("Subscription metadata does not contain userId");
     }
 
     await this.updateSubscriptionRecord(userId, subscription);
+
+    if (ACTIVE_STATUSES.includes(subscription.status)) {
+      const { amount, currency } = this.extractBillingInfo(invoice, subscription);
+      await this.audit.logSubscriptionChange(userId, AuditAction.SUBSCRIPTION_UPGRADED, {
+        subscriptionId: subscription.id,
+        priceId: subscription.items.data[0]?.price?.id,
+        tier: 'PREMIUM',
+        amount,
+        currency
+      });
+    }
   }
 
   async handleSubscriptionDeleted(subscription: Stripe.Subscription) {
-    const userId = subscription.metadata.userId;
+    const userId = (subscription as any).metadata.userId;
     if (!userId) {
       throw new BadRequestException("Subscription metadata does not contain userId");
     }
@@ -227,7 +254,39 @@ export class SubscriptionsService {
     await this.audit.logSubscriptionChange(userId, AuditAction.SUBSCRIPTION_CANCELLED, {
       subscriptionId: subscription.id,
       priceId: subscription.items.data[0]?.price?.id,
-      tier: 'FREE'
+      tier: 'FREE',
+      amount: undefined,
+      currency: undefined
     });
+  }
+
+  async getHistory(userId: string, page = 1, pageSize = 10, filters?: { from?: Date; to?: Date; actions?: string[] }) {
+    const actionList = filters?.actions?.length ? filters.actions : [
+      AuditAction.SUBSCRIPTION_CREATED,
+      AuditAction.SUBSCRIPTION_UPGRADED,
+      AuditAction.SUBSCRIPTION_CANCELLED
+    ];
+    const where: any = {
+      userId,
+      action: { in: actionList }
+    };
+    if (filters?.from || filters?.to) {
+      where.createdAt = {};
+      if (filters.from) where.createdAt.gte = filters.from;
+      if (filters.to) where.createdAt.lte = filters.to;
+    }
+
+    const [total, items] = await this.prisma.$transaction([
+      (this.prisma as any).auditLog.count({ where }),
+      (this.prisma as any).auditLog.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        select: { id: true, action: true, createdAt: true, metadata: true }
+      })
+    ]);
+
+    return { items, total, page, pageSize, hasNext: page * pageSize < total };
   }
 }

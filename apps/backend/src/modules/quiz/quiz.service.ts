@@ -123,7 +123,7 @@ export class QuizService {
    */
   private generateAdvice(
     goal: WeightGoal,
-    bmi: number,
+    _bmi: number,
     answers: QuizAnswers,
   ): string {
     const advice: string[] = [];

@@ -106,7 +106,7 @@ export class AuditService {
   async logSubscriptionChange(
     userId: string,
     action: AuditAction,
-    metadata: { subscriptionId?: string; priceId?: string; tier?: string }
+    metadata: { subscriptionId?: string; priceId?: string; tier?: string; amount?: number; currency?: string }
   ): Promise<void> {
     await this.log({
       userId,
@@ -192,6 +192,18 @@ export class AuditService {
     await this.log({
       userId,
       action: AuditAction.PASSWORD_CHANGED,
+      ipAddress
+    });
+  }
+
+  /**
+   * Логирование посещения премиум страницы
+   */
+  async logPremiumPageView(userId?: string, ipAddress?: string): Promise<void> {
+    await this.log({
+      userId: userId || undefined,
+      action: AuditAction.SUBSCRIPTION_CREATED, // сохраняем как created view (отдельно от upgrade)
+      metadata: { event: 'PREMIUM_PAGE_VIEW' },
       ipAddress
     });
   }
