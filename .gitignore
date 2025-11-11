@@ -28,3 +28,9 @@ apps/mobile/.expo/
 
 # Статический анализ отчёт (конфиг отслеживаем, отчёт игнорируем)
 qodana.sarif.json
+
+# Playwright artifacts
+playwright-report/
+playwright/.cache/
+apps/web/test-results/
+apps/web/screenshots/
