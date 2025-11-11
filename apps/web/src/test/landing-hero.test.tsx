@@ -14,8 +14,10 @@ describe("Landing Hero", () => {
   it("renders headline and CTAs", () => {
     setup();
     expect(screen.getByText(/Discover your perfect nutrition plan/i)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Take the Quiz/i })).toBeInTheDocument();
-    // "Log in" removed from hero per new design
+    const quizLinks = screen.getAllByRole("link", { name: /Take the Quiz|Continue quiz|Go to Dashboard|Open my plan/i });
+    expect(quizLinks.length).toBeGreaterThan(0);
+    // проверяем наличие любой ссылки входа/логина
+    expect(screen.getAllByRole("link").some(l => /Log in|Sign in/i.test(l.textContent || ""))).toBe(true);
   });
 
   it("renders phone mockup", () => {

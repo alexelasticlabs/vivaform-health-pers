@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 import { DashboardPage } from "./dashboard-page";
 
+import * as subs from "../../api/subscriptions";
+
 vi.mock("../../api/subscriptions", () => ({
   syncCheckoutSession: vi.fn().mockResolvedValue({ success: true })
 }));
@@ -26,7 +28,8 @@ vi.mock("../../api/weight", () => ({
 }));
 
 vi.mock("../../api/quiz", () => ({
-  getQuizProfile: vi.fn().mockResolvedValue({ recommendedCalories: 2000, heightCm: 175 })
+  getQuizProfile: vi.fn().mockResolvedValue({ recommendedCalories: 2000, heightCm: 175 }),
+  tryGetQuizProfile: vi.fn().mockResolvedValue({ recommendedCalories: 2000, heightCm: 175 })
 }));
 
 // Mock store to avoid null user
@@ -55,7 +58,7 @@ describe("DashboardPage premium sync", () => {
   });
 
   it("вызывает syncCheckoutSession при premium=success и session_id", async () => {
-    const { syncCheckoutSession } = await import("../../api/subscriptions");
+    const syncCheckoutSession = vi.spyOn(subs, 'syncCheckoutSession');
 
     renderWithProviders("/app?premium=success&session_id=cs_test_123");
 
@@ -64,3 +67,6 @@ describe("DashboardPage premium sync", () => {
     });
   });
 });
+
+import { applyCommonMocks } from "../../test/mocks/common-mocks";
+applyCommonMocks();

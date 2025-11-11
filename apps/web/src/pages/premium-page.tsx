@@ -380,7 +380,7 @@ export default function PremiumPage() {
             <p className="mt-4 text-sm text-gray-600">
               or{' '}
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/app')}
                 className="text-green-600 hover:underline"
               >
                 continue for free

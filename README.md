@@ -1,4 +1,14 @@
-﻿# VivaForm Health
+﻿## 🧾 Аудит лог
+
+Сервис `AuditService` логирует критичные действия: логины, изменения пароля, подписки, платежи.
+- Таблица: `AuditLog` (Prisma модель)
+- События подписки логируются в `SubscriptionsService`.
+
+Пример использования:
+```ts
+await audit.logSubscriptionChange(userId, AuditAction.SUBSCRIPTION_CREATED, { subscriptionId, tier: 'PREMIUM' });
+```
+# VivaForm Health
 
 🥗 Кроссплатформенная платформа для осознанного питания и здорового образа жизни
 
@@ -80,23 +90,84 @@ pnpm dev
 
 ---
 
-## 🧪 Тестирование
+## 🏗️ Локальная настройка
 
+1. Установите PostgreSQL и создайте базы:
+```sql
+CREATE USER vivaform_user WITH PASSWORD 'qwdqwd693';
+CREATE DATABASE dbname OWNER vivaform_user;
+CREATE DATABASE dbname_shadow OWNER vivaform_user;
+GRANT ALL PRIVILEGES ON DATABASE dbname TO vivaform_user;
+GRANT ALL PRIVILEGES ON DATABASE dbname_shadow TO vivaform_user;
+\c dbname
+CREATE EXTENSION IF NOT EXISTS pgcrypto; -- для gen_random_uuid()
+```
+2. Скопируйте env файлы:
 ```bash
-# Все тесты
-pnpm test:run
+cp apps/backend/.env.example apps/backend/.env
+cp apps/web/.env.example apps/web/.env
+```
+3. Проверьте переменные Stripe (test keys) и JWT секреты.
+4. Выполните миграции и сиды:
+```bash
+pnpm db:migrate
+pnpm db:seed
+```
+5. Запустите приложения:
+```bash
+pnpm --filter @vivaform/backend dev
+pnpm --filter @vivaform/web dev
+```
+6. Откройте http://localhost:5173/ и http://localhost:4000/health
 
-# Backend тесты
-cd apps/backend && pnpm test
-
-# Frontend тесты
-cd apps/web && pnpm test
-
-# Health check всего проекта
-pnpm health
+### Отладка портов Vite
+Если порт 5173 занят, используйте:
+```bash
+pnpm --filter @vivaform/web dev:5174
 ```
 
-**Статус:** ✅ 29/29 тестов проходят
+---
+## 🧪 Тестирование (расширено)
+
+Используем Vitest + Testing Library.
+- Общие моки вынесены в `apps/web/src/test/mocks/common-mocks.ts`.
+- Настройка окружения тестов: `apps/web/src/test/setup.ts` (мок IntersectionObserver, fetch, requestAnimationFrame).
+
+Запуск:
+```bash
+# Все тесты web и backend
+pnpm test:run
+# Только web
+pnpm --filter @vivaform/web test -- --run
+# Только backend
+pnpm --filter @vivaform/backend test -- --run
+```
+
+Добавлены тесты:
+- Защита маршрута /premium (`premium-route.test.tsx`)
+- Отсутствие вызова syncCheckoutSession без session_id (`dashboard-no-session.test.tsx`)
+
+---
+## 💎 Подписка (Stripe)
+
+Подписки реализованы через Stripe Checkout и Webhook:
+- Endpoint создания сессии: `POST /subscriptions/checkout` (JWT required)
+- Endpoint синхронизации после успешного Checkout: `POST /subscriptions/sync-session`
+- Портал управления (отмена / смена плана): `POST /subscriptions/portal` (требует премиум, Guard)
+
+Статусы синхронизируются через вебхуки Stripe (см. `webhooks` module). После успешной активации пользователь получает параметр `?premium=success&session_id=...` и фронтенд вызывает `syncCheckoutSession`.
+
+### Guard для премиума
+`StripeSubscriptionGuard` защищает эндпоинты с декоратором:
+```ts
+@PremiumOnly()
+@UseGuards(StripeSubscriptionGuard)
+```
+
+### Обновление плана
+Переход на премиум вызывает аудит лог `SUBSCRIPTION_UPGRADED`, успешная синхронизация создаёт `SUBSCRIPTION_CREATED`, отмена - `SUBSCRIPTION_CANCELLED`.
+
+---
 
 ---
 

@@ -5,6 +5,7 @@ import type Stripe from "stripe";
 import { PrismaService } from "../../common/prisma/prisma.service";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { StripeService } from "../stripe/stripe.service";
+import { AuditService, AuditAction } from "../audit/audit.service";
 import type { CreateCheckoutSessionDto, CreatePortalSessionDto } from "./dto/create-checkout-session.dto";
 import type { SubscriptionPlan } from "@prisma/client";
 
@@ -17,7 +18,8 @@ const ACTIVE_STATUSES: Stripe.Subscription.Status[] = [
 export class SubscriptionsService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly stripeService: StripeService
+    private readonly stripeService: StripeService,
+    private readonly audit: AuditService
   ) {}
 
   private priceIdForPlan(plan: SubscriptionPlan) {
@@ -107,6 +109,12 @@ export class SubscriptionsService {
     }
 
     await this.handleCheckoutCompleted(session);
+
+    await this.audit.logSubscriptionChange(userId, AuditAction.SUBSCRIPTION_CREATED, {
+      subscriptionId: (session.subscription as string) || undefined,
+      priceId: session.metadata?.price as string | undefined,
+      tier: 'PREMIUM'
+    });
     
     return { success: true, message: "Subscription synced successfully" };
   }
@@ -216,5 +224,10 @@ export class SubscriptionsService {
 
     await this.prisma.subscription.delete({ where: { userId } }).catch(() => undefined);
     await this.prisma.user.update({ where: { id: userId }, data: { tier: "FREE" } });
+    await this.audit.logSubscriptionChange(userId, AuditAction.SUBSCRIPTION_CANCELLED, {
+      subscriptionId: subscription.id,
+      priceId: subscription.items.data[0]?.price?.id,
+      tier: 'FREE'
+    });
   }
 }

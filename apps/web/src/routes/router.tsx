@@ -2,7 +2,7 @@
 
 import { AppLayout } from "./slices/app-layout";
 import { MarketingLayout } from "./slices/marketing-layout";
-import { RequireAuth } from "./require-auth";
+import { RequireAuth, RequireAuthOutlet } from "./require-auth";
 import { DashboardPage } from "../pages/dashboard/dashboard-page";
 import { LandingPage } from "../pages/landing-page";
 import { LoginPage } from "../pages/login-page";
@@ -64,8 +64,10 @@ export const createAppRouter = () =>
           element: <EmailVerificationPage />
         },
         {
-          path: "premium",
-          element: <PremiumPage />
+          element: <RequireAuthOutlet />,
+          children: [
+            { path: "premium", element: <PremiumPage /> }
+          ]
         },
         {
           path: "articles",
@@ -88,9 +90,7 @@ export const createAppRouter = () =>
     {
       path: "/app",
       element: (
-        <RequireAuth>
-          <AppLayout />
-        </RequireAuth>
+        <RequireAuthOutlet />
       ),
       children: [
         {

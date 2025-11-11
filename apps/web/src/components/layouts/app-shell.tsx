@@ -61,6 +61,11 @@ export const AppShell = ({ children }: PropsWithChildren) => {
               {mobileOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
             <VivaFormLogo size="sm" />
+            {hasPremium && (
+              <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                <span aria-hidden>🌟</span> VivaForm+
+              </span>
+            )}
           </div>
 
           {/* Center tabs (desktop) */}

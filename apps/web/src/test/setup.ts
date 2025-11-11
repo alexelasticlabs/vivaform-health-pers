@@ -34,3 +34,14 @@ class IntersectionObserverMock implements IntersectionObserver {
 }
 
 global.IntersectionObserver = IntersectionObserverMock as any;
+
+// Always mock fetch to avoid real network and AbortSignal issues in tests
+(globalThis as any).fetch = (..._args: any[]) => Promise.resolve(new Response("")) as any;
+
+// Minimal raf mock for framer-motion
+if (!(globalThis as any).requestAnimationFrame) {
+  (globalThis as any).requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(() => cb(Date.now()), 16) as unknown as number;
+}
+if (!(globalThis as any).cancelAnimationFrame) {
+  (globalThis as any).cancelAnimationFrame = (id: number) => clearTimeout(id as unknown as NodeJS.Timeout);
+}

@@ -88,6 +88,11 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-4">
           <VivaFormLogo size="md" />
+          {isAuthenticated && hasPremium && (
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+              <span aria-hidden>🌟</span> VivaForm+
+            </span>
+          )}
           {isQuiz ? (
             <div className="flex items-center gap-3">
               {/* Minimal quiz header: theme toggle optional, Support link */}
