@@ -90,43 +90,38 @@ pnpm dev
 
 ---
 
-## 🏗️ Локальная настройка
+## Локальная настройка
 
-1. Установите PostgreSQL и создайте базы:
-```sql
-CREATE USER vivaform_user WITH PASSWORD 'qwdqwd693';
-CREATE DATABASE dbname OWNER vivaform_user;
-CREATE DATABASE dbname_shadow OWNER vivaform_user;
-GRANT ALL PRIVILEGES ON DATABASE dbname TO vivaform_user;
-GRANT ALL PRIVILEGES ON DATABASE dbname_shadow TO vivaform_user;
-\c dbname
-CREATE EXTENSION IF NOT EXISTS pgcrypto; -- для gen_random_uuid()
-```
-2. Скопируйте env файлы:
-```bash
-cp apps/backend/.env.example apps/backend/.env
-cp apps/web/.env.example apps/web/.env
-```
-3. Проверьте переменные Stripe (test keys) и JWT секреты.
-4. Выполните миграции и сиды:
-```bash
-pnpm db:migrate
-pnpm db:seed
-```
-5. Запустите приложения:
-```bash
-pnpm --filter @vivaform/backend dev
-pnpm --filter @vivaform/web dev
-```
-6. Откройте http://localhost:5173/ и http://localhost:4000/health
+1. Установите Node.js LTS и pnpm.
+2. Склонируйте репозиторий и выполните:
 
-### Отладка портов Vite
-Если порт 5173 занят, используйте:
 ```bash
-pnpm --filter @vivaform/web dev:5174
+pnpm install
+pnpm dev
 ```
+3. Переменные окружения:
+   - `VITE_API_URL` для web
+   - `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` для backend
+   - `DATABASE_URL` для Prisma
+4. Запустите миграции и сиды (опционально):
+```bash
+pnpm prisma:migrate
+pnpm prisma:seed
+```
+5. Откройте http://localhost:5173 (web) и http://localhost:4000 (API health check: /health).
+
+## Подписка
+
+Флоу VivaForm+:
+1. Пользователь авторизуется.
+2. На странице `/premium` выбирает план и инициирует Stripe Checkout (`POST /subscriptions/checkout`).
+3. После успешной оплаты Stripe возвращает на `successUrl` (`/app?premium=success&session_id=...`).
+4. В `AppShell` при наличии `premium=success` и `session_id` вызывается `syncCheckoutSession`, подписка синхронизируется, показывается тост успешной активации.
+5. Webhook Stripe (endpoint `/webhooks/stripe`) обновляет подписку и создает лог в истории.
+6. История доступна на `/premium/history` (фильтры: действия, диапазон дат, пресеты 7/30/90 дней). Финансовые данные подтягиваются через `invoice.payment_succeeded`.
 
 ---
+
 ## 🧪 Тестирование (расширено)
 
 Используем Vitest + Testing Library.
@@ -146,6 +141,29 @@ pnpm --filter @vivaform/backend test -- --run
 Добавлены тесты:
 - Защита маршрута /premium (`premium-route.test.tsx`)
 - Отсутствие вызова syncCheckoutSession без session_id (`dashboard-no-session.test.tsx`)
+
+## Тестирование → E2E
+
+- Установка браузера для Playwright (один раз):
+
+```cmd
+pnpm --filter @vivaform/web install-browsers
+```
+
+- Запуск dev-серверов (в разных окнах):
+
+```cmd
+pnpm --filter @vivaform/backend dev
+pnpm --filter @vivaform/web dev
+```
+
+- Запуск e2e-тестов:
+
+```cmd
+pnpm run e2e
+```
+
+По умолчанию используется baseURL http://localhost:5173 (см. `apps/web/playwright.config.ts`).
 
 ---
 ## 💎 Подписка (Stripe)
@@ -219,7 +237,7 @@ pnpm --filter @vivaform/backend test -- --run
 
 Backend API документация доступна через Swagger:
 ```
-http://localhost:4000/api
+http://localhost:4000/docs
 ```
 
 ---

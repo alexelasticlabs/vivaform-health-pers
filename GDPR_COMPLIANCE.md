@@ -306,19 +306,21 @@ async exportUserData(userId: string) {
 
 ```typescript
 @Delete("me")
-@ApiOperation({ summary: "Удалить аккаунт (GDPR Right to be Forgotten)" })
-async deleteAccount(
-  @CurrentUser() user: CurrentUserPayload
-) {
-  // Audit log before deletion
-  await this.auditService.log({
-    userId: user.userId,
-    action: AuditAction.ACCOUNT_DELETED
-  });
+@ApiOperation({summary: "Удалить аккаунт (GDPR Right to be Forgotten)"})
+deleteAccount(
+    @CurrentUser()
+user: CurrentUserPayload
+)
+{
+    // Audit log before deletion
+    await this.auditService.log({
+        userId: user.userId,
+        action: AuditAction.ACCOUNT_DELETED
+    });
 
-  await this.usersService.deleteAccount(user.userId);
+    await this.usersService.deleteAccount(user.userId);
 
-  return { message: "Аккаунт успешно удалён" };
+    return {message: "Аккаунт успешно удалён"};
 }
 ```
 
@@ -373,31 +375,35 @@ model UserConsent {
 
 ```typescript
 @Patch("me/consent")
-@ApiOperation({ summary: "Обновить согласия пользователя" })
-async updateConsent(
-  @CurrentUser() user: CurrentUserPayload,
-  @Body() dto: UpdateConsentDto,
-  @Req() request: Request
-) {
-  await this.prisma.userConsent.upsert({
-    where: { userId: user.userId },
-    create: {
-      userId: user.userId,
-      marketingEmails: dto.marketingEmails,
-      analyticsTracking: dto.analyticsTracking,
-      termsVersion: "1.0",
-      privacyVersion: "1.0",
-      ipAddress: request.ip,
-      userAgent: request.headers['user-agent']
-    },
-    update: {
-      marketingEmails: dto.marketingEmails,
-      analyticsTracking: dto.analyticsTracking,
-      consentDate: new Date()
-    }
-  });
+@ApiOperation({summary: "Обновить согласия пользователя"})
+updateConsent(
+    @CurrentUser()
+user: CurrentUserPayload,
+@Body()
+dto: UpdateConsentDto,
+@Req()
+request: Request
+)
+{
+    await this.prisma.userConsent.upsert({
+        where: {userId: user.userId},
+        create: {
+            userId: user.userId,
+            marketingEmails: dto.marketingEmails,
+            analyticsTracking: dto.analyticsTracking,
+            termsVersion: "1.0",
+            privacyVersion: "1.0",
+            ipAddress: request.ip,
+            userAgent: request.headers['user-agent']
+        },
+        update: {
+            marketingEmails: dto.marketingEmails,
+            analyticsTracking: dto.analyticsTracking,
+            consentDate: new Date()
+        }
+    });
 
-  return { message: "Согласия обновлены" };
+    return {message: "Согласия обновлены"};
 }
 ```
 

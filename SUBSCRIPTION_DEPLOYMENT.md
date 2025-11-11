@@ -173,8 +173,9 @@ curl -X POST http://localhost:4000/subscriptions/portal \
 ```typescript
 @UseGuards(JwtAuthGuard, PremiumGuard)
 @Get('premium-feature')
-async getPremiumFeature() {
-  return { message: 'This is a premium feature' };
+getPremiumFeature()
+{
+    return {message: 'This is a premium feature'};
 }
 ```
 
@@ -187,24 +188,26 @@ async getPremiumFeature() {
 #### Защита endpoint с помощью Guard
 
 ```typescript
-import { PremiumGuard } from '@/common/guards/premium.guard';
+import {PremiumGuard} from '@/common/guards/premium.guard';
 
 @UseGuards(JwtAuthGuard, PremiumGuard)
 @Get('premium-recommendations')
-async getPremiumRecommendations() {
-  return this.service.getAdvancedRecommendations();
+getPremiumRecommendations()
+{
+    return this.service.getAdvancedRecommendations();
 }
 ```
 
 #### Использование декоратора
 
 ```typescript
-import { RequiresPremium } from '@/common/decorators/requires-premium.decorator';
+import {RequiresPremium} from '@/common/decorators/requires-premium.decorator';
 
 @RequiresPremium()
 @Get('advanced-analytics')
-async getAnalytics() {
-  return this.analyticsService.getAdvanced();
+getAnalytics()
+{
+    return this.analyticsService.getAdvanced();
 }
 ```
 
