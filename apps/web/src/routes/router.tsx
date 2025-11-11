@@ -17,6 +17,7 @@ import { ResetPasswordPage } from "../pages/reset-password-page";
 import { ForceChangePasswordPage } from "../pages/force-change-password-page";
 import { EmailVerificationPage } from "../pages/email-verification-page";
 import PremiumPage from "../pages/premium-page";
+import PremiumHistoryPage from "../pages/premium-history-page";
 import { MealPlannerPage } from "../pages/meal-planner-page";
 import { AdminPage } from "../pages/admin-page";
 import { ArticlesPage } from "../pages/articles-page";
@@ -66,7 +67,8 @@ export const createAppRouter = () =>
         {
           element: <RequireAuthOutlet />,
           children: [
-            { path: "premium", element: <PremiumPage /> }
+            { path: "premium", element: <PremiumPage /> },
+            { path: "premium/history", element: <PremiumHistoryPage /> }
           ]
         },
         {
