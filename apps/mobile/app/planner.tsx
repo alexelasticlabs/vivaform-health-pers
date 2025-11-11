@@ -49,7 +49,7 @@ export default function PlannerScreen() {
 
   const nutritionMutation = useMutation({
     mutationFn: createNutritionEntry,
-    onSuccess: () => {
+    onSuccess: async () => {
       setFood("");
       setCalories("0");
       setProtein("0");
@@ -57,17 +57,17 @@ export default function PlannerScreen() {
       setCarbs("0");
       setMealType(MEAL_TYPES[0]);
       Alert.alert("Готово", "Приём пищи добавлен");
-      queryClient.invalidateQueries({ queryKey: ["dashboard-mobile"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-mobile"] });
     },
     onError: () => Alert.alert("Ошибка", "Не удалось сохранить запись питания")
   });
 
   const waterMutation = useMutation({
     mutationFn: createWaterEntry,
-    onSuccess: () => {
+    onSuccess: async () => {
       setWaterAmount("250");
       Alert.alert("Готово", "Запись по воде сохранена");
-      queryClient.invalidateQueries({ queryKey: ["dashboard-mobile"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-mobile"] });
     },
     onError: () => Alert.alert("Ошибка", "Не удалось сохранить запись по воде")
   });
@@ -140,166 +140,74 @@ export default function PlannerScreen() {
           style={styles.button}
           onPress={() =>
             nutritionMutation.mutate({
+              date: new Date().toISOString(),
               mealType,
               food,
               calories: Number(calories),
               protein: Number(protein),
               fat: Number(fat),
-              carbs: Number(carbs),
-              date: selectedDate
+              carbs: Number(carbs)
             })
           }
-          disabled={nutritionMutation.isPending}
         >
-          <Text style={styles.buttonText}>
-            {nutritionMutation.isPending ? "Сохраняем…" : "Добавить приём пищи"}
-          </Text>
+          <Text style={styles.buttonText}>Добавить питание</Text>
         </TouchableOpacity>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Добавить воду</Text>
-        <View style={styles.formRow}>
-          <TextInput
-            style={styles.input}
-            value={waterAmount}
-            onChangeText={setWaterAmount}
-            keyboardType="numeric"
-            placeholder="мл"
-          />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Добавить воду</Text>
+          <View style={styles.formRow}>
+            <TextInput
+              style={styles.input}
+              value={waterAmount}
+              onChangeText={setWaterAmount}
+              keyboardType="numeric"
+              placeholder="мл"
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() =>
+              waterMutation.mutate({
+                date: new Date().toISOString(),
+                amountMl: Number(waterAmount)
+              })
+            }
+          >
+            <Text style={styles.buttonText}>Добавить воду</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() =>
-            waterMutation.mutate({
-              amountMl: Number(waterAmount),
-              date: `${selectedDate}T${new Date().toISOString().slice(11, 19)}`
-            })
-          }
-          disabled={waterMutation.isPending}
-        >
-          <Text style={styles.buttonText}>
-            {waterMutation.isPending ? "Добавляем…" : "Зафиксировать воду"}
-          </Text>
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Сегодня</Text>
-        {isLoading ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color="#1FA97D" />
-          </View>
-        ) : data ? (
-          <View style={styles.summary}>
-            <Text style={styles.summaryText}>
-              Калории: {data.nutrition.summary.calories} ккал • Вода: {data.water.totalMl} мл
-            </Text>
-            <Text style={styles.summaryText}>
-              Последний вес: {data.weight.latest ? `${data.weight.latest.weightKg} кг` : "нет данных"}
-            </Text>
-            <Text style={styles.summaryText}>
-              Рекомендаций: {data.recommendations.length}
-            </Text>
-          </View>
-        ) : (
-          <Text style={styles.summaryText}>Данные ещё не загружены.</Text>
-        )}
+        {/* Dashboard summary */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Сводка</Text>
+          {isLoading ? (
+            <ActivityIndicator />
+          ) : (
+            <View>
+              <Text>Калории: {data?.nutrition.summary.calories ?? 0}</Text>
+              <Text>Вода: {data?.water.totalMl ?? 0} мл</Text>
+              <Text>Вес: {data?.weight.latest?.weightKg ?? '-'} кг</Text>
+            </View>
+          )}
+        </View>
       </View>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 24,
-    gap: 20
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#0A2E23"
-  },
-  description: {
-    fontSize: 16,
-    lineHeight: 22,
-    color: "#35524A"
-  },
-  section: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 24,
-    padding: 20,
-    gap: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#0A2E23"
-  },
-  formRow: {
-    flexDirection: "row",
-    gap: 8,
-    flexWrap: "wrap"
-  },
-  input: {
-    flexGrow: 1,
-    minWidth: 100,
-    backgroundColor: "#F4FBF5",
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: "#D5E9D9"
-  },
-  button: {
-    backgroundColor: "#1FA97D",
-    borderRadius: 999,
-    paddingVertical: 14,
-    alignItems: "center"
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontWeight: "600",
-    fontSize: 15
-  },
-  loading: {
-    alignItems: "center",
-    paddingVertical: 12
-  },
-  summary: {
-    gap: 6
-  },
-  summaryText: {
-    fontSize: 14,
-    color: "#35524A"
-  },
-  mealTypeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8
-  },
-  mealTypeButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#D5E9D9",
-    backgroundColor: "#F4FBF5"
-  },
-  mealTypeButtonActive: {
-    backgroundColor: "#1FA97D"
-  },
-  mealTypeButtonText: {
-    color: "#35524A",
-    fontSize: 13,
-    fontWeight: "500"
-  },
-  mealTypeButtonTextActive: {
-    color: "#FFFFFF"
-  }
+  container: { padding: 16 },
+  title: { fontSize: 24, fontWeight: "700", marginBottom: 8 },
+  description: { color: "#6b7280", marginBottom: 16 },
+  section: { marginTop: 16 },
+  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: 8 },
+  mealTypeRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  mealTypeButton: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, backgroundColor: "#e5e7eb" },
+  mealTypeButtonActive: { backgroundColor: "#10b981" },
+  mealTypeButtonText: { color: "#374151" },
+  mealTypeButtonTextActive: { color: "white" },
+  formRow: { flexDirection: "row", gap: 8, marginBottom: 8 },
+  input: { flex: 1, borderWidth: 1, borderColor: "#e5e7eb", borderRadius: 8, padding: 8 },
+  button: { backgroundColor: "#10b981", padding: 12, borderRadius: 8, alignItems: "center" },
+  buttonText: { color: "white", fontWeight: "600" }
 });

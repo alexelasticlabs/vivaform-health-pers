@@ -1,5 +1,5 @@
 ﻿import { render, screen } from "@testing-library/react";
-import { vi } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 vi.mock("expo-router", () => ({
   Link: ({ children }: any) => children,
@@ -14,7 +14,7 @@ vi.mock("../src/store/user-store", () => ({
   useUserStore: (sel: any) => sel({ isAuthenticated: true, profile: { tier: "FREE" } })
 }));
 
-import HomeScreen from "./index";
+import HomeScreen from "./";
 
 describe("HomeScreen", () => {
   it("отображает CTA", () => {

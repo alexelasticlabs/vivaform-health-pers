@@ -81,6 +81,6 @@ export function usePushNotifications() {
       }
     };
 
-    register();
+    register().catch(() => undefined);
   }, [profile]);
 }

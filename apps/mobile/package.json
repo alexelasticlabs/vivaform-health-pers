@@ -10,7 +10,9 @@
     "lint": "eslint \"app/**/*.{ts,tsx}\"",
     "test": "vitest --config vitest.config.mjs",
     "format": "prettier --check .",
-    "dev": "expo start"
+    "dev": "expo start --port 8082 --non-interactive",
+    "dev:8081": "expo start --port 8081 --non-interactive",
+    "dev:8082": "expo start --port 8082 --non-interactive"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.0",

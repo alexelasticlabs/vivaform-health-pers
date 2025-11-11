@@ -1,7 +1,7 @@
 ﻿import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-import { AuthTokens, AuthUser, SubscriptionTier } from "@vivaform/shared";
+import type { AuthTokens, AuthUser, SubscriptionTier } from "@vivaform/shared";
 
 import { setSessionTokens } from "../session/tokens";
 

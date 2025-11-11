@@ -4,7 +4,9 @@
     "jsx": "react-jsx",
     "types": [
       "expo",
-      "expo-router"
+      "expo-router",
+      "vitest/globals",
+      "node"
     ],
     "allowJs": false
   },
