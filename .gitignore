@@ -4,8 +4,27 @@ dist/
 build/
 coverage/
 .env
-.env.*
+# Более точные env файлы (оставляем .env.example отслеживаемым)
+.env.local
+.env.development
+.env.test
+.env.production
 *.log
 .DS_Store
 .vscode/
 .idea/
+
+# Turbo кэш
+.turbo/
+
+# PNPM/прочее
+package-lock.json
+
+# Отчёты / результаты тестов
+apps/web/test-results/
+
+# Expo служебные файлы
+apps/mobile/.expo/
+
+# Статический анализ отчёт (конфиг отслеживаем, отчёт игнорируем)
+qodana.sarif.json
