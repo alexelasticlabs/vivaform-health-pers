@@ -2,17 +2,13 @@ import { useState, useCallback, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Plus } from "lucide-react";
 
-import { searchFoods, getPopularFoods, type FoodItem } from "../../api/food";
+import { searchFoods, getPopularFoods, type FoodItem, type SearchFoodsResponse } from "@/api";
 
 interface FoodAutocompleteProps {
   onSelect: (food: FoodItem) => void;
   placeholder?: string;
   className?: string;
 }
-
-// interface SearchFoodsResponse {
-//   data: FoodItem[];
-// }
 
 /**
  * FoodAutocomplete
@@ -35,11 +31,11 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
   }, [searchQuery]);
 
   // Search foods API call
-  const { data: searchResponse, isLoading: isSearching } = useQuery({
+  const { data: searchResponse, isLoading: isSearching } = useQuery<SearchFoodsResponse>({
     queryKey: ["foods", "search", debouncedQuery],
     queryFn: async () => {
-      if (!debouncedQuery.trim()) return { foods: [], totalCount: 0 };
-      
+      if (!debouncedQuery.trim()) return { foods: [], totalCount: 0 } as SearchFoodsResponse;
+
       return await searchFoods({
         query: debouncedQuery,
         limit: 10
@@ -49,12 +45,12 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
   });
 
   // Popular foods for empty state
-  const { data: popularFoods } = useQuery({
+  const { data: popularFoods } = useQuery<FoodItem[]>({
     queryKey: ["foods", "popular"],
     queryFn: getPopularFoods
   });
 
-  const searchResults = searchResponse?.foods || [];
+  const searchResults: FoodItem[] = searchResponse?.foods || [];
 
   const handleInputChange = useCallback((value: string) => {
     setSearchQuery(value);
@@ -67,8 +63,8 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
     setIsOpen(false);
   }, [onSelect]);
 
-  const displayFoods = searchQuery.trim() ? searchResults : popularFoods?.slice(0, 8);
-  const showResults = isOpen && (displayFoods?.length || isSearching);
+  const displayFoods: FoodItem[] | undefined = searchQuery.trim() ? searchResults : popularFoods?.slice(0, 8);
+  const showResults = isOpen && ((displayFoods?.length ?? 0) > 0 || isSearching);
 
   return (
     <div className={`relative ${className}`}>
@@ -105,7 +101,7 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
           )}
 
           {/* Results */}
-          {displayFoods?.map((food) => (
+          {displayFoods?.map((food: FoodItem) => (
             <button
               key={food.id}
               onClick={() => handleSelect(food)}
@@ -158,7 +154,7 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
           )}
 
           {/* Empty Popular Foods */}
-          {!searchQuery.trim() && (!popularFoods || popularFoods.length === 0) && (
+          {!searchQuery.trim() && (!popularFoods || (popularFoods as FoodItem[]).length === 0) && (
             <div className="px-4 py-8 text-center text-gray-500">
               База продуктов пуста
             </div>
@@ -168,6 +164,3 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
     </div>
   );
 }
-
-
-

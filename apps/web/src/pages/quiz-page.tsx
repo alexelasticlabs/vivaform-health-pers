@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Check } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '../store/quiz-store';
-import { submitQuiz, saveQuizPreview, getQuizPreview } from '../api/quiz';
+import { submitQuiz, saveQuizPreview, getQuizPreview } from '../api';
 import { useUserStore } from '../store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '../lib/analytics';
 import { QuizProgress } from '../components/quiz/quiz-progress';
@@ -53,7 +53,7 @@ export function QuizPage() {
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
-  const previewTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loggedStartRef = useRef(false);
   const lastViewedStepRef = useRef<number | null>(null);
   const lastSectionLoggedRef = useRef<number | null>(null);
@@ -129,7 +129,7 @@ export function QuizPage() {
     return () => {
       if (previewTimerRef.current) clearTimeout(previewTimerRef.current);
     };
-  }, [answers, isAuthenticated, getDraft]);
+  }, [answers, isAuthenticated, getDraft, clientId]);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -197,7 +197,7 @@ export function QuizPage() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     // Log CTA and next click
     if (clientId) {
       const stepId = STEP_NAMES[currentStep] ?? String(currentStep);
@@ -212,7 +212,7 @@ export function QuizPage() {
     setValidationMessage(null);
 
     if (currentStep === TOTAL_STEPS - 1) {
-      handleSubmit();
+      await handleSubmit();
     } else {
       nextStep();
     }
@@ -294,7 +294,7 @@ export function QuizPage() {
     <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
       <div className="max-w-4xl mx-auto">
         {/* Sticky progress under header */}
-        <div className="sticky top-16 z-40 -mx-4 mb-6 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-md md:static md:top-auto md:-mx-0 md:border-none md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
+        <div className="sticky top-16 z-40 mb-6 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-md md:static md:top-auto md:border-none md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
           <QuizProgress currentStep={currentStep + 1} totalSteps={TOTAL_STEPS} />
         </div>
         
@@ -343,12 +343,12 @@ export function QuizPage() {
             </button>
           )}
           <button
-            onClick={() => {
+            onClick={async () => {
               if (clientId) {
                 const label = currentStep === TOTAL_STEPS - 1 ? 'Complete Quiz' : 'Next';
                 logQuizCtaClicked(clientId, 'desktop_nav', label, STEP_NAMES[currentStep] ?? String(currentStep));
               }
-              handleNext();
+              await handleNext();
             }}
             disabled={!canGoNext() || isSubmitting}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
@@ -377,12 +377,12 @@ export function QuizPage() {
                 </button>
               )}
               <button
-                onClick={() => {
+                onClick={async () => {
                   if (clientId) {
                     const label = currentStep === TOTAL_STEPS - 1 ? 'Complete Quiz' : 'Next';
                     logQuizCtaClicked(clientId, 'mobile_sticky', label, STEP_NAMES[currentStep] ?? String(currentStep));
                   }
-                  handleNext();
+                  await handleNext();
                 }}
                 disabled={!canGoNext() || isSubmitting}
                 className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-60"

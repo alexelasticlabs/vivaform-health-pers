@@ -1,22 +1,19 @@
 ﻿import { describe, it, expect, vi } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DashboardPage } from '../pages/dashboard/dashboard-page';
+import { waitFor } from '@testing-library/react';
+import { Route, Routes } from 'react-router-dom';
+import renderWithProviders, { createTestQueryClient } from './render-helper';
+import { DashboardPage } from '@/pages/dashboard/dashboard-page';
 import { applyCommonMocks } from './mocks/common-mocks';
 
 applyCommonMocks();
 
 function renderDash(url: string) {
-  const qc = new QueryClient();
-  return render(
-    <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={[url]}>
-        <Routes>
-          <Route path="/app" element={<DashboardPage />} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
+  const qc = createTestQueryClient();
+  return renderWithProviders(
+    <Routes>
+      <Route path="/app" element={<DashboardPage />} />
+    </Routes>,
+    { router: { initialEntries: [url] }, client: qc }
   );
 }
 

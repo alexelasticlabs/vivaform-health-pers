@@ -3,7 +3,7 @@ import { persist } from "zustand/middleware";
 
 import type { AuthTokens, AuthUser, SubscriptionTier } from "@vivaform/shared";
 
-type UserStore = {
+export type UserStore = {
   profile: (AuthUser & { tier?: SubscriptionTier; mustChangePassword?: boolean }) | null;
   tokens: AuthTokens | null;
   isAuthenticated: boolean;

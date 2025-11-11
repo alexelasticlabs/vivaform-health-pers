@@ -5,8 +5,11 @@ import { toast } from "sonner";
 
 import { ThemeToggle } from "../theme-toggle";
 import { VivaFormLogo } from "../viva-form-logo";
-import { useUserStore } from "../../store/user-store";
-import { useQuizStore } from "../../store/quiz-store";
+import { useUserStore } from "@/store/user-store";
+import { useQuizStore } from "@/store/quiz-store";
+import { useOfflineStore } from "@/store/offline-store";
+import { useQueryClient } from "@tanstack/react-query";
+import { syncCheckoutSession } from "@/api";
 import { Bell, Menu, X } from "lucide-react";
 import { UserMenu } from "../user-menu";
 
@@ -21,22 +24,63 @@ const appNav = [
 export const AppShell = ({ children }: PropsWithChildren) => {
   const profile = useUserStore((state) => state.profile);
   const logout = useUserStore((state) => state.logout);
+  // убрали деструктуризацию setTier из стора, чтобы избежать отсутствия метода в тестах
   const navigate = useNavigate();
   const location = useLocation();
   const { reset } = useQuizStore();
+  const offline = useOfflineStore((s) => s.offline);
+  const queryClient = useQueryClient();
   const [mobileOpen, setMobileOpen] = useState(false);
   const hasPremium = (profile?.tier ?? "FREE") === "PREMIUM";
 
   const handleLogout = () => {
     logout();
-  toast.success("You have been logged out");
+    toast.success("You have been logged out");
     navigate("/login");
   };
 
   useEffect(() => {
     // Close mobile sheet on route change
     setMobileOpen(false);
-  }, [location.pathname]);
+
+    // Show success toast after premium activation
+    const params = new URLSearchParams(location.search);
+    if (params.get('premium') === 'success') {
+      const sessionId = params.get('session_id');
+      const finish = () => {
+        params.delete('premium');
+        params.delete('session_id');
+        const clean = `${location.pathname}${params.toString() ? `?${params.toString()}` : ''}`;
+        if (clean !== `${location.pathname}${location.search}`) {
+          window.history.replaceState(null, '', clean);
+        }
+      };
+      (async () => {
+        try {
+          if (sessionId) {
+            await syncCheckoutSession(sessionId);
+            // Обновляем локальный store, так как он является source of truth для tier
+            const setTierFn = (useUserStore.getState() as any).setTier;
+            if (typeof setTierFn === 'function') {
+              setTierFn('PREMIUM');
+            }
+            // Инвалидируем актуальные query-ключи, чтобы перерисовать виджеты
+            await Promise.all([
+              queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+              queryClient.invalidateQueries({ queryKey: ['quiz-profile'] }),
+              queryClient.invalidateQueries({ queryKey: ['weight-history'] })
+            ]);
+          }
+          toast.success('VivaForm+ activated! Enjoy premium features.');
+        } catch (e) {
+          console.error('Failed to sync subscription:', e);
+          toast.error('Please refresh the page to see your premium status');
+        } finally {
+          finish();
+        }
+      })();
+    }
+  }, [location.pathname, location.search, queryClient]);
 
   // Avatars initials helper
   const initials = useMemo(() => {
@@ -49,6 +93,9 @@ export const AppShell = ({ children }: PropsWithChildren) => {
   return (
     <div className="min-h-screen bg-surface text-foreground">
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/75 backdrop-blur-xl">
+        {offline && (
+          <div className="w-full bg-amber-500 text-white text-center text-xs py-1">Backend недоступен. В dev запросы идут через /api прокси → http://localhost:4000. Убедитесь, что backend запущен.</div>
+        )}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
           <div className="flex items-center gap-3">
             <button
@@ -62,7 +109,7 @@ export const AppShell = ({ children }: PropsWithChildren) => {
             </button>
             <VivaFormLogo size="sm" />
             {hasPremium && (
-              <span className="hidden md:inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
+              <span data-testid="app-premium-badge" className="hidden md:inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1 text-xs font-semibold text-white shadow-sm">
                 <span aria-hidden>🌟</span> VivaForm+
               </span>
             )}

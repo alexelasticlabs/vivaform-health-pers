@@ -8,7 +8,6 @@ import { ProgressCard } from "../components/landing/ProgressCard";
 import { logQuizCtaClicked } from "../lib/analytics";
 import { useQuizStore } from "../store/quiz-store";
 import { useUserStore } from "../store/user-store";
-import { LandingAuthenticated } from "./landing-authenticated";
 import { useIntersectionObserver } from "../hooks/use-intersection-observer";
 import { AppStoreButtons } from "../components/app-store-buttons";
 // import { useUserStore } from "../store/user-store"; // not used in landing
@@ -158,7 +157,7 @@ export const LandingPage = () => {
   const isAuthenticated = useUserStore((s) => s.isAuthenticated);
   const profile = useUserStore((s) => s.profile);
   const hasPremium = (profile?.tier ?? "FREE") === "PREMIUM";
-  const { answers, currentStep, reset } = useQuizStore();
+  const { answers, reset } = useQuizStore();
   const quizState: "none" | "in_progress" | "completed" = (() => {
     // Heuristic: if there are any saved answers or progressed beyond step 0 → in_progress
     if (answers && Object.keys(answers).length > 0) return "in_progress";
@@ -417,7 +416,7 @@ export const LandingPage = () => {
           </div>
           <div className="mx-auto max-w-6xl">
             {/* Mobile: horizontal scroll-snap, Desktop: 3-column grid */}
-            <div className="md:hidden -mx-6 px-6">
+            <div className="md:hidden px-6">
               <div
                 className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-2"
                 aria-label="Testimonials carousel"
@@ -628,4 +627,3 @@ export const LandingPage = () => {
     </main>
   );
 };
-export default LandingPage;

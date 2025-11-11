@@ -3,7 +3,17 @@
   "compilerOptions": {
     "jsx": "react-jsx",
   "types": ["vite/client", "vitest", "vitest/globals", "node"],
-    "allowJs": false
+    "allowJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@/api": ["src/api/index.ts"],
+      "@/components/*": ["src/components/*"],
+      "@/store/*": ["src/store/*"],
+      "@/lib/*": ["src/lib/*"],
+      "@/utils/*": ["src/utils/*"],
+      "@/pages/*": ["src/pages/*"]
+    }
   },
   "include": ["src", "vite.config.ts", "tailwind.config.ts", "postcss.config.cjs"]
 }

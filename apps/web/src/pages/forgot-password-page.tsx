@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Lock, Key, ArrowRight } from 'lucide-react';
-import { forgotPassword, requestTempPassword } from '../api/password';
+import { forgotPassword, requestTempPassword } from '../api';
 import { VivaFormLogo } from '../components/viva-form-logo';
 import { AuthLayout } from '../components/auth/auth-layout';
 
@@ -14,7 +14,7 @@ export function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     if (!email.trim()) {

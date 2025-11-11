@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { logUserMenuItemClicked, logUserMenuOpened } from "../lib/analytics";
 
 const cx = (...classes: Array<string | false | undefined>) => classes.filter(Boolean).join(" ");
@@ -12,7 +12,7 @@ export type UserMenuProps = {
   source?: "marketing" | "app";
 };
 
-export const UserMenu: React.FC<UserMenuProps> = ({ user, plan, unreadCount = 0, onNavigate, onLogout, source = "app" }) => {
+export function UserMenu({ user, plan, unreadCount = 0, onNavigate, onLogout, source = "app" }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -46,7 +46,7 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, plan, unreadCount = 0,
         if (items.length === 0) return;
         const active = document.activeElement as HTMLElement | null;
         const idx = items.findIndex((el) => el === active);
-        let next = 0;
+        let next: number;
         if (e.key === "ArrowDown") next = idx < 0 ? 0 : Math.min(items.length - 1, idx + 1);
         else next = idx < 0 ? items.length - 1 : Math.max(0, idx - 1);
         items[next]?.focus();
@@ -68,8 +68,6 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, plan, unreadCount = 0,
     itemsRef.current[idx] = el;
   };
 
-  const identityLabel = user.name || user.email || "User";
-
   const navigate = (path: string, item: string) => {
     logUserMenuItemClicked(source, item);
     onNavigate(path);
@@ -90,12 +88,13 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, plan, unreadCount = 0,
         )}
       >
         <span className="relative inline-flex">
-          <img
-            src={user.avatarUrl || ""}
-            alt=""
-            className={cx("h-8 w-8 rounded-full object-cover", !user.avatarUrl && "hidden")}
-          />
-          {!user.avatarUrl && (
+          {user.avatarUrl ? (
+            <img
+              src={user.avatarUrl}
+              alt=""
+              className={cx("h-8 w-8 rounded-full object-cover")}
+            />
+          ) : (
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-xs font-semibold text-white">
               {user.initials}
             </span>
@@ -105,7 +104,11 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, plan, unreadCount = 0,
           )}
         </span>
         <span className="hidden shrink-0 text-left md:block">
-          <span className="block whitespace-nowrap text-xs font-semibold leading-tight">{identityLabel}{user.role === 'admin' && <span className="ml-1 rounded bg-amber-100 px-1 text-[10px] font-medium text-amber-800 align-middle dark:bg-amber-900/30 dark:text-amber-200">Admin</span>}</span>
+          <span className="block whitespace-nowrap text-xs font-semibold leading-tight">
+            {(user.name || user.email || "User")}{user.role === 'admin' && (
+              <span className="ml-1 rounded bg-amber-100 px-1 text-[10px] font-medium text-amber-800 align-middle dark:bg-amber-900/30 dark:text-amber-200">Admin</span>
+            )}
+          </span>
           <span className="block text-[10px] uppercase text-muted-foreground">{plan === 'premium' ? 'VivaForm+' : plan === 'trial' ? 'Trial' : 'Free'}</span>
         </span>
         <span
@@ -162,4 +165,4 @@ export const UserMenu: React.FC<UserMenuProps> = ({ user, plan, unreadCount = 0,
       )}
     </div>
   );
-};
+}

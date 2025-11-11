@@ -1,54 +1,48 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { waitFor } from "@testing-library/react";
+import { Route, Routes } from "react-router-dom";
 
 import { DashboardPage } from "./dashboard-page";
 
-import * as subs from "../../api/subscriptions";
+import * as api from "@/api";
+import renderWithProviders from "@/test/render-helper";
 
-vi.mock("../../api/subscriptions", () => ({
-  syncCheckoutSession: vi.fn().mockResolvedValue({ success: true })
-}));
-
-vi.mock("../../api", () => ({
+vi.mock("@/api", () => ({
   fetchDailyDashboard: vi.fn().mockResolvedValue({
     nutrition: { summary: { calories: 0, protein: 0, fat: 0, carbs: 0 }, entries: [] },
     water: { totalMl: 0 },
     weight: { latest: null },
-    recommendations: []
+    recommendations: [],
+    goals: { calories: 2000, waterMl: 2000 }
   }),
-  createWaterEntry: vi.fn().mockResolvedValue({}),
-  createNutritionEntry: vi.fn().mockResolvedValue({}),
-  createWeightEntry: vi.fn().mockResolvedValue({})
+  fetchWeightHistory: vi.fn().mockResolvedValue([]),
+  tryGetQuizProfile: vi.fn().mockResolvedValue(null)
 }));
-
-vi.mock("../../api/weight", () => ({
-  fetchWeightHistory: vi.fn().mockResolvedValue([])
-}));
-
-vi.mock("../../api/quiz", () => ({
-  getQuizProfile: vi.fn().mockResolvedValue({ recommendedCalories: 2000, heightCm: 175 }),
-  tryGetQuizProfile: vi.fn().mockResolvedValue({ recommendedCalories: 2000, heightCm: 175 })
-}));
+vi.mock("@/api/weight", () => ({ fetchWeightHistory: vi.fn().mockResolvedValue([]) }));
+vi.mock("@/api/quiz", () => ({ tryGetQuizProfile: vi.fn().mockResolvedValue(null) }));
 
 // Mock store to avoid null user
 vi.mock("../../store/user-store", async () => {
-  return {
-    useUserStore: (selector: any) => selector({ profile: { tier: "FREE", name: "Test", email: "t@e.com" } })
-  };
+  const mockState = { profile: { tier: "FREE", name: "Test", email: "t@e.com" }, tokens: null };
+  const api = {
+    useUserStore: (selector: any) => selector(mockState),
+  } as any;
+  api.useUserStore.getState = () => ({
+    ...mockState,
+    setTier: (tier: string) => { mockState.profile.tier = tier; }
+  });
+  return api;
 });
 
-const renderWithProviders = (initialEntry: string) => {
-  const client = new QueryClient();
-  return render(
-    <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[initialEntry]}>
-        <Routes>
-          <Route path="/app" element={<DashboardPage />} />
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
+// ВАЖНО: импорт AppShell после моков, чтобы сработал мок syncCheckoutSession внутри AppShell
+import { AppShell } from "@/components/layouts/app-shell";
+
+const renderWithProvidersLocal = (initialEntry: string) => {
+  return renderWithProviders(
+    <Routes>
+      <Route path="/app" element={<AppShell><DashboardPage /></AppShell>} />
+    </Routes>,
+    { router: { initialEntries: [initialEntry] } }
   );
 };
 
@@ -58,15 +52,15 @@ describe("DashboardPage premium sync", () => {
   });
 
   it("вызывает syncCheckoutSession при premium=success и session_id", async () => {
-    const syncCheckoutSession = vi.spyOn(subs, 'syncCheckoutSession');
+    const spy = vi.spyOn(api, 'syncCheckoutSession');
 
-    renderWithProviders("/app?premium=success&session_id=cs_test_123");
+    renderWithProvidersLocal("/app?premium=success&session_id=cs_test_123");
 
     await waitFor(() => {
-      expect(syncCheckoutSession).toHaveBeenCalledWith("cs_test_123");
+      expect(spy).toHaveBeenCalledWith("cs_test_123");
     });
   });
 });
 
-import { applyCommonMocks } from "../../test/mocks/common-mocks";
+import { applyCommonMocks } from "@/test/mocks/common-mocks";
 applyCommonMocks();

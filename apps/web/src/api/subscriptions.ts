@@ -34,6 +34,15 @@ export type PortalSessionResponse = {
   url: string | null;
 };
 
+export type SubscriptionHistoryItem = { id: string; action: string; createdAt: string; metadata?: any };
+export type SubscriptionHistoryResponse = {
+  items: SubscriptionHistoryItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasNext: boolean;
+};
+
 export const fetchSubscription = async () => {
   const { data } = await apiClient.get<SubscriptionRecord | null>("/subscriptions");
   return data;
@@ -55,4 +64,19 @@ export const syncCheckoutSession = async (sessionId: string) => {
     { sessionId }
   );
   return data;
+};
+
+export const fetchSubscriptionHistory = async (page = 1, pageSize = 10, filters?: { actions?: string[]; from?: string; to?: string }) => {
+  const params: any = { page, pageSize };
+  if (filters?.actions?.length) params.actions = filters.actions.join(',');
+  if (filters?.from) params.from = filters.from;
+  if (filters?.to) params.to = filters.to;
+  const { data } = await apiClient.get<SubscriptionHistoryResponse>(`/subscriptions/history`, { params });
+  return data;
+};
+
+export const logPremiumView = async () => {
+  try {
+    await apiClient.get('/subscriptions/premium-view');
+  } catch {}
 };

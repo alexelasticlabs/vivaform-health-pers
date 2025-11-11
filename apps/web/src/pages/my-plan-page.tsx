@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { RefreshCw, Scale, Target, Utensils, Activity } from 'lucide-react';
-import { getQuizProfile, updateQuizProfile } from '../api/quiz';
+import { RefreshCw, Scale, Target, Utensils } from 'lucide-react';
+import { getQuizProfile, updateQuizProfile } from '../api';
 import { useNavigate } from 'react-router-dom';
-import type { QuizAnswers } from '../api/quiz';
+import type { QuizAnswers } from '../api';
 
 type UnitSystem = 'metric' | 'imperial';
 
@@ -26,9 +26,9 @@ export function MyPlanPage() {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: updateQuizProfile,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success('Your plan has been updated! ✨');
-      refetch();
+      await refetch();
     },
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || 'Failed to update plan');
@@ -109,7 +109,7 @@ export function MyPlanPage() {
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
             My Plan
@@ -227,119 +227,52 @@ export function MyPlanPage() {
               ))}
             </div>
           </div>
-          
-          {formData.goals?.type !== 'maintain' && (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Target Change (kg)
-                </label>
-                <input
-                  type="number"
-                  value={formData.goals?.deltaKg || ''}
-                  onChange={(e) => handleUpdate('goals', { deltaKg: parseFloat(e.target.value) })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                  placeholder="e.g., 5"
-                  step="0.5"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Timeline (months)
-                </label>
-                <input
-                  type="number"
-                  value={formData.goals?.etaMonths || ''}
-                  onChange={(e) => handleUpdate('goals', { etaMonths: parseInt(e.target.value) })}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-                  placeholder="e.g., 3"
-                  min="1"
-                  max="24"
-                />
-              </div>
-            </>
-          )}
-        </div>
-      </div>
 
-      {/* Habits */}
-      <div className="p-6 bg-white rounded-2xl border border-gray-200 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <Activity className="text-emerald-600" size={24} />
-          <h2 className="text-xl font-bold">Habits</h2>
-        </div>
-        <div className="grid md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Meals Per Day
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Target Weight</label>
             <input
               type="number"
-              value={formData.habits?.mealsPerDay || ''}
-              onChange={(e) => handleUpdate('habits', { mealsPerDay: parseInt(e.target.value) })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-              min="1"
-              max="6"
+              min={30}
+              max={300}
+              step={0.1}
+              value={formData.targetWeightKg ?? ''}
+              onChange={(e) => handleUpdate('targetWeightKg' as any, Number(e.target.value))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              placeholder="e.g. 65"
             />
           </div>
-          
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cooking Time (minutes)
-            </label>
-            <input
-              type="number"
-              value={formData.habits?.cookingTimeMinutes || ''}
-              onChange={(e) => handleUpdate('habits', { cookingTimeMinutes: parseInt(e.target.value) })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500"
-              min="0"
-              max="180"
-            />
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="snacks"
-              checked={formData.habits?.snacks || false}
-              onChange={(e) => handleUpdate('habits', { snacks: e.target.checked })}
-              className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
-            />
-            <label htmlFor="snacks" className="text-sm font-medium text-gray-700">
-              Snacks between meals
-            </label>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="exercise"
-              checked={formData.habits?.exerciseRegularly || false}
-              onChange={(e) => handleUpdate('habits', { exerciseRegularly: e.target.checked })}
-              className="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500"
-            />
-            <label htmlFor="exercise" className="text-sm font-medium text-gray-700">
-              Exercise regularly
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Meals per day</label>
+            <div className="grid grid-cols-4 gap-2">
+              {[2,3,4,5].map((n) => (
+                <button
+                  key={n}
+                  onClick={() => handleUpdate('mealsPerDay' as any, n)}
+                  className={`px-4 py-2 rounded-xl font-medium transition-all ${
+                    (formData as any).mealsPerDay === n
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                  type="button"
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Save Button */}
-      <div className="sticky bottom-6 flex gap-4">
-        <button
-          onClick={handleSave}
-          disabled={updateMutation.isPending}
-          className="flex-1 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 hover:scale-[1.02] active:scale-[0.98] shadow-lg"
-        >
-          {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
-        </button>
+        <div className="mt-6 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSave}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-sm font-semibold text-white shadow-lg hover:shadow-xl"
+          >
+            Save changes
+          </button>
+        </div>
       </div>
-      
-      <p className="text-center text-sm text-gray-500">
-        Recommendations will update shortly after saving ✨
-      </p>
     </div>
   );
 }

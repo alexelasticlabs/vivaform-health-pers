@@ -1,9 +1,9 @@
 ﻿import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 
-import { useUserStore } from "../store/user-store";
+import { useUserStore, useOfflineStore } from "@/store";
 import type { AuthTokens, AuthUser } from "@vivaform/shared";
 
-const baseURL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
+const baseURL = import.meta.env.DEV ? "/api" : (import.meta.env.VITE_API_URL ?? "https://localhost:4000");
 
 export const apiClient = axios.create({
   baseURL,
@@ -39,8 +39,18 @@ type ApiErrorPayload = {
 };
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Если ранее были офлайн — при первом успешном ответе скрываем баннер
+    const { offline, setOffline } = useOfflineStore.getState();
+    if (offline) setOffline(false);
+    return response;
+  },
   async (error: AxiosError<ApiErrorPayload>) => {
+    // Network / CORS / backend down
+    if (error.code === 'ERR_NETWORK' || (error.message && /Network Error|ECONNREFUSED|ENOTFOUND/i.test(error.message))) {
+      useOfflineStore.getState().setOffline(true);
+    }
+
     const originalRequest = error.config as RetriableRequest | undefined;
     const status = error.response?.status;
 

@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Eye, Tag, User } from "lucide-react";
 
-import { getArticleBySlug } from "../api/articles";
+import { getArticleBySlug } from "../api";
 
 export const ArticleDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -105,7 +105,7 @@ export const ArticleDetailPage = () => {
         {/* Tags */}
         {article.tags && article.tags.length > 0 && (
           <div className="flex flex-wrap gap-2 pt-6 border-t border-gray-200 dark:border-gray-700">
-            {article.tags.map((tag) => (
+            {article.tags.map((tag: string) => (
               <span
                 key={tag}
                 className="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-sm"

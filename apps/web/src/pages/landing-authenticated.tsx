@@ -5,7 +5,7 @@ import { useUserStore } from "../store/user-store";
 import { useThemeStore } from "../store/theme-store";
 import { motion } from "framer-motion";
 import { fetchDailyDashboard } from "../api";
-import { tryGetQuizProfile } from "../api/quiz";
+import { tryGetQuizProfile } from "../api";
 import { useQuizStore } from "../store/quiz-store";
 
 const useCountUp = (to: number, durationMs = 800) => {

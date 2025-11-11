@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { createWaterEntry, extractErrorMessage } from "../../api";
+import { createWaterEntry, extractErrorMessage } from "@/api";
 import type { CreateWaterEntryPayload } from "@vivaform/shared";
 
 const defaultState: CreateWaterEntryPayload = {
@@ -15,10 +15,10 @@ export const AddWaterForm = ({ date }: { date: string }) => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: createWaterEntry,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Water log saved");
       setForm({ ...defaultState, date });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });

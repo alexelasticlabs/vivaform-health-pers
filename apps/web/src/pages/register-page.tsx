@@ -4,8 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Eye, EyeOff, Check, Mail, Lock, ArrowRight } from "lucide-react";
 
-import { extractErrorMessage, login, registerUser } from "../api";
-import { submitQuiz } from "../api/quiz";
+import { extractErrorMessage, login, registerUser, submitQuiz } from "../api";
 import { useUserStore } from "../store/user-store";
 import { useQuizStore } from "../store/quiz-store";
 import { logQuizSubmitSuccess, logQuizSubmitError } from "../lib/analytics";

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import type { RefObject } from 'react';
 
 interface UseIntersectionObserverOptions extends IntersectionObserverInit {
   freezeOnceVisible?: boolean;
@@ -6,7 +7,7 @@ interface UseIntersectionObserverOptions extends IntersectionObserverInit {
 
 export const useIntersectionObserver = (
   options: UseIntersectionObserverOptions = {}
-): [React.RefObject<HTMLDivElement | null>, boolean] => {
+): [RefObject<HTMLDivElement | null>, boolean] => {
   const { threshold = 0.1, root = null, rootMargin = "0px", freezeOnceVisible = false } = options;
 
   const elementRef = useRef<HTMLDivElement>(null);
@@ -19,6 +20,11 @@ export const useIntersectionObserver = (
     // If already visible and should freeze, skip observer
     if (freezeOnceVisible && isVisible) return;
 
+    if (typeof IntersectionObserver === 'undefined') {
+      // Fallback: mark visible immediately
+      setIsVisible(true);
+      return;
+    }
     const observer = new IntersectionObserver(
       ([entry]) => {
         const isIntersecting = entry.isIntersecting;

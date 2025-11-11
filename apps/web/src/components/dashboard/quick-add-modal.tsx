@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode, type MouseEvent } from 'react';
 
 interface QuickAddModalProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ export function QuickAddModal({ isOpen, onClose, title, children }: QuickAddModa
   }, [isOpen, onClose]);
 
   // Close on backdrop click
-  const handleBackdropClick = (e: React.MouseEvent) => {
+  const handleBackdropClick = (e: MouseEvent) => {
     if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
       onClose();
     }

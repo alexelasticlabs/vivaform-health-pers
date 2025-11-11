@@ -1,7 +1,7 @@
 ﻿import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
-import { MarketingShell } from "../../components/layouts/marketing-shell";
+import { MarketingShell } from "@/components/layouts/marketing-shell";
 
 export const MarketingLayout = () => {
   const location = useLocation();

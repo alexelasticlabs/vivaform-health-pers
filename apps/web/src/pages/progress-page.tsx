@@ -2,8 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { fetchWeightHistory, fetchWeightProgress } from "../api";
-import type { WeightEntry } from "@vivaform/shared";
-import type { WeightProgressResponse } from "../api/weight";
+import { buildTrend, deriveProgress } from "../utils/progress";
 
 const rangeOptions = [
   { value: 7, label: "7 days" },
@@ -25,35 +24,6 @@ const formatDelta = (delta: number) => {
   return `${sign}${delta.toFixed(1)} kg`;
 };
 
-const buildTrend = (entries: WeightEntry[]) =>
-  entries.map((entry, index) => {
-    const previous = index === 0 ? null : entries[index - 1];
-    const diff = previous ? Number((entry.weightKg - previous.weightKg).toFixed(1)) : null;
-    return {
-      id: entry.id,
-      date: entry.date,
-      weightKg: entry.weightKg,
-      diff
-    };
-  });
-
-type ProgressState = {
-  latest: WeightEntry | null;
-  start: WeightEntry | null;
-  delta: number;
-};
-
-const deriveProgress = (history: WeightEntry[], progress?: WeightProgressResponse | null): ProgressState => {
-  if (!history.length || !progress) {
-    return { latest: null, start: null, delta: 0 };
-  }
-
-  return {
-    latest: history[history.length - 1] ?? null,
-    start: history[0] ?? null,
-    delta: progress.delta
-  };
-};
 
 export const ProgressPage = () => {
   const [range, setRange] = useState(30);
@@ -185,7 +155,7 @@ export const ProgressPage = () => {
               {trend
                 .slice()
                 .reverse()
-                .map((entry) => (
+                .map((entry: any) => (
                   <li key={entry.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
                     <div>
                       <p className="font-semibold">{entry.weightKg} kg</p>

@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Lock, ArrowRight } from 'lucide-react';
-import { resetPassword } from '../api/password';
+import { resetPassword } from '../api';
 import { VivaFormLogo } from '../components/viva-form-logo';
 import { AuthLayout } from '../components/auth/auth-layout';
 
@@ -34,7 +34,7 @@ export function ResetPasswordPage() {
     return { score, label: 'Strong', color: 'bg-green-500' };
   }, [password]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     if (!password || !token) {

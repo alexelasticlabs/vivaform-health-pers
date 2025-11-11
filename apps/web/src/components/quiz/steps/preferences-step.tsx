@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { useQuizStore } from '../../../store/quiz-store';
+import { useQuizStore } from '@/store/quiz-store';
+import { logQuizOptionSelected, logQuizSliderChanged, logQuizToggleChanged } from '@/lib/analytics';
 import { QuizCard } from '../quiz-card';
 import { SliderInput } from '../slider-input';
 import { OptionPill } from '../options/option-pill';
 import { OptionTile } from '../options/option-tile';
 import { ChoiceToggle } from '../options/choice-toggle';
-import { logQuizOptionSelected, logQuizSliderChanged, logQuizToggleChanged } from '../../../lib/analytics';
 
 const COMMON_ALLERGENS = [
   'Gluten',
@@ -219,8 +219,8 @@ export function PreferencesStep() {
           </label>
           <ChoiceToggle
             label="I like trying new dishes"
-            selected={answers.habits?.tryNewFoods === true}
-            onClick={() => { const v = !answers.habits?.tryNewFoods; updateAnswers({ habits: { tryNewFoods: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'preferences', 'habits.tryNewFoods', !!v); } catch {} }}
+            selected={!!answers.habits?.tryNewFoods}
+            onClick={() => { const v = !answers.habits?.tryNewFoods; updateAnswers({ habits: { tryNewFoods: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'preferences', 'habits.tryNewFoods', v); } catch {} }}
           />
         </div>
 

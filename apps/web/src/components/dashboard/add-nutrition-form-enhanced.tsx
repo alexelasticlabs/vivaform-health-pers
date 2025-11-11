@@ -1,11 +1,10 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useState, type ChangeEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MEAL_TYPES, type CreateNutritionEntryPayload } from "@vivaform/shared";
 
-import { createNutritionEntry, extractErrorMessage } from "../../api";
+import { createNutritionEntry, extractErrorMessage, type FoodItem } from "@/api";
 import { FoodAutocomplete } from "../nutrition/food-autocomplete";
-import type { FoodItem } from "../../api/food";
 
 const defaultState: CreateNutritionEntryPayload = {
   mealType: MEAL_TYPES[0],
@@ -35,13 +34,13 @@ export const AddNutritionFormWithAutocomplete = ({ date, defaultMealType }: AddN
 
   const { mutate, isPending } = useMutation({
     mutationFn: createNutritionEntry,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Meal saved");
       setForm({ ...defaultState, date });
       setSelectedFood(null);
       setAmount("100");
       setShowManualInput(false);
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });
@@ -87,7 +86,7 @@ export const AddNutritionFormWithAutocomplete = ({ date, defaultMealType }: AddN
   };
 
   const handleChange = (field: keyof CreateNutritionEntryPayload) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const value = event.target.type === "number" ? Number(event.target.value) : event.target.value;
       setForm((prev) => ({ ...prev, [field]: value }));
     };

@@ -1,11 +1,12 @@
 ﻿import { vi } from 'vitest';
 
 export function applyCommonMocks() {
-  vi.mock('../../api/subscriptions', () => ({
-    syncCheckoutSession: vi.fn().mockResolvedValue({ success: true })
+  vi.mock('@/api/subscriptions', () => ({
+    createCheckoutSession: vi.fn().mockResolvedValue({ url: 'https://checkout.example.com' }),
+    syncCheckoutSession: vi.fn().mockResolvedValue({ status: 'ok' })
   }));
 
-  vi.mock('../../api', () => ({
+  vi.mock('@/api', () => ({
     fetchDailyDashboard: vi.fn().mockResolvedValue({
       nutrition: { summary: { calories: 0, protein: 0, fat: 0, carbs: 0 }, entries: [] },
       water: { totalMl: 0 },
@@ -17,20 +18,19 @@ export function applyCommonMocks() {
     createWeightEntry: vi.fn().mockResolvedValue({})
   }));
 
-  vi.mock('../../api/weight', () => ({
-    fetchWeightHistory: vi.fn().mockResolvedValue([])
-  }));
+  vi.mock('@/api/weight', () => ({ fetchWeightHistory: vi.fn().mockResolvedValue([]) }));
 
-  vi.mock('../../api/quiz', () => ({
-    getQuizProfile: vi.fn().mockResolvedValue({ recommendedCalories: 2000, heightCm: 175 }),
-    tryGetQuizProfile: vi.fn().mockResolvedValue({ recommendedCalories: 2000, heightCm: 175 })
-  }));
+  vi.mock('@/api/quiz', () => ({ tryGetQuizProfile: vi.fn().mockResolvedValue(null) }));
 
-  vi.mock('../../store/user-store', async () => {
-    return {
-      useUserStore: (selector: any) =>
-        selector({ profile: { tier: 'FREE', name: 'Test', email: 't@e.com' } })
-    };
+  vi.mock('@/store/user-store', async () => {
+    const mockState = { profile: { tier: 'FREE', name: 'Test', email: 't@e.com' }, tokens: null };
+    const api = {
+      useUserStore: (selector: any) => selector(mockState),
+    } as any;
+    api.useUserStore.getState = () => ({
+      ...mockState,
+      setTier: (tier: string) => { mockState.profile.tier = tier; }
+    });
+    return api;
   });
 }
-

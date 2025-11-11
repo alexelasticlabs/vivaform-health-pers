@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Eye, EyeOff, AlertTriangle } from 'lucide-react';
-import { forceChangePassword } from '../api/password';
-import { VivaFormLogo } from '../components/viva-form-logo';
-import { useUserStore } from '../store/user-store';
+import { forceChangePassword } from '@/api';
+import { VivaFormLogo } from '@/components/viva-form-logo';
+import { useUserStore } from '@/store/user-store';
 
 export function ForceChangePasswordPage() {
   const [password, setPassword] = useState('');
@@ -38,7 +38,7 @@ export function ForceChangePasswordPage() {
     return { score, label: 'Strong', color: 'bg-green-500' };
   }, [password]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     
     if (!password) {
@@ -62,10 +62,12 @@ export function ForceChangePasswordPage() {
       
       // Update user profile to clear mustChangePassword flag
       if (profile) {
+        const accessToken = (typeof globalThis !== 'undefined' && (globalThis as any).localStorage)?.getItem('accessToken') || '';
+        const refreshToken = (typeof globalThis !== 'undefined' && (globalThis as any).localStorage)?.getItem('refreshToken') || '';
         setAuth(
           { ...profile, mustChangePassword: false },
-          localStorage.getItem('accessToken') || '',
-          localStorage.getItem('refreshToken') || ''
+          accessToken,
+          refreshToken
         );
       }
       

@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { useQuizStore } from '../../../store/quiz-store';
+import { useQuizStore } from '@/store/quiz-store';
 import { QuizCard } from '../quiz-card';
 import { SliderInput } from '../slider-input';
 import { ChoiceToggle } from '../options/choice-toggle';
 import { OptionPill } from '../options/option-pill';
-import { logQuizSliderChanged, logQuizToggleChanged, logQuizOptionSelected } from '../../../lib/analytics';
+import { logQuizSliderChanged, logQuizToggleChanged, logQuizOptionSelected } from '@/lib/analytics';
 
 export function HydrationStep() {
   const { answers, updateAnswers } = useQuizStore();
@@ -51,8 +51,8 @@ export function HydrationStep() {
           </label>
           <ChoiceToggle
             label="Enable meal and hydration reminders"
-            selected={answers.habits?.wantReminders === true}
-            onClick={() => { const v = !answers.habits?.wantReminders; updateAnswers({ habits: { wantReminders: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.wantReminders', !!v); } catch {} }}
+            selected={!!answers.habits?.wantReminders}
+            onClick={() => { const v = !answers.habits?.wantReminders; updateAnswers({ habits: { wantReminders: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.wantReminders', v); } catch {} }}
           />
         </div>
 
@@ -63,8 +63,8 @@ export function HydrationStep() {
           </label>
           <ChoiceToggle
             label="Track physical activity"
-            selected={answers.habits?.trackActivity === true}
-            onClick={() => { const v = !answers.habits?.trackActivity; updateAnswers({ habits: { trackActivity: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.trackActivity', !!v); } catch {} }}
+            selected={!!answers.habits?.trackActivity}
+            onClick={() => { const v = !answers.habits?.trackActivity; updateAnswers({ habits: { trackActivity: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.trackActivity', v); } catch {} }}
           />
         </div>
 
@@ -75,8 +75,8 @@ export function HydrationStep() {
           </label>
           <ChoiceToggle
             label="Connect Apple Health / Google Fit"
-            selected={answers.habits?.connectHealthApp === true}
-            onClick={() => { const v = !answers.habits?.connectHealthApp; updateAnswers({ habits: { connectHealthApp: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.connectHealthApp', !!v); } catch {} }}
+            selected={!!answers.habits?.connectHealthApp}
+            onClick={() => { const v = !answers.habits?.connectHealthApp; updateAnswers({ habits: { connectHealthApp: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'hydration', 'habits.connectHealthApp', v); } catch {} }}
           />
           {answers.habits?.connectHealthApp && (
             <div className="mt-2 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-700 dark:border-blue-900/40 dark:bg-blue-900/20 dark:text-blue-200">

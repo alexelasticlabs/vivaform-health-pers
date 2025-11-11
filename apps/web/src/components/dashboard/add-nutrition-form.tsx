@@ -1,9 +1,9 @@
-﻿import { type FormEvent, useState } from "react";
+﻿import { type FormEvent, useState, type ChangeEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MEAL_TYPES, type CreateNutritionEntryPayload } from "@vivaform/shared";
 
-import { createNutritionEntry, extractErrorMessage } from "../../api";
+import { createNutritionEntry, extractErrorMessage } from "@/api";
 
 const defaultState: CreateNutritionEntryPayload = {
   mealType: MEAL_TYPES[0],
@@ -20,10 +20,10 @@ export const AddNutritionForm = ({ date }: { date: string }) => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: createNutritionEntry,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Meal saved");
       setForm({ ...defaultState, date });
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });
@@ -34,7 +34,7 @@ export const AddNutritionForm = ({ date }: { date: string }) => {
   };
 
   const handleChange = (field: keyof CreateNutritionEntryPayload) =>
-    (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const value = event.target.type === "number" ? Number(event.target.value) : event.target.value;
       setForm((prev) => ({ ...prev, [field]: value }));
     };

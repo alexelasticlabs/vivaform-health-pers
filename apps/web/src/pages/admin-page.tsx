@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Shield, Users, Database, TrendingUp, CheckCircle, XCircle, Trash2 } from "lucide-react";
@@ -10,10 +10,12 @@ import {
   updateUserRole,
   getAdminFoodItems,
   verifyFoodItem,
-  deleteFoodItem
-} from "../api/admin";
-import { extractErrorMessage } from "../api/errors";
-import type { AdminUser, UserStats, SystemStats } from "../api/admin";
+  deleteFoodItem,
+  extractErrorMessage,
+  type AdminUser,
+  type UserStats,
+  type SystemStats
+} from "../api";
 
 type TabType = "overview" | "users" | "foods";
 
@@ -54,9 +56,9 @@ export const AdminPage = () => {
   const roleUpdateMutation = useMutation({
     mutationFn: ({ userId, role }: { userId: string; role: "USER" | "ADMIN" }) =>
       updateUserRole(userId, role),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("User role updated");
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });
@@ -64,20 +66,24 @@ export const AdminPage = () => {
   const verifyFoodMutation = useMutation({
     mutationFn: ({ foodId, verified }: { foodId: string; verified: boolean }) =>
       verifyFoodItem(foodId, verified),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Food item updated");
-      queryClient.invalidateQueries({ queryKey: ["admin", "foods"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin", "foods"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin", "stats"] })
+      ]);
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });
 
   const deleteFoodMutation = useMutation({
     mutationFn: (foodId: string) => deleteFoodItem(foodId),
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Food item deleted");
-      queryClient.invalidateQueries({ queryKey: ["admin", "foods"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "stats"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["admin", "foods"] }),
+        queryClient.invalidateQueries({ queryKey: ["admin", "stats"] })
+      ]);
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });
@@ -387,7 +393,7 @@ export const AdminPage = () => {
 interface StatCardProps {
   label: string;
   value: number;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }
 
 const StatCard = ({ label, value, icon }: StatCardProps) => (

@@ -1,12 +1,13 @@
 ﻿import type { PropsWithChildren } from "react";
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
 import { ThemeToggle } from "../theme-toggle";
 import { SupportWidget } from "../support-widget";
 import { VivaFormLogo } from "../viva-form-logo";
-import { useUserStore } from "../../store/user-store";
-import { useQuizStore } from "../../store/quiz-store";
+import { useUserStore } from '@/store/user-store';
+import { useQuizStore } from '@/store/quiz-store';
 import { UserMenu } from "../user-menu";
 
 const marketingNav = [
@@ -59,8 +60,9 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
   const isLanding = location.pathname === "/";
   const isQuiz = location.pathname === "/quiz";
   const [scrolled, setScrolled] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { profile, isAuthenticated, logout } = useUserStore();
-  const { reset, answers } = useQuizStore();
+  const { reset } = useQuizStore();
   const hasPremium = (profile?.tier ?? "FREE") === "PREMIUM";
   
 
@@ -78,6 +80,36 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [location.pathname]);
+
+  const handleMobileNavigate = (path: string) => {
+    if (path === "/quiz") {
+      reset();
+    }
+    navigate(path);
+    setMobileNavOpen(false);
+  };
+
+  const handleMobileLogout = () => {
+    logout();
+    setMobileNavOpen(false);
+    navigate("/");
+  };
+
+  const mobileToggleButton = (
+    <button
+      type="button"
+      className="inline-flex items-center justify-center rounded-xl border border-border p-2 text-sm text-foreground md:hidden"
+      aria-label={mobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+      aria-controls="marketing-mobile-nav"
+      aria-expanded={mobileNavOpen}
+      onClick={() => setMobileNavOpen((open) => !open)}
+    >
+      {mobileNavOpen ? <X size={18} /> : <Menu size={18} />}
+    </button>
+  );
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -96,10 +128,11 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
           {isQuiz ? (
             <div className="flex items-center gap-3">
               {/* Minimal quiz header: theme toggle optional, Support link */}
-              <a href="#faq" className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition-all hover:border-muted-foreground">Support</a>
+              <a href="/#faq" className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-sm transition-all hover:border-muted-foreground">Support</a>
             </div>
           ) : isLanding ? (
             <div className="flex items-center gap-3">
+              {mobileToggleButton}
               <ThemeToggle />
               {isAuthenticated ? (
                 <>
@@ -145,6 +178,7 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
             </div>
           ) : (
             <>
+              {mobileToggleButton}
               <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
                 {marketingNav.map((item) => (
                   <a
@@ -204,6 +238,85 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
           )}
         </div>
       </header>
+
+      {!isQuiz && (
+        <div className={`fixed inset-0 z-40 md:hidden ${mobileNavOpen ? "" : "pointer-events-none"}`}>
+          <div
+            className={`absolute inset-0 bg-black/40 transition-opacity ${mobileNavOpen ? "opacity-100" : "opacity-0"}`}
+            onClick={() => setMobileNavOpen(false)}
+            aria-hidden="true"
+          />
+          <div
+            id="marketing-mobile-nav"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site navigation"
+            className={`absolute right-0 top-0 flex h-full w-72 max-w-full flex-col gap-6 border-l border-border bg-background/95 px-6 py-6 shadow-2xl backdrop-blur-xl transition-transform ${mobileNavOpen ? "translate-x-0" : "translate-x-full"}`}
+          >
+            <div className="flex items-center justify-between">
+              <VivaFormLogo size="sm" />
+              <button
+                type="button"
+                className="rounded-xl border border-border p-2"
+                aria-label="Close navigation menu"
+                onClick={() => setMobileNavOpen(false)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <nav className="flex flex-col gap-3 text-sm font-semibold">
+              {marketingNav.map((item) => (
+                <a
+                  key={item.label}
+                  href={item.to}
+                  className="text-foreground transition-colors hover:text-primary"
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  {item.label}
+                </a>
+              ))}
+            </nav>
+            <div className="flex flex-col gap-3 border-t border-border pt-6">
+              <ThemeToggle />
+              {isAuthenticated ? (
+                <>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-transform hover:scale-[1.01]"
+                    onClick={() => handleMobileNavigate("/app")}
+                  >
+                    Go to Dashboard
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-card"
+                    onClick={handleMobileLogout}
+                  >
+                    Log out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-card"
+                    onClick={() => handleMobileNavigate("/login")}
+                  >
+                    Log in
+                  </button>
+                  <button
+                    type="button"
+                    className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-transform hover:scale-[1.01]"
+                    onClick={() => handleMobileNavigate(isLanding ? "/quiz" : "/register")}
+                  >
+                    {isLanding ? "Take the Quiz" : "Get started"}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       
       {children}
       
@@ -237,7 +350,7 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
               <h3 className="font-semibold text-foreground">Product</h3>
               <ul className="mt-4 space-y-2">
                 <li>
-                  <a href="#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  <a href="/#features" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                     Features
                   </a>
                 </li>
@@ -247,7 +360,7 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
                   </Link>
                 </li>
                 <li>
-                  <a href="#faq" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  <a href="/#faq" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                     FAQ
                   </a>
                 </li>

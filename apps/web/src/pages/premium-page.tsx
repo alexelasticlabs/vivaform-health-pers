@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Crown, Check, Lock, Sparkles, Shield, TrendingUp, Star, ChevronDown } from 'lucide-react';
-import { createCheckoutSession } from '../api/subscriptions';
+import { createCheckoutSession, logPremiumView } from '../api';
 import { useUserStore } from '../store/user-store';
 import { toast } from 'sonner';
 
@@ -138,6 +138,8 @@ export default function PremiumPage() {
         subscription_tier: user?.tier,
       });
     }
+    // Audit log (backend)
+    void logPremiumView();
   }, [user?.id, user?.tier]);
 
   const handlePlanSelect = (planId: PlanType) => {
@@ -377,15 +379,25 @@ export default function PremiumPage() {
               )}
             </button>
             
-            <p className="mt-4 text-sm text-gray-600">
-              or{' '}
-              <button
-                onClick={() => navigate('/app')}
-                className="text-green-600 hover:underline"
-              >
-                continue for free
-              </button>
-            </p>
+            <div className="mt-4 text-sm text-gray-600 space-y-1">
+              <p>
+                or{' '}
+                <button
+                  onClick={() => navigate('/app')}
+                  className="text-green-600 hover:underline"
+                >
+                  continue for free
+                </button>
+              </p>
+              <p>
+                <button
+                  onClick={() => navigate('/premium/history')}
+                  className="text-green-600 hover:underline"
+                >
+                  View subscription history
+                </button>
+              </p>
+            </div>
           </div>
         </div>
       </section>

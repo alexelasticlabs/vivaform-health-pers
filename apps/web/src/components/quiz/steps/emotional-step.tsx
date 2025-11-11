@@ -1,9 +1,9 @@
-import { useQuizStore } from '../../../store/quiz-store';
+import { useQuizStore } from '@/store/quiz-store';
+import { logQuizToggleChanged, logQuizOptionSelected, logQuizSliderChanged } from '@/lib/analytics';
 import { QuizCard } from '../quiz-card';
 import { SliderInput } from '../slider-input';
 import { OptionTile } from '../options/option-tile';
 import { ChoiceToggle } from '../options/choice-toggle';
-import { logQuizToggleChanged, logQuizOptionSelected, logQuizSliderChanged } from '../../../lib/analytics';
 
 export function EmotionalStep() {
   const { answers, updateAnswers } = useQuizStore();
@@ -22,8 +22,8 @@ export function EmotionalStep() {
           </label>
           <ChoiceToggle
             label="I eat more when I'm stressed"
-            selected={answers.habits?.eatWhenStressed === true}
-            onClick={() => { const v = !answers.habits?.eatWhenStressed; updateAnswers({ habits: { eatWhenStressed: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'emotional', 'habits.eatWhenStressed', !!v); } catch {} }}
+            selected={!!answers.habits?.eatWhenStressed}
+            onClick={() => { const v = !answers.habits?.eatWhenStressed; updateAnswers({ habits: { eatWhenStressed: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'emotional', 'habits.eatWhenStressed', v); } catch {} }}
           />
         </div>
 

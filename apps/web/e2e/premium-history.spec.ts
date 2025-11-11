@@ -9,3 +9,11 @@ test('premium history redirects to login when unauthenticated', async ({ page, b
   await expect(page.getByText(/log in|sign in/i)).toBeVisible();
 });
 
+test('premium history opens for authenticated user', async ({ page, baseURL }) => {
+  await page.addInitScript(() => {
+    const state = { state: { profile: { id: 'u1', email: 't@e.com', tier: 'FREE' }, tokens: { accessToken: 'x', refreshToken: 'y' }, isAuthenticated: true } };
+    window.localStorage.setItem('vivaform-auth', JSON.stringify(state));
+  });
+  await page.goto(baseURL + '/premium/history');
+  await expect(page.getByText(/Premium history/i)).toBeVisible();
+});

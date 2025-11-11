@@ -1,10 +1,12 @@
+import type { ReactNode } from 'react';
+
 interface OptionButtonProps {
   label?: string;
   description?: string;
   emoji?: string;
   selected?: boolean;
   onClick: () => void;
-  children?: React.ReactNode;
+  children?: ReactNode;
   className?: string;
 }
 

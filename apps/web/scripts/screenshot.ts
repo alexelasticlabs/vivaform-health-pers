@@ -1,8 +1,8 @@
 import { chromium } from '@playwright/test';
 import { preview as vitePreview } from 'vite';
 import { setTimeout as delay } from 'node:timers/promises';
-import fs from 'node:fs';
-import path from 'node:path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 const PORT = 5174;
 const BASE_URL = `http://localhost:${PORT}`;

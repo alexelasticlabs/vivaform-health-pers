@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { useQuizStore } from '../../../store/quiz-store';
+import { useQuizStore } from '@/store/quiz-store';
+import { logQuizSliderChanged, logQuizToggleChanged } from '@/lib/analytics';
 import { QuizCard } from '../quiz-card';
 import { SliderInput } from '../slider-input';
 import { ChoiceToggle } from '../options/choice-toggle';
-import { logQuizSliderChanged, logQuizToggleChanged } from '../../../lib/analytics';
 
 export function EnergyScheduleStep() {
   const { answers, updateAnswers } = useQuizStore();
@@ -44,8 +44,8 @@ export function EnergyScheduleStep() {
           </label>
           <ChoiceToggle
             label="I exercise regularly"
-            selected={answers.habits?.exerciseRegularly === true}
-            onClick={() => { const v = !answers.habits?.exerciseRegularly; updateAnswers({ habits: { exerciseRegularly: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'energy_schedule', 'habits.exerciseRegularly', !!v); } catch {} }}
+            selected={!!answers.habits?.exerciseRegularly}
+            onClick={() => { const v = !answers.habits?.exerciseRegularly; updateAnswers({ habits: { exerciseRegularly: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'energy_schedule', 'habits.exerciseRegularly', v); } catch {} }}
           />
         </div>
 
@@ -58,6 +58,7 @@ export function EnergyScheduleStep() {
             type="time"
             value={answers.habits?.wakeUpTime ?? '07:00'}
             onChange={(e) => updateAnswers({ habits: { wakeUpTime: e.target.value } })}
+            data-testid="wake-time"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -71,6 +72,7 @@ export function EnergyScheduleStep() {
             type="time"
             value={answers.habits?.dinnerTime ?? '19:00'}
             onChange={(e) => updateAnswers({ habits: { dinnerTime: e.target.value } })}
+            data-testid="dinner-time"
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>

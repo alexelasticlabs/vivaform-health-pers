@@ -7,3 +7,6 @@ export * from "./food";
 export * from "./recommendations";
 export * from "./subscriptions";
 export * from "./weight";
+export * from "./quiz";
+export * from "./meal-plan";
+export * from "./password";

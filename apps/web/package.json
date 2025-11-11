@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "test": "vitest",
+    "test:run": "vitest run",
     "format": "prettier --check .",
     "screenshots": "pnpm build && node scripts/screenshot.ts",
     "install-browsers": "playwright install chromium"
@@ -24,13 +25,15 @@
     "@vivaform/shared": "workspace:*",
     "axios": "^1.7.7",
     "clsx": "^2.1.0",
+    "date-fns": "^3.6.0",
     "framer-motion": "11.2.6",
     "lucide-react": "^0.552.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-router-dom": "^7.9.0",
     "sonner": "^1.6.2",
-    "zustand": "5.0.8"
+    "zustand": "5.0.8",
+    "@react-buddy/ide-toolbox": "^2.4.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",

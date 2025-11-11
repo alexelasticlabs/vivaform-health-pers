@@ -2,7 +2,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import { createWeightEntry, extractErrorMessage } from "../../api";
+import { createWeightEntry, extractErrorMessage } from "@/api";
 import type { CreateWeightEntryPayload } from "@vivaform/shared";
 
 const defaultState: CreateWeightEntryPayload = {
@@ -15,9 +15,9 @@ export const AddWeightForm = ({ date }: { date: string }) => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: createWeightEntry,
-    onSuccess: () => {
+    onSuccess: async () => {
       toast.success("Weight updated");
-      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });

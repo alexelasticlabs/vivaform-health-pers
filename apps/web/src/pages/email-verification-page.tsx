@@ -16,20 +16,17 @@ export function EmailVerificationPage() {
       return;
     }
 
-    const verify = async () => {
-      try {
-        const response = await verifyEmail(token);
+    verifyEmail(token)
+      .then((response) => {
         setStatus('success');
         setMessage(response.message);
-      } catch (error: any) {
+      })
+      .catch((error: any) => {
         setStatus('error');
         const errorMessage = error?.response?.data?.message || 'Invalid or expired verification token';
         setMessage(errorMessage);
         console.error(error);
-      }
-    };
-
-    verify();
+      });
   }, [token]);
 
   return (

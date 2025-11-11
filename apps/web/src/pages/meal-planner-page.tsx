@@ -3,7 +3,7 @@ import { Calendar, ChefHat, Clock, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
-import { getMealPlan, type DayPlan } from "../api/meal-plan";
+import { getMealPlan, type DayPlan } from "../api";
 import { useUserStore } from "../store/user-store";
 
 export function MealPlannerPage() {
@@ -72,7 +72,7 @@ export function MealPlannerPage() {
         <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 text-center">
           <h2 className="text-xl font-bold text-red-600 mb-2">Error</h2>
           <p className="text-gray-600 mb-4">
-            {error instanceof Error ? error.message : "Failed to load meal plan"}
+            {(error as Error).message || 'Failed to load meal plan'}
           </p>
           <button
             onClick={() => refetch()}
@@ -97,7 +97,7 @@ export function MealPlannerPage() {
       {/* Header */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-green-600 rounded-xl flex items-center justify-center">
                 <Calendar className="w-6 h-6 text-white" />

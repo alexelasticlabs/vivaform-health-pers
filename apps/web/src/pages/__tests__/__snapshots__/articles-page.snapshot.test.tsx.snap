@@ -1,0 +1,188 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ArticlesPage > renders default layout snapshot 1`] = `
+<div
+  class="min-h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 py-8"
+>
+  <div
+    class="mx-auto max-w-7xl px-4"
+  >
+    <div
+      class="mb-8"
+    >
+      <h1
+        class="text-4xl font-bold mb-2 flex items-center gap-3"
+      >
+        <svg
+          aria-hidden="true"
+          class="lucide lucide-book-open h-8 w-8 text-blue-600"
+          fill="none"
+          height="24"
+          stroke="currentColor"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          viewBox="0 0 24 24"
+          width="24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 7v14"
+          />
+          <path
+            d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"
+          />
+        </svg>
+        Health & Nutrition Library
+      </h1>
+      <p
+        class="text-gray-600 dark:text-gray-400"
+      >
+        Expert articles about nutrition, fitness, and healthy living
+      </p>
+    </div>
+    <div
+      class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      <div
+        class="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 h-64 flex flex-col gap-3"
+      >
+        <div
+          class="h-28 w-full rounded-lg bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-3 w-2/3 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="mt-auto flex gap-2"
+        >
+          <div
+            class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"
+          />
+          <div
+            class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </div>
+      </div>
+      <div
+        class="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 h-64 flex flex-col gap-3"
+      >
+        <div
+          class="h-28 w-full rounded-lg bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-3 w-2/3 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="mt-auto flex gap-2"
+        >
+          <div
+            class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"
+          />
+          <div
+            class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </div>
+      </div>
+      <div
+        class="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 h-64 flex flex-col gap-3"
+      >
+        <div
+          class="h-28 w-full rounded-lg bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-3 w-2/3 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="mt-auto flex gap-2"
+        >
+          <div
+            class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"
+          />
+          <div
+            class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </div>
+      </div>
+      <div
+        class="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 h-64 flex flex-col gap-3"
+      >
+        <div
+          class="h-28 w-full rounded-lg bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-3 w-2/3 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="mt-auto flex gap-2"
+        >
+          <div
+            class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"
+          />
+          <div
+            class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </div>
+      </div>
+      <div
+        class="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 h-64 flex flex-col gap-3"
+      >
+        <div
+          class="h-28 w-full rounded-lg bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-3 w-2/3 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="mt-auto flex gap-2"
+        >
+          <div
+            class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"
+          />
+          <div
+            class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </div>
+      </div>
+      <div
+        class="animate-pulse rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 h-64 flex flex-col gap-3"
+      >
+        <div
+          class="h-28 w-full rounded-lg bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-5 w-3/4 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="h-3 w-2/3 rounded bg-gray-200 dark:bg-gray-700"
+        />
+        <div
+          class="mt-auto flex gap-2"
+        >
+          <div
+            class="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700"
+          />
+          <div
+            class="h-4 w-12 rounded bg-gray-200 dark:bg-gray-700"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
