@@ -1,15 +1,18 @@
-﻿import { ValidationPipe, Logger } from "@nestjs/common";
+﻿﻿import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { raw } from "body-parser";
 import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const cookieParser = require('cookie-parser');
 import * as Sentry from '@sentry/node';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 import { AppModule } from "./app.module";
+import { validateEnvironment } from "./config/env.validator";
+
+// Validate environment variables before initializing anything
+validateEnvironment();
 
 const initSentryBackend = () => {
   const dsn = process.env.SENTRY_DSN;

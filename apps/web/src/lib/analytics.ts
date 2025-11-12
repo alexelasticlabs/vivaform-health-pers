@@ -1,4 +1,4 @@
-﻿import { hasMarketingConsent, loadConsent } from "@/lib/consent";
+﻿﻿import { loadConsent } from "@/lib/consent";
 
 declare global {
   interface Window {

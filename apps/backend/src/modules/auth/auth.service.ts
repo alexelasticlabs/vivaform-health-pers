@@ -1,4 +1,4 @@
-﻿import { Inject, Injectable, UnauthorizedException, BadRequestException, ConflictException } from "@nestjs/common";
+﻿﻿import { Inject, Injectable, UnauthorizedException, BadRequestException, ConflictException } from "@nestjs/common";
 import type { ConfigType } from "@nestjs/config";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { JwtService } from "@nestjs/jwt";
@@ -163,7 +163,7 @@ export class AuthService {
         token,
         { secret: this.jwtSettings.refreshSecret }
       );
-    } catch (_e) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
     if (!payload || payload.type !== "refresh") {

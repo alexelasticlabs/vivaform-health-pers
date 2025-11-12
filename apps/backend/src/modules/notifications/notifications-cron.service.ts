@@ -17,7 +17,6 @@ import { NotificationsService } from "./notifications.service";
 @Injectable()
 export class NotificationsCronService {
   private readonly logger = new Logger(NotificationsCronService.name);
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   private readonly prom: any = require('prom-client');
   private readonly jobCounter = new this.prom.Counter({ name: 'cron_notifications_jobs_total', help: 'Notifications cron jobs total', labelNames: ['job','status'] as const });
   private readonly jobDuration = new this.prom.Histogram({ name: 'cron_notifications_job_duration_ms', help: 'Duration of notifications cron jobs', labelNames: ['job'] as const });

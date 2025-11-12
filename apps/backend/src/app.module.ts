@@ -1,4 +1,4 @@
-﻿import { Module } from "@nestjs/common";
+﻿﻿import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ScheduleModule } from "@nestjs/schedule";
@@ -37,7 +37,6 @@ class MetricsController {
   private readonly prom: any;
   constructor() {
     // Lazy require to avoid TS type issues
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     this.prom = require('prom-client');
     try { this.prom.collectDefaultMetrics(); } catch {}
   }

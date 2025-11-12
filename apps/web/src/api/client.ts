@@ -1,6 +1,5 @@
-﻿import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+﻿﻿import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { toast } from 'sonner';
-import { NavigateFunction } from 'react-router-dom';
 
 import { useUserStore, useOfflineStore } from "@/store";
 import type { AuthTokens, AuthUser } from "@vivaform/shared";
@@ -374,7 +373,7 @@ if (import.meta.env.DEV && import.meta.env.VITE_API_MOCKS === '1') {
 }
 
 let lastAccessDeniedAt = 0;
-function notifyAccessDeniedOnce() {
+function _notifyAccessDeniedOnce() {
   const now = Date.now();
   if (now - lastAccessDeniedAt > 4000) {
     lastAccessDeniedAt = now;

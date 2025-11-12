@@ -1,4 +1,4 @@
-﻿import type { INestApplication } from "@nestjs/common";
+﻿﻿import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import * as argon2 from "argon2";
 import request from "supertest";
@@ -6,7 +6,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { AppE2eModule } from "../../app.e2e.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
-import { truncateAll } from '../setup-e2e';
+import { truncateAll as _truncateAll } from '../setup-e2e';
 
 describe("AppModule e2e", () => {
   let app: INestApplication;

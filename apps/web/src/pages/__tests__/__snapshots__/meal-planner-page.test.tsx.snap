@@ -299,7 +299,7 @@ exports[`MealPlannerPage > matches snapshot of initial render and shows daily to
             <p
               class="font-bold"
             >
-              11
+              12
             </p>
           </div>
         </button>
@@ -318,7 +318,7 @@ exports[`MealPlannerPage > matches snapshot of initial render and shows daily to
             <p
               class="font-bold"
             >
-              12
+              13
             </p>
           </div>
         </button>
@@ -333,7 +333,7 @@ exports[`MealPlannerPage > matches snapshot of initial render and shows daily to
             class="text-xl font-bold text-gray-900 mb-4"
           >
             Menu for 
-            Tuesday, November 11
+            Wednesday, November 12
           </h2>
         </div>
         <div
