@@ -85,31 +85,43 @@ export const trackMarketing = (event: string, payload?: Record<string, unknown>)
   if (GOOGLE_ADS_ID && window.gtag) window.gtag("event", event, payload ?? {});
 };
 
+// Dev noop reference to avoid tree-shake warning about unused export
+if (import.meta.env.DEV) {
+  void trackMarketing;
+}
+
 // PRODUCT
 const PROVIDER = (import.meta.env.VITE_PRODUCT_ANALYTICS_PROVIDER || 'beacon') as 'beacon' | 'fetch' | 'amplitude' | 'posthog';
 const AMPLITUDE_API_KEY = import.meta.env.VITE_AMPLITUDE_API_KEY as string | undefined;
 const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
 const POSTHOG_HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) || 'https://us.posthog.com';
 
+function safeRandomUUID(): string | null {
+  try {
+    if (typeof globalThis !== 'undefined' && (globalThis as any).crypto) {
+      const c: Crypto = (globalThis as any).crypto;
+      if (typeof (c as any).randomUUID === 'function') {
+        return (c as any).randomUUID();
+      }
+      if (typeof c.getRandomValues === 'function') {
+        const bytes = new Uint8Array(16);
+        c.getRandomValues(bytes);
+        bytes[6] = (bytes[6] & 0x0f) | 0x40; // v4
+        bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant
+        const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+        return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+      }
+    }
+  } catch {}
+  return null;
+}
+
 function getAnonId() {
   try {
     const k = 'vf_anon_id';
     const v = localStorage.getItem(k);
     if (v) return v;
-    // Prefer secure random UUID
-    // @ts-ignore
-    const uuid = (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : (function(){
-      // @ts-ignore
-      if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-        const bytes = new Uint8Array(16);
-        // @ts-ignore
-        crypto.getRandomValues(bytes);
-        bytes[6] = (bytes[6] & 0x0f) | 0x40;
-        bytes[8] = (bytes[8] & 0x3f) | 0x80;
-        const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-        return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
-      }
-      // non-crypto fallback: time-based id
+    const uuid = safeRandomUUID() ?? (function(){
       const now = Date.now().toString(16).padStart(12, '0');
       return `00000000-0000-4000-8000-${now.slice(-12)}`;
     })();

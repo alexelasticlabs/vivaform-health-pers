@@ -1,23 +1,26 @@
 import { Controller, Post, Headers, Req, BadRequestException, Logger } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { StripeService } from '../stripe/stripe.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import type Stripe from 'stripe';
+import { getRedis } from '../../common/utils/redis';
 
-@SkipThrottle()
 @Controller('webhooks')
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
+  private readonly redis = getRedis();
+  private processedIds = new Set<string>(); // fallback на память, если нет Redis
 
   constructor(
     private readonly stripeService: StripeService,
     private readonly subscriptionsService: SubscriptionsService
   ) {}
 
+  @Throttle({ name: 'medium' })
   @Post('stripe')
   async handleStripeWebhook(
     @Headers('stripe-signature') signature: string,
@@ -42,6 +45,31 @@ export class WebhooksController {
     } catch (error) {
       this.logger.error(`⚠️ Webhook signature verification failed`, error as any);
       throw new BadRequestException('Invalid signature');
+    }
+
+    // Idempotency: если событие уже обрабатывалось — игнорируем
+    const evtId = event.id;
+    try {
+      if (this.redis) {
+        const key = `stripe:webhook:${evtId}`;
+        const res = await (this.redis as any).set(key, '1', 'EX', 24 * 60 * 60, 'NX');
+        if (res !== 'OK') {
+          this.logger.log(`🔁 Duplicate webhook ignored: ${evtId} (${event.type})`);
+          return { received: true, duplicate: true } as any;
+        }
+      } else {
+        if (this.processedIds.has(evtId)) {
+          this.logger.log(`🔁 Duplicate webhook (memory) ignored: ${evtId}`);
+          return { received: true, duplicate: true } as any;
+        }
+        this.processedIds.add(evtId);
+        // Очистка набора при росте
+        if (this.processedIds.size > 5000) {
+          this.processedIds.clear();
+        }
+      }
+    } catch (e) {
+      this.logger.warn(`Idempotency check failed, proceeding without it: ${(e as Error)?.message}`);
     }
 
     this.logger.log(`🔔 Received webhook: ${event.type}`);

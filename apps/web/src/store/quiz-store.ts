@@ -83,24 +83,24 @@ interface QuizStore {
 // Generate UUID v4
 function generateClientId(): string {
   try {
-    // Prefer secure random UUID when available
-    // @ts-ignore
-    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
-    // @ts-ignore
-    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
-      const bytes = new Uint8Array(16);
-      // @ts-ignore
-      crypto.getRandomValues(bytes);
-      bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
-      bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10
-      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
-      return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+    if (typeof globalThis !== 'undefined' && (globalThis as any).crypto) {
+      const c: Crypto = (globalThis as any).crypto;
+      if (typeof (c as any).randomUUID === 'function') {
+        return (c as any).randomUUID();
+      }
+      if (typeof c.getRandomValues === 'function') {
+        const bytes = new Uint8Array(16);
+        c.getRandomValues(bytes);
+        bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+        bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10
+        const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+        return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+      }
     }
   } catch {}
   // Ultimate fallback (non-crypto): timestamp-based stable id
   const now = Date.now().toString(16).padStart(12, '0');
-  const id = `00000000-0000-4000-8000-${now.slice(-12)}`;
-  return id;
+  return `00000000-0000-4000-8000-${now.slice(-12)}`;
 }
 
 // Get or create clientId from localStorage

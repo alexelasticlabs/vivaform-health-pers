@@ -23,15 +23,12 @@ const initSentryBackend = () => {
   let integrations: any[] = [];
   try {
     if (process.env.SENTRY_PROFILING === '1') {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       const mod = require('@sentry/profiling-node');
       if (mod?.nodeProfilingIntegration) {
         integrations.push(mod.nodeProfilingIntegration());
       }
     }
   } catch (e) {
-    // На Windows бинарник может отсутствовать — тихо пропускаем профайлинг
-    // eslint-disable-next-line no-console
     console.warn('[sentry] profiling disabled:', (e as Error)?.message);
   }
   Sentry.init({
@@ -101,12 +98,17 @@ async function bootstrap() {
           styleSrc: ["'self'", "'unsafe-inline'"],
           scriptSrc: ["'self'"],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'"].concat(corsOrigins).concat(['https://www.googletagmanager.com','https://www.google-analytics.com'])
+          connectSrc: ["'self'"].concat(corsOrigins).concat(['https://www.googletagmanager.com','https://www.google-analytics.com']),
+          frameAncestors: ["'self'"]
         }
       },
       crossOriginEmbedderPolicy: false
     })
   );
+
+  // Дополнительные заголовки безопасности
+  app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
+  app.use(helmet.hsts({ maxAge: 15552000 })); // 180 дней
 
   app.useGlobalPipes(
     new ValidationPipe({
