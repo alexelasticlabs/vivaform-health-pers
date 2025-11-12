@@ -27,10 +27,11 @@
 
 ### Email Service ✅
 - [x] Dual-mode support: SendGrid + SMTP
-- [x] Email verification flow
+- [x] Email verification flow (tokens JWT type=email_verification, 24h TTL)
 - [x] Password reset flow
-- [x] Welcome emails
+- [x] Welcome emails (suppressed in test mode)
 - [x] Subscription confirmation emails
+- [x] Dev endpoint /auth/test-email is protected by JWT guard
 
 ### Push Notifications ✅
 - [x] Retry-логика с exponential backoff (3 попытки)
@@ -39,7 +40,7 @@
 - [x] Периодическая очистка невалидных токенов из БД (cron + немедленное удаление)
 
 ### Quiz Endpoints ✅
-- [x] /quiz/preview - анонимный доступ для маркетинговой воронки
+- [x] /quiz/preview - анонимный доступ, расчёт BMR/TDEE/BMI + рекомендации; авторизованным сохраняем драфт
 - [x] /quiz/submit - требует аутентификацию для сохранения результатов
 
 ---

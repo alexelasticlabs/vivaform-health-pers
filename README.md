@@ -324,4 +324,33 @@ This project is licensed under the MIT License.
 
 ---
 
-**Made with ❤️ by VivaForm Team**
+## 🧪 Demo/Mocks (DEV)
+
+- В DEV доступны моки API:
+  - Принудительно: `VITE_API_MOCKS=1` — мокаем `/auth/*`, `/subscriptions/*`, `/quiz/*`.
+  - Автоматически: `VITE_AUTO_AUTH_MOCKS=1` — если бэкенд недоступен (Network/5xx), автоматически включим моки для `/auth/*` и расширенных эндпойнтов `/subscriptions/*`, `/quiz/*` для стабильного демо.
+  - При активных моках в UI отображается бейдж “API mocks are active (demo mode)”.
+  - При необходимости приглушить логи: `VITE_SILENCE_MOCK_LOGS=1`.
+
+## 📈 Аналитика
+
+- Маркетинговая аналитика (пиксели) включается только при consent.marketing.
+- Продуктовая аналитика включается только при consent.analytics и поддерживает провайдеры:
+  - `VITE_PRODUCT_ANALYTICS_PROVIDER=beacon|fetch|amplitude|posthog`
+  - `VITE_PRODUCT_ANALYTICS_ENDPOINT` (для beacon/fetch)
+  - `VITE_AMPLITUDE_API_KEY` (для amplitude)
+  - `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST` (для posthog)
+- В DEV можно приглушить логи аналитики: `VITE_SILENCE_ANALYTICS_LOGS=1`.
+
+---
+
+## 🔧 Полезные переменные окружения (web)
+
+- `VITE_API_URL` — адрес API в проде (обязателен)
+- `VITE_API_MOCKS` — принудительные моки API в DEV
+- `VITE_AUTO_AUTH_MOCKS` — авто-моки при недоступности бэкенда (DEV)
+- `VITE_SILENCE_MOCK_LOGS` — приглушить логи моков
+- `VITE_META_PIXEL_ID`, `VITE_GOOGLE_ADS_ID` — маркетинговые пиксели
+- `VITE_PRODUCT_ANALYTICS_PROVIDER`, `VITE_PRODUCT_ANALYTICS_ENDPOINT`, `VITE_AMPLITUDE_API_KEY`, `VITE_POSTHOG_KEY`, `VITE_POSTHOG_HOST`
+- `VITE_DEV_TOOLBOX` — включить React Buddy DevToolbox в DEV
+````
