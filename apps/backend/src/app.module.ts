@@ -1,4 +1,4 @@
-﻿﻿import { Module } from "@nestjs/common";
+﻿import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ScheduleModule } from "@nestjs/schedule";
@@ -23,6 +23,7 @@ import { StripeModule } from "./modules/stripe/stripe.module";
 import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
 import { QuizModule } from "./modules/quiz/quiz.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
+import { BusinessMetricsService } from './common/metrics/business-metrics.service';
 
 @Controller('health')
 class HealthController {
@@ -99,7 +100,8 @@ class MetricsController {
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard
-    }
+    },
+    BusinessMetricsService
   ]
 })
 export class AppModule {}

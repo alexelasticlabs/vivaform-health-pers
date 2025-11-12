@@ -130,3 +130,9 @@ test('example', async ({ authenticatedPage }) => {
 ## Real checkout (Stripe)
 
 `premium-purchase.real.spec.ts` остаётся пропущенным по умолчанию. Запускайте вручную при наличии реальных ключей Stripe.
+
+---
+
+# Перенесено
+
+Актуальная версия: docs/testing.md

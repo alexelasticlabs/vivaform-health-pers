@@ -41,7 +41,7 @@ model User {
   emailVerified       Boolean              @default(false)
   emailVerifiedAt     DateTime?
   mustChangePassword  Boolean              @default(false)
-  pushToken           String? // Expo Push Token for notifications
+  pushToken           String?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   profile             Profile?
@@ -55,6 +55,7 @@ model User {
   passwordResetTokens PasswordResetToken[]
   tempPasswords       TempPassword[]
   auditLogs           AuditLog[]
+  SupportTicket       SupportTicket[]
 }
 
 model Profile {
@@ -107,40 +108,32 @@ model Profile {
   createdAt DateTime @default(now())
 }
 
-// QuizProfile stores the complete quiz data with normalized fields
 model QuizProfile {
   id     String @id @default(cuid())
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 
   // Tracking fields
-  clientId String? // For analytics - links to pre-registration draft
-  version  Int     @default(1) // Schema version for migrations
+  clientId String?
+  version  Int     @default(1)
 
-  // Raw quiz answers (JSON) - stores complete user responses
-  answers Json // Full structure: { diet: {...}, body: {...}, goals: {...}, habits: {...}, ... }
+  // Raw quiz answers (JSON)
+  answers Json
 
-  // Normalized/cached fields for quick access and calculations
-  // Diet
-  dietPlan String? // e.g., "Mediterranean", "Vegetarian", "Keto"
-
-  // Body metrics
-  heightCm Float?
-  weightKg Float?
-  bmi      Float? // Calculated: kg / (m^2)
-
-  // Goals
-  goalType    String? // "lose", "maintain", "gain"
-  goalDeltaKg Float? // Target weight change (positive or negative)
-  etaMonths   Int? // Expected timeline in months
-
-  // Habits (commonly queried fields)
+  // Normalized fields
+  dietPlan           String?
+  heightCm           Float?
+  weightKg           Float?
+  bmi                Float?
+  goalType           String?
+  goalDeltaKg        Float?
+  etaMonths          Int?
   mealsPerDay        Int?
   cookingTimeMinutes Int?
   exerciseRegularly  Boolean?
 
   // Metadata
-  completedAt DateTime? // When quiz was fully completed
+  completedAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -199,6 +192,77 @@ model Recommendation {
   @@index([userId, date])
 }
 
+// Admin/Support/Settings
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model SupportTicket {
+  id              String           @id @default(cuid())
+  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?
+  subject         String
+  status          TicketStatus     @default(OPEN)
+  priority        TicketPriority   @default(MEDIUM)
+  assignedTo      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  lastUserReplyAt DateTime?
+  messages        SupportMessage[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+  @@index([createdAt])
+}
+
+model SupportMessage {
+  id          String        @id @default(cuid())
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  ticketId    String
+  authorType  String
+  authorId    String?
+  body        String
+  attachments Json?
+  createdAt   DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedBy String?
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  key       String
+  version   Int      @default(1)
+  subject   String
+  html      String   @db.Text
+  createdBy String?
+  createdAt DateTime @default(now())
+
+  @@unique([key, version])
+  @@index([key])
+}
+
+// Subscriptions
+
 enum SubscriptionStatus {
   ACTIVE
   TRIALING
@@ -216,56 +280,42 @@ enum SubscriptionPlan {
 }
 
 model Subscription {
-  id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
-
-  // Stripe identifiers
-  stripeCustomerId     String @unique
-  stripeSubscriptionId String @unique
+  id                   String             @id @default(cuid())
+  user                 User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId               String             @unique
+  stripeCustomerId     String             @unique
+  stripeSubscriptionId String             @unique
   stripePriceId        String
+  plan                 SubscriptionPlan
+  status               SubscriptionStatus
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
+  trialStart           DateTime?
+  trialEnd             DateTime?
+  metadata             Json?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
-  // Subscription details
-  plan   SubscriptionPlan
-  status SubscriptionStatus
-
-  // Billing period
-  currentPeriodStart DateTime
-  currentPeriodEnd   DateTime
-
-  // Cancellation
-  cancelAtPeriodEnd Boolean   @default(false)
-  canceledAt        DateTime?
-
-  // Trial
-  trialStart DateTime?
-  trialEnd   DateTime?
-
-  // Metadata
-  metadata Json? // Additional data from Stripe
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([stripeCustomerId])
-  @@index([stripeSubscriptionId])
   @@index([status])
 }
+
+// Catalog
 
 model MealTemplate {
   id                 String   @id @default(cuid())
   name               String
-  category           String // "breakfast", "lunch", "dinner", "snack"
-  dietPlans          String[] // ["mediterranean", "carnivore", "anti-inflammatory"]
+  category           String
+  dietPlans          String[]
   calories           Int
-  protein            Float // grams
-  fat                Float // grams
-  carbs              Float // grams
+  protein            Float
+  fat                Float
+  carbs              Float
   cookingTimeMinutes Int
-  complexity         String // "simple", "medium", "complex"
-  allergens          String[] // ["nuts", "dairy", "gluten", "eggs", "fish", "shellfish", "soy"]
-  avoidedIngredients String[] // ["meat", "dairy", "gluten", etc.]
+  complexity         String
+  allergens          String[]
+  avoidedIngredients String[]
   ingredients        String[]
   instructions       String?
   servings           Int      @default(1)
@@ -273,7 +323,6 @@ model MealTemplate {
   updatedAt          DateTime @updatedAt
 
   @@index([category])
-  @@index([dietPlans])
 }
 
 model FoodItem {
@@ -287,10 +336,10 @@ model FoodItem {
   carbsPer100g     Float
   fiberPer100g     Float?
   sugarPer100g     Float?
-  servingSize      String // "100g", "1 piece", "1 cup", etc.
-  servingSizeGrams Float? // weight of serving in grams (if applicable)
-  barcode          String? // for future barcode scanning
-  verified         Boolean  @default(false) // admin-verified entries
+  servingSize      String
+  servingSizeGrams Float?
+  barcode          String?
+  verified         Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -299,15 +348,17 @@ model FoodItem {
   @@index([barcode])
 }
 
+// Articles, Password reset, Audit
+
 model Article {
   id          String    @id @default(cuid())
   title       String
   slug        String    @unique
   excerpt     String?
-  content     String    @db.Text
-  category    String // "Nutrition", "Fitness", "Mental Health", "Recipes", "Tips"
+  content     String
+  category    String
   coverImage  String?
-  tags        String[]  @default([])
+  tags        String[]
   published   Boolean   @default(false)
   publishedAt DateTime?
   viewCount   Int       @default(0)

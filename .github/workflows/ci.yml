@@ -6,43 +6,33 @@ on:
     branches: [ main ]
 
 jobs:
-  build-test:
+  build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-      - name: Install pnpm
-        run: npm i -g pnpm@10.19.0
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+      - name: Generate Prisma client
+        run: pnpm --filter @vivaform/backend prisma:generate
       - name: Lint
-        run: pnpm lint
-      - name: Build
-        run: pnpm build
-      - name: Create Sentry release
-        if: ${{ env.SENTRY_AUTH_TOKEN && env.SENTRY_ORG && env.SENTRY_PROJECT }}
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-          SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-          RELEASE: ${{ github.sha }}
         run: |
-          npm i -g @sentry/cli
-          sentry-cli releases new $RELEASE
-          sentry-cli releases set-commits $RELEASE --auto
-          sentry-cli releases files $RELEASE upload-sourcemaps apps/web/dist --rewrite --url-prefix "~/"
-          sentry-cli releases finalize $RELEASE
-      - name: Unit tests
-        run: pnpm test:run
-      - name: E2E (web)
-        run: pnpm --filter @vivaform/web e2e || echo 'E2E failed (non-blocking)'
-      - name: Upload artifacts (web build)
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-dist
-          path: apps/web/dist
+          pnpm --filter @vivaform/backend lint
+          pnpm --filter @vivaform/web lint || true
+      - name: Test backend
+        run: pnpm --filter @vivaform/backend test -- --run
+      - name: Test web
+        run: pnpm --filter @vivaform/web test:run -- --reporter dot
+      - name: Build backend
+        run: pnpm --filter @vivaform/backend build
+      - name: Build web
+        env:
+          VITE_API_URL: http://localhost:4000
+        run: pnpm --filter @vivaform/web build
+

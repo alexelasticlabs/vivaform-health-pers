@@ -2,11 +2,12 @@
 import { Outlet } from "react-router-dom";
 
 import { AppShell } from "@/components/layouts/app-shell";
+import { PageSkeleton } from "@/components/ui/skeleton";
 
 export const AppLayout = () => {
   return (
     <AppShell>
-      <Suspense fallback={<div className="p-6">Loading data…</div>}>
+      <Suspense fallback={<PageSkeleton />}>
         <Outlet />
       </Suspense>
     </AppShell>

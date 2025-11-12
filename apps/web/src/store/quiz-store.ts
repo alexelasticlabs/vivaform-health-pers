@@ -1,6 +1,19 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Безопасные хелперы доступа к Storage
+const safeStorage = {
+  getItem(key: string): string | null {
+    try { return typeof window !== 'undefined' ? window.localStorage.getItem(key) : null; } catch { return null; }
+  },
+  setItem(key: string, value: string) {
+    try { if (typeof window !== 'undefined') window.localStorage.setItem(key, value); } catch { /* ignore */ }
+  },
+  removeItem(key: string) {
+    try { if (typeof window !== 'undefined') window.localStorage.removeItem(key); } catch { /* ignore */ }
+  }
+};
+
 // Quiz answer structure matching backend DTO
 export interface QuizAnswers {
   diet?: {
@@ -69,20 +82,34 @@ interface QuizStore {
 
 // Generate UUID v4
 function generateClientId(): string {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
-    const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
-    return v.toString(16);
-  });
+  try {
+    // Prefer secure random UUID when available
+    // @ts-ignore
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
+    // @ts-ignore
+    if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+      const bytes = new Uint8Array(16);
+      // @ts-ignore
+      crypto.getRandomValues(bytes);
+      bytes[6] = (bytes[6] & 0x0f) | 0x40; // version 4
+      bytes[8] = (bytes[8] & 0x3f) | 0x80; // variant 10
+      const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+      return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+    }
+  } catch {}
+  // Ultimate fallback (non-crypto): timestamp-based stable id
+  const now = Date.now().toString(16).padStart(12, '0');
+  const id = `00000000-0000-4000-8000-${now.slice(-12)}`;
+  return id;
 }
 
 // Get or create clientId from localStorage
 function getOrCreateClientId(): string {
-  const stored = localStorage.getItem('vivaform-quiz-clientId');
+  const stored = safeStorage.getItem('vivaform-quiz-clientId');
   if (stored) return stored;
   
   const newId = generateClientId();
-  localStorage.setItem('vivaform-quiz-clientId', newId);
+  safeStorage.setItem('vivaform-quiz-clientId', newId);
   return newId;
 }
 
@@ -99,7 +126,7 @@ export const useQuizStore = create<QuizStore>()(
   persist(
     (set, get) => ({
       ...initialState,
-      clientId: getOrCreateClientId(),
+      clientId: (typeof window === 'undefined') ? '' : getOrCreateClientId(),
 
       setStep: (step: number) => set({ currentStep: step }),
 
@@ -162,13 +189,13 @@ export const useQuizStore = create<QuizStore>()(
           currentStep: state.currentStep,
           savedAt: Date.now(),
         };
-        localStorage.setItem(`quiz:draft:${state.clientId}`, JSON.stringify(draft));
+        safeStorage.setItem(`quiz:draft:${state.clientId}`, JSON.stringify(draft));
         set({ lastSaved: Date.now() });
       },
 
       loadFromLocalStorage: () => {
         const state = get();
-        const stored = localStorage.getItem(`quiz:draft:${state.clientId}`);
+        const stored = safeStorage.getItem(`quiz:draft:${state.clientId}`);
         if (stored) {
           try {
             const draft = JSON.parse(stored);
@@ -185,8 +212,8 @@ export const useQuizStore = create<QuizStore>()(
 
       clearDraft: () => {
         const state = get();
-        localStorage.removeItem(`quiz:draft:${state.clientId}`);
-        localStorage.removeItem('vivaform-quiz-clientId');
+        safeStorage.removeItem(`quiz:draft:${state.clientId}`);
+        safeStorage.removeItem('vivaform-quiz-clientId');
         set({
           ...initialState,
           clientId: generateClientId(),
@@ -197,7 +224,7 @@ export const useQuizStore = create<QuizStore>()(
 
       reset: () => {
         const newClientId = generateClientId();
-        localStorage.setItem('vivaform-quiz-clientId', newClientId);
+        safeStorage.setItem('vivaform-quiz-clientId', newClientId);
         set({
           ...initialState,
           clientId: newClientId,

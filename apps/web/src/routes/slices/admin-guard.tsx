@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { useUserStore } from '@/store/user-store';
 import { Navigate } from 'react-router-dom';
+import { PageSkeleton } from '@/components/ui/skeleton';
 
 const AdminLazy = React.lazy(() => import('@/pages/admin-page').then(m => ({ default: m.AdminPage })));
 
@@ -13,9 +14,8 @@ export const AdminGuard = () => {
     return <Navigate to="/app" replace />;
   }
   return (
-    <React.Suspense fallback={<div className="p-4">Loading...</div>}>
+    <React.Suspense fallback={<PageSkeleton />}>
       <AdminLazy />
     </React.Suspense>
   );
 };
-

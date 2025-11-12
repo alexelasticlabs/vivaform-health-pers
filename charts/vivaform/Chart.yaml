@@ -1,0 +1,19 @@
+﻿apiVersion: v2
+name: vivaform
+version: 0.1.0
+appVersion: "0.1.0"
+description: VivaForm nutrition & health platform
+keywords:
+  - health
+  - nutrition
+  - subscriptions
+type: application
+dependencies:
+  - name: loki
+    version: 5.41.4
+    repository: https://grafana.github.io/helm-charts
+    condition: logging.loki.enabled
+  - name: promtail
+    version: 6.16.6
+    repository: https://grafana.github.io/helm-charts
+    condition: logging.promtail.enabled

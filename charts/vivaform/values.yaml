@@ -1,0 +1,87 @@
+﻿image:
+  registry: ghcr.io/your-org
+  backendRepository: vivaform-backend
+  webRepository: vivaform-web
+  tag: latest
+
+backend:
+  replicaCount: 2
+  env:
+    DATABASE_URL: ""
+    NODE_ENV: production
+    STRIPE_API_KEY: ""
+    STRIPE_WEBHOOK_SECRET: ""
+    STRIPE_PRICE_MONTHLY: ""
+    STRIPE_PRICE_QUARTERLY: ""
+    STRIPE_PRICE_ANNUAL: ""
+    EMAIL_SERVICE: smtp
+    SMTP_USER: ""
+    SMTP_PASSWORD: ""
+    APP_PORT: 4000
+    REDIS_URL: ""
+  resources: {}
+  service:
+    type: ClusterIP
+    port: 4000
+
+web:
+  replicaCount: 2
+  env: {}
+  resources: {}
+  service:
+    type: ClusterIP
+    port: 80
+
+postgres:
+  enabled: true
+  image: postgres:16-alpine
+  storage: 10Gi
+  username: vivaform
+  password: vivaform
+  database: vivaform
+
+redis:
+  enabled: true
+  image: redis:7-alpine
+
+ingress:
+  host: vivaform.example.com
+  traefikEnabled: false
+
+monitoring:
+  serviceMonitor: true
+
+hpa:
+  backend:
+    minReplicas: 2
+    maxReplicas: 10
+    cpuTarget: 70
+  web:
+    minReplicas: 2
+    maxReplicas: 10
+    cpuTarget: 60
+
+logging:
+  loki:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 10Gi
+    config:
+      table_manager:
+        retention_deletes_enabled: true
+        retention_period: 168h  # 7 дней
+  promtail:
+    enabled: true
+    config:
+      clients:
+        - url: http://vivaform-loki:3100/loki/api/v1/push
+      snippets:
+        pipelineStages:
+          - docker: {}
+          - cri: {}
+          - labeldrop:
+              - filename
+alerting:
+  enabled: true
+  prometheusReleaseLabel: prometheus-operator

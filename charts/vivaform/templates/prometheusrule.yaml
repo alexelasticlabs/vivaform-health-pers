@@ -1,0 +1,85 @@
+﻿{{- if .Values.alerting.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: {{ include "vivaform.fullname" . }}-alerts
+  labels:
+    release: {{ .Values.alerting.prometheusReleaseLabel }}
+    app: {{ include "vivaform.name" . }}
+spec:
+  groups:
+    - name: vivaform-backend-alerts
+      rules:
+        - alert: HighErrorRate
+          expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High 5xx error rate (>5%)"
+            description: "HTTP 5xx errors exceed 5% over last 5m"
+            runbook_url: "https://internal.docs/runbooks/high-error-rate"
+        - alert: HighErrorRateCritical
+          expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.10
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Critical 5xx error rate (>10%)"
+            description: "HTTP 5xx errors exceed 10% over last 5m"
+            runbook_url: "https://internal.docs/runbooks/high-error-rate"
+        - alert: HighLatencyP95
+          expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 0.8
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High latency p95 (>800ms)"
+            description: "95th percentile latency above 800ms for 2m"
+            runbook_url: "https://internal.docs/runbooks/high-latency"
+        - alert: HighLatencyP99
+          expr: histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 1.2
+          for: 2m
+          labels:
+            severity: critical
+          annotations:
+            summary: "High latency p99 (>1.2s)"
+            description: "99th percentile latency above 1.2s for 2m"
+            runbook_url: "https://internal.docs/runbooks/high-latency"
+        - alert: BusinessMRRZero
+          expr: vivaform_active_subscriptions > 0 and vivaform_mrr_monthly == 0
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "MRR is zero while active subscriptions exist"
+            description: "Check Stripe price mapping or normalization logic."
+            runbook_url: "https://internal.docs/runbooks/mrr-zero"
+        - alert: BusinessMRRDrop
+          expr: (avg_over_time(vivaform_mrr_monthly[24h])) > 0 and (avg_over_time(vivaform_mrr_monthly[24h]) - vivaform_mrr_monthly) / avg_over_time(vivaform_mrr_monthly[24h]) > 0.15
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "MRR dropped >15% vs 24h average"
+            description: "Investigate recent cancellations or Stripe integration issues."
+            runbook_url: "https://internal.docs/runbooks/mrr-drop"
+        - alert: PremiumRatioDrop
+          expr: avg_over_time(vivaform_premium_ratio[30m]) - vivaform_premium_ratio > 0.2
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Premium ratio sudden drop"
+            description: "Premium user ratio dropped >20 percentage points vs 30m average"
+            runbook_url: "https://internal.docs/runbooks/premium-ratio-drop"
+        - alert: DeadmanNoMetrics
+          expr: sum(up) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "No targets reporting metrics"
+            description: "Potential global outage or Prometheus scrape failure."
+            runbook_url: "https://internal.docs/runbooks/deadman-switch"
+{{- end }}

@@ -5,7 +5,7 @@ import type { Response, Request } from "express";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
-import type { AuthService } from "./auth.service";
+import { AuthService } from "./auth.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { ForgotPasswordDto, ResetPasswordDto, RequestTempPasswordDto, ForceChangePasswordDto } from "./dto/forgot-password.dto";
 import type { RegisterDto } from "./dto/register.dto";

@@ -1,4 +1,4 @@
-﻿﻿import { ValidationPipe, Logger } from "@nestjs/common";
+﻿import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { NestFactory } from "@nestjs/core";
 import { raw } from "body-parser";
@@ -6,10 +6,12 @@ import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 const cookieParser = require('cookie-parser');
 import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 import { AppModule } from "./app.module";
 import { validateEnvironment } from "./config/env.validator";
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
+import { requestIdMiddleware } from './common/middleware/request-id.middleware';
 
 // Validate environment variables before initializing anything
 validateEnvironment();
@@ -17,10 +19,25 @@ validateEnvironment();
 const initSentryBackend = () => {
   const dsn = process.env.SENTRY_DSN;
   if (!dsn) return;
+  // Безопасно подключаем профайлинг только если бинарник доступен
+  let integrations: any[] = [];
+  try {
+    if (process.env.SENTRY_PROFILING === '1') {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const mod = require('@sentry/profiling-node');
+      if (mod?.nodeProfilingIntegration) {
+        integrations.push(mod.nodeProfilingIntegration());
+      }
+    }
+  } catch (e) {
+    // На Windows бинарник может отсутствовать — тихо пропускаем профайлинг
+    // eslint-disable-next-line no-console
+    console.warn('[sentry] profiling disabled:', (e as Error)?.message);
+  }
   Sentry.init({
     dsn,
     environment: process.env.NODE_ENV,
-    integrations: [nodeProfilingIntegration()],
+    integrations,
     tracesSampleRate: 0.2,
     release: process.env.GIT_COMMIT || process.env.VERCEL_GIT_COMMIT_SHA || undefined
   });
@@ -73,6 +90,9 @@ async function bootstrap() {
 
   app.use("/webhooks/stripe", raw({ type: "application/json" }));
 
+  // request id for tracing
+  app.use(requestIdMiddleware);
+
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -81,7 +101,7 @@ async function bootstrap() {
           styleSrc: ["'self'", "'unsafe-inline'"],
           scriptSrc: ["'self'"],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'"].concat(corsOrigins)
+          connectSrc: ["'self'"].concat(corsOrigins).concat(['https://www.googletagmanager.com','https://www.google-analytics.com'])
         }
       },
       crossOriginEmbedderPolicy: false
@@ -95,6 +115,10 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true }
     })
   );
+
+  // global error filter and metrics interceptor
+  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalInterceptors(new MetricsInterceptor());
 
   app.use(cookieParser());
 

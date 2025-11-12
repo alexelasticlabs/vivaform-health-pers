@@ -1,40 +1,71 @@
 ﻿import { createBrowserRouter } from "react-router-dom";
 import React from "react";
+import { RouteErrorBoundary } from "./error-boundary";
+import { PageSkeleton } from "@/components/ui/skeleton";
 
-const MarketingLayout = React.lazy(() => import("./slices/marketing-layout").then(m => ({ default: m.MarketingLayout })));
-const RequireAuthOutlet = React.lazy(() => import("./require-auth").then(m => ({ default: m.RequireAuthOutlet })));
-const DashboardPage = React.lazy(() => import("@/pages/dashboard/dashboard-page").then(m => ({ default: m.DashboardPage })));
-const LandingPage = React.lazy(() => import("@/pages/landing-page").then(m => ({ default: m.LandingPage })));
-const LoginPage = React.lazy(() => import("@/pages/login-page").then(m => ({ default: m.LoginPage })));
-const NotFoundPage = React.lazy(() => import("@/pages/not-found-page").then(m => ({ default: m.NotFoundPage })));
-const RegisterPage = React.lazy(() => import("@/pages/register-page").then(m => ({ default: m.RegisterPage })));
-const ProgressPage = React.lazy(() => import("@/pages/progress-page").then(m => ({ default: m.ProgressPage })));
-const RecommendationsPage = React.lazy(() => import("@/pages/recommendations-page").then(m => ({ default: m.RecommendationsPage })));
-const SettingsPage = React.lazy(() => import("@/pages/settings-page").then(m => ({ default: m.SettingsPage })));
-const QuizPage = React.lazy(() => import("@/pages/quiz-page").then(m => ({ default: m.QuizPage })));
-const ForgotPasswordPage = React.lazy(() => import("@/pages/forgot-password-page").then(m => ({ default: m.ForgotPasswordPage })));
-const ResetPasswordPage = React.lazy(() => import("@/pages/reset-password-page").then(m => ({ default: m.ResetPasswordPage })));
-const ForceChangePasswordPage = React.lazy(() => import("@/pages/force-change-password-page").then(m => ({ default: m.ForceChangePasswordPage })));
-const EmailVerificationPage = React.lazy(() => import("@/pages/email-verification-page").then(m => ({ default: m.EmailVerificationPage })));
-const PremiumPage = React.lazy(() => import("@/pages/premium-page"));
-const PremiumHistoryPage = React.lazy(() => import("@/pages/premium-history-page").then(m => ({ default: m.default })));
-const MealPlannerPage = React.lazy(() => import("@/pages/meal-planner-page").then(m => ({ default: m.MealPlannerPage })));
-const AdminGuard = React.lazy(() => import("@/routes/slices/admin-guard").then(m => ({ default: m.AdminGuard })));
-const ArticlesPage = React.lazy(() => import("@/pages/articles-page").then(m => ({ default: m.ArticlesPage })));
-const ArticleDetailPage = React.lazy(() => import("@/pages/article-detail-page").then(m => ({ default: m.ArticleDetailPage })));
-const PrivacyPage = React.lazy(() => import("@/pages/privacy-page").then(m => ({ default: m.PrivacyPage })));
-const TermsPage = React.lazy(() => import("@/pages/terms-page").then(m => ({ default: m.TermsPage })));
-const MyPlanPage = React.lazy(() => import("@/pages/my-plan-page").then(m => ({ default: m.MyPlanPage })));
-const AppLayout = React.lazy(() => import("./slices/app-layout").then(m => ({ default: m.AppLayout })));
+// В некоторых окружениях Vite при перезапуске dev-сервера ссылки на модули устаревают.
+// Эта обёртка делает 1 попытку «самовосстановления»: если модуль не загрузился — перезагружаем страницу.
+function lazyWithRetry<T extends React.ComponentType<any>>(loader: () => Promise<{ default: T }>): React.LazyExoticComponent<T> {
+  return React.lazy(async () => {
+    try {
+      return await loader();
+    } catch (e: any) {
+      const msg = e?.message || String(e);
+      if (/Failed to fetch dynamically imported module|Importing a module script failed/i.test(msg)) {
+        // Перезагрузить только один раз, чтобы не уйти в цикл
+        try {
+          const key = 'vivaform:dynamic-import-reloaded';
+          const already = typeof window !== 'undefined' ? window.sessionStorage.getItem(key) : '1';
+          if (!already && typeof window !== 'undefined') {
+            window.sessionStorage.setItem(key, '1');
+            window.location.reload();
+          }
+        } catch { /* ignore */ }
+      }
+      throw e;
+    }
+  });
+}
 
-// Обёртка Suspense
-const suspense = (el: React.ReactElement) => <React.Suspense fallback={<div className="p-4">Loading...</div>}>{el}</React.Suspense>;
+const MarketingLayout = lazyWithRetry(() => import("./slices/marketing-layout").then(m => ({ default: m.MarketingLayout })) as any);
+const RequireAuthOutlet = lazyWithRetry(() => import("./require-auth").then(m => ({ default: m.RequireAuthOutlet })) as any);
+const DashboardPage = lazyWithRetry(() => import("@/pages/dashboard/dashboard-page").then(m => ({ default: m.DashboardPage })) as any);
+const LandingPage = lazyWithRetry(() => import("@/pages/landing-page").then(m => ({ default: m.LandingPage })) as any);
+const LoginPage = lazyWithRetry(() => import("@/pages/login-page").then(m => ({ default: m.LoginPage })) as any);
+const NotFoundPage = lazyWithRetry(() => import("@/pages/not-found-page").then(m => ({ default: m.NotFoundPage })) as any);
+const RegisterPage = lazyWithRetry(() => import("@/pages/register-page").then(m => ({ default: m.RegisterPage })) as any);
+const ProgressPage = lazyWithRetry(() => import("@/pages/progress-page").then(m => ({ default: m.ProgressPage })) as any);
+const RecommendationsPage = lazyWithRetry(() => import("@/pages/recommendations-page").then(m => ({ default: m.RecommendationsPage })) as any);
+const SettingsPage = lazyWithRetry(() => import("@/pages/settings-page").then(m => ({ default: m.SettingsPage })) as any);
+const QuizPage = lazyWithRetry(() => import("@/pages/quiz-page").then(m => ({ default: m.QuizPage })) as any);
+const ForgotPasswordPage = lazyWithRetry(() => import("@/pages/forgot-password-page").then(m => ({ default: m.ForgotPasswordPage })) as any);
+const ResetPasswordPage = lazyWithRetry(() => import("@/pages/reset-password-page").then(m => ({ default: m.ResetPasswordPage })) as any);
+const ForceChangePasswordPage = lazyWithRetry(() => import("@/pages/force-change-password-page").then(m => ({ default: m.ForceChangePasswordPage })) as any);
+const EmailVerificationPage = lazyWithRetry(() => import("@/pages/email-verification-page").then(m => ({ default: m.EmailVerificationPage })) as any);
+const PremiumPage = lazyWithRetry(() => import("@/pages/premium-page") as any);
+const PremiumHistoryPage = lazyWithRetry(() => import("@/pages/premium-history-page").then(m => ({ default: m.default })) as any);
+const MealPlannerPage = lazyWithRetry(() => import("@/pages/meal-planner-page").then(m => ({ default: m.MealPlannerPage })) as any);
+const AdminGuard = lazyWithRetry(() => import("@/routes/slices/admin-guard").then(m => ({ default: m.AdminGuard })) as any);
+const ArticlesPage = lazyWithRetry(() => import("@/pages/articles-page").then(m => ({ default: m.ArticlesPage })) as any);
+const ArticleDetailPage = lazyWithRetry(() => import("@/pages/article-detail-page").then(m => ({ default: m.ArticleDetailPage })) as any);
+const PrivacyPage = lazyWithRetry(() => import("@/pages/privacy-page").then(m => ({ default: m.PrivacyPage })) as any);
+const TermsPage = lazyWithRetry(() => import("@/pages/terms-page").then(m => ({ default: m.TermsPage })) as any);
+const MyPlanPage = lazyWithRetry(() => import("@/pages/my-plan-page").then(m => ({ default: m.MyPlanPage })) as any);
+const AppLayout = lazyWithRetry(() => import("./slices/app-layout").then(m => ({ default: m.AppLayout })) as any);
+
+// Обёртка Suspense со скелетоном
+const suspense = (el: React.ReactElement) => (
+  <React.Suspense fallback={<PageSkeleton />}>
+    {el}
+  </React.Suspense>
+);
 
 export const createAppRouter = () =>
   createBrowserRouter([
     {
       path: "/",
       element: suspense(<MarketingLayout />),
+      errorElement: <RouteErrorBoundary />,
       children: [
         { index: true, element: suspense(<LandingPage />) },
         { path: "login", element: suspense(<LoginPage />) },
@@ -55,6 +86,7 @@ export const createAppRouter = () =>
     {
       path: "/app",
       element: suspense(<RequireAuthOutlet />),
+      errorElement: <RouteErrorBoundary />,
       children: [
         {
           element: suspense(<AppLayout />),
@@ -71,5 +103,5 @@ export const createAppRouter = () =>
         }
       ]
     },
-    { path: "*", element: suspense(<NotFoundPage />) }
+    { path: "*", element: suspense(<NotFoundPage />), errorElement: <RouteErrorBoundary /> }
   ]);

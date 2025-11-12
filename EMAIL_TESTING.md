@@ -103,3 +103,7 @@ POST http://localhost:4000/auth/request-temp-password
 - В production замените на реальный SMTP (SendGrid, AWS SES, etc.)
 - Mailtrap только для тестирования!
 - Все email отправляются синхронно, для больших нагрузок используйте очереди (Bull, RabbitMQ)
+
+# Перенесено
+
+Актуальная версия: docs/email.md

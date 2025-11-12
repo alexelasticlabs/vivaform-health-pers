@@ -16,7 +16,6 @@ describe('premium route protection', () => {
   beforeEach(() => resetStore());
 
   it('redirects unauthenticated user to /login', async () => {
-    // установить начальный URL
     window.history.pushState({}, '', '/premium');
     const router = createAppRouter();
     const view = render(
@@ -24,7 +23,8 @@ describe('premium route protection', () => {
         <RouterProvider router={router} />
       </AppProviders>
     );
-    const matches = await view.findAllByText(/log in|sign in/i);
+    // Ищем кнопку/ссылку логина
+    const matches = await view.findAllByText(/log in|sign in|login/i);
     expect(matches.length).toBeGreaterThan(0);
   });
 

@@ -84,3 +84,54 @@ export const deleteFoodItem = async (foodId: string) => {
   const response = await apiClient.delete(`/admin/food-items/${foodId}`);
   return response.data;
 };
+
+export const getAllUsersFiltered = async (params: { q?: string; role?: string; tier?: string; regFrom?: string; regTo?: string; sortBy?: string; sortDir?: string; page?: number; limit?: number; }) => {
+  const usp = new URLSearchParams();
+  for (const [k,v] of Object.entries(params || {})) if (v !== undefined && v !== null) usp.set(k, String(v));
+  const { data } = await apiClient.get(`/admin/users?${usp.toString()}`);
+  return data;
+};
+
+export const exportUsersCsv = async (params: { q?: string; role?: string; tier?: string; regFrom?: string; regTo?: string; sortBy?: string; sortDir?: string; }) => {
+  const usp = new URLSearchParams();
+  for (const [k,v] of Object.entries(params || {})) if (v !== undefined && v !== null) usp.set(k, String(v));
+  const { data } = await apiClient.get(`/admin/users/export.csv?${usp.toString()}`);
+  return data as { filename: string; mime: string; body: string };
+};
+
+export const getUserDetails = async (id: string) => {
+  const { data } = await apiClient.get(`/admin/users/${id}`);
+  return data;
+};
+
+export const listSubscriptions = async (params: { status?: string; plan?: string; page?: number; limit?: number }) => {
+  const usp = new URLSearchParams();
+  for (const [k,v] of Object.entries(params || {})) if (v !== undefined && v !== null) usp.set(k, String(v));
+  const { data } = await apiClient.get(`/admin/subs?${usp.toString()}`);
+  return data;
+};
+
+export const listTickets = async (params: { status?: string; priority?: string; assignee?: string; page?: number; limit?: number }) => {
+  const usp = new URLSearchParams();
+  for (const [k,v] of Object.entries(params || {})) if (v !== undefined && v !== null) usp.set(k, String(v));
+  const { data } = await apiClient.get(`/admin/tickets?${usp.toString()}`);
+  return data;
+};
+
+export const getTicket = async (id: string) => {
+  const { data } = await apiClient.get(`/admin/tickets/${id}`);
+  return data;
+};
+
+export const updateTicket = async (id: string, patch: { status?: string; priority?: string; assignedTo?: string }) => {
+  const { data } = await apiClient.patch(`/admin/tickets/${id}`, patch);
+  return data;
+};
+
+export const replyTicket = async (id: string, body: string) => {
+  const { data } = await apiClient.patch(`/admin/tickets/${id}/reply`, { body });
+  return data;
+};
+
+export const getSettings = async () => { const { data } = await apiClient.get('/admin/settings'); return data; };
+export const patchSettings = async (patch: Record<string, unknown>) => { const { data } = await apiClient.patch('/admin/settings', patch); return data; };

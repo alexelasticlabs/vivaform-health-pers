@@ -1,0 +1,16 @@
+﻿apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "vivaform.fullname" . }}-backend
+  labels:
+    release: prometheus-operator
+spec:
+  selector:
+    matchLabels:
+      app: {{ include "vivaform.name" . }}
+      component: backend
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 15s
+

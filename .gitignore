@@ -34,3 +34,4 @@ playwright-report/
 playwright/.cache/
 apps/web/test-results/
 apps/web/screenshots/
+replacements.txt

@@ -1,4 +1,6 @@
-﻿**Статус:** ⚠️ **Требует реализации**
+﻿# Архивировано
+
+Актуальная документация: см. docs/architecture.md и docs/monitoring.md.
 
 ---
 
@@ -339,5 +341,3 @@ export function validateEnvironment() {
 validateEnvironment();
 bootstrap().catch((error) => { /* ... */ });
 ```
-
-

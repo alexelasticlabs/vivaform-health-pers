@@ -9,6 +9,7 @@ import { StripeService } from "../stripe/stripe.service";
 import { AuditService, AuditAction } from "../audit/audit.service";
 import type { CreateCheckoutSessionDto, CreatePortalSessionDto } from "./dto/create-checkout-session.dto";
 import type { SubscriptionPlan } from "@prisma/client";
+import { deleteByPattern } from '../../common/utils/redis';
 
 const ACTIVE_STATUSES: Stripe.Subscription.Status[] = [
   "active",
@@ -208,6 +209,7 @@ export class SubscriptionsService {
     }
 
     await this.updateSubscriptionRecord(userId, subscription as any);
+    await deleteByPattern('admin:*');
   }
 
   private extractBillingInfo(invoice?: Stripe.Invoice, subscription?: Stripe.Subscription) {
@@ -230,6 +232,7 @@ export class SubscriptionsService {
     }
 
     await this.updateSubscriptionRecord(userId, subscription);
+    await deleteByPattern('admin:*');
 
     if (ACTIVE_STATUSES.includes(subscription.status)) {
       const { amount, currency } = this.extractBillingInfo(invoice, subscription);
@@ -258,6 +261,7 @@ export class SubscriptionsService {
       amount: undefined,
       currency: undefined
     });
+    await deleteByPattern('admin:*');
   }
 
   async getHistory(userId: string, page = 1, pageSize = 10, filters?: { from?: Date; to?: Date; actions?: string[] }) {

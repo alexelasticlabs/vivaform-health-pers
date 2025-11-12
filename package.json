@@ -14,7 +14,8 @@
     "db:migrate": "pnpm --filter @vivaform/backend prisma migrate dev",
     "db:migrate:prod": "pnpm --filter @vivaform/backend prisma migrate deploy",
     "db:seed": "pnpm --filter @vivaform/backend prisma db seed",
-    "db:studio": "pnpm --filter @vivaform/backend prisma studio"
+    "db:studio": "pnpm --filter @vivaform/backend prisma studio",
+    "docs:prune": "node scripts/prune-docs.js"
   },
   "devDependencies": {
     "turbo": "^2.1.3"
