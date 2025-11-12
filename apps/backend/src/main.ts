@@ -6,6 +6,8 @@ import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 const cookieParser = require('cookie-parser');
 import * as Sentry from '@sentry/node';
+import { PrismaService } from './common/prisma/prisma.service';
+import * as argon2 from 'argon2';
 
 import { AppModule } from "./app.module";
 import { validateEnvironment } from "./config/env.validator";
@@ -60,6 +62,45 @@ function assertEmailConfigOrFail(config: ConfigService, logger: Logger) {
         throw new Error('Email provider not configured');
       }
     }
+  }
+}
+
+async function seedAdminUser(app: any) {
+  try {
+    if (process.env.ADMIN_SEED_ENABLE !== '1') return; // выключено по умолчанию
+    const email = process.env.ADMIN_SEED_EMAIL?.trim();
+    const password = process.env.ADMIN_SEED_PASSWORD;
+    if (!email || !password) {
+      const logger = new Logger('AdminSeed');
+      logger.warn('ADMIN_SEED_ENABLE=1, но ADMIN_SEED_EMAIL или ADMIN_SEED_PASSWORD не заданы');
+      return;
+    }
+    const prisma: PrismaService = app.get(PrismaService);
+    const existing = await prisma.user.findUnique({ where: { email } });
+    const logger = new Logger('AdminSeed');
+    if (existing) {
+      if (existing.role !== 'ADMIN') {
+        await prisma.user.update({ where: { id: existing.id }, data: { role: 'ADMIN' } });
+        logger.log(`Существующий пользователь ${email} повышен до ADMIN`);
+      } else {
+        logger.log(`Администратор ${email} уже существует — пропускаем сид`);
+      }
+      return;
+    }
+    const passwordHash = await argon2.hash(password);
+    await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role: 'ADMIN',
+        name: process.env.ADMIN_SEED_NAME || 'Admin',
+        emailVerified: true
+      }
+    });
+    logger.log(`Создан аккаунт администратора email=${email}`);
+  } catch (e) {
+    const logger = new Logger('AdminSeed');
+    logger.error(`Не удалось выполнить сид админа: ${(e as Error)?.message}`);
   }
 }
 
