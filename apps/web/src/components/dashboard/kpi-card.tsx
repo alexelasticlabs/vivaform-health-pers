@@ -48,7 +48,17 @@ export const KpiCard = ({
   );
 
   if (onClick) {
-    return <button type="button" onClick={onClick} className="text-left w-full">{inner}</button>;
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onClick}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } }}
+        className="text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 rounded-2xl"
+      >
+        {inner}
+      </div>
+    );
   }
   return inner;
 };

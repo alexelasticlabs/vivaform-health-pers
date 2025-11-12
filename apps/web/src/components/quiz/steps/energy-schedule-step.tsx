@@ -1,9 +1,7 @@
 import { useEffect } from 'react';
+import { QuizCard, SliderInput, ChoiceToggle } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 import { logQuizSliderChanged, logQuizToggleChanged } from '@/lib/analytics';
-import { QuizCard } from '../quiz-card';
-import { SliderInput } from '../slider-input';
-import { ChoiceToggle } from '../options/choice-toggle';
 
 export function EnergyScheduleStep() {
   const { answers, updateAnswers } = useQuizStore();

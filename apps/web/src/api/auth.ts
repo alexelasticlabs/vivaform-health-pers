@@ -18,14 +18,9 @@ export type LoginResponse = {
   tokens: AuthTokens;
 };
 
-export type RegisterResponse = {
-  id: string;
-  email: string;
-  name?: string | null;
-  createdAt: string;
-};
+export type RegisterResponse = LoginResponse;
 
-export type RefreshResponse = LoginResponse;
+export type RefreshResponse = LoginResponse | AuthTokens;
 
 export const login = async (payload: LoginPayload) => {
   const { data } = await apiClient.post<LoginResponse>("/auth/login", payload);
@@ -33,13 +28,17 @@ export const login = async (payload: LoginPayload) => {
 };
 
 export const registerUser = async (payload: RegisterPayload) => {
-  const { data } = await apiClient.post<RegisterResponse>("/users", payload);
+  const { data } = await apiClient.post<RegisterResponse>("/auth/register", payload);
   return data;
 };
 
-export const refreshSession = async (refreshToken: string) => {
-  const { data } = await apiClient.post<RefreshResponse>("/auth/refresh", { refreshToken });
-  return data;
+export const refreshSession = async () => {
+  const { data } = await apiClient.post<RefreshResponse>("/auth/refresh", {});
+  if ((data as any).tokens && (data as any).user) {
+    return data as LoginResponse;
+  }
+  // backend может вернуть только { accessToken, refreshToken }
+  return { user: (null as unknown as AuthUser), tokens: data as AuthTokens } as unknown as LoginResponse;
 };
 
 export const fetchCurrentUser = async () => {

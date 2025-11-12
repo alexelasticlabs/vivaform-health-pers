@@ -1,15 +1,15 @@
 ﻿import { describe, it } from 'vitest';
 import { RouterProvider } from 'react-router-dom';
 import { render } from '@testing-library/react';
-import { AppProviders } from '../providers/app-providers';
-import { createAppRouter } from '../routes/router';
-import { useUserStore } from '../store/user-store';
-import { applyCommonMocks } from './mocks/common-mocks';
+import { AppProviders } from '@/providers/app-providers';
+import { createAppRouter } from '@/routes/router';
+import { useUserStore } from '@/store/user-store';
+import { applyCommonMocks } from '@/test/mocks/common-mocks';
 
 applyCommonMocks();
 
 function resetStore() {
-  useUserStore.setState({ profile: null, tokens: null, isAuthenticated: false } as any);
+  useUserStore.setState({ profile: null, accessToken: null, isAuthenticated: false } as any);
 }
 
 describe('premium history route protection', () => {
@@ -29,7 +29,7 @@ describe('premium history route protection', () => {
   it('allows authenticated user to see premium history', async () => {
     useUserStore.setState({
       profile: { id: 'u1', email: 'a@b.c', tier: 'FREE' } as any,
-      tokens: { accessToken: 'x', refreshToken: 'y' },
+      accessToken: 'x',
       isAuthenticated: true
     } as any);
 
@@ -43,4 +43,3 @@ describe('premium history route protection', () => {
     await view.findAllByText(/Premium history/i);
   });
 });
-

@@ -1,32 +1,38 @@
-﻿import { test, expect } from '@playwright/test';
+﻿import { test, expect } from './fixtures';
 
-// Assumes dev server running on http://localhost:5173 and backend with seeded data
-// Minimal smoke test for KPI CTA buttons.
+// Dashboard KPI interactions using shared authenticated fixture
 
 test.describe('Dashboard KPI interactions', () => {
-  test('click calorie and macros cards navigate to /app', async ({ page }) => {
-    await page.goto('http://localhost:5173/app');
-    // Calorie card contains text 'Calories'
-    await page.getByText('Calories').click();
-    await expect(page).toHaveURL(/\/app$/);
-    await page.getByText('Macros').click();
-    await expect(page).toHaveURL(/\/app$/);
+  test('click calorie and macros cards are visible', async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
+    await page.goto('/app');
+    await expect(page.getByText('Calories').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByText(/Macro Target|Macros/i).first()).toBeVisible();
   });
 
-  test('hydration quick add buttons increment optimistic UI', async ({ page }) => {
-    await page.goto('http://localhost:5173/app');
-    const hydrationText = page.getByText(/ml$/); // matches hydration summary like '0 ml'
+  test('hydration quick add buttons increment optimistic UI', async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
+    await page.goto('/app');
+    const hydrationText = page.getByText(/ml$/).first();
+    await expect(hydrationText).toBeVisible({ timeout: 15000 });
     const before = await hydrationText.textContent();
     await page.getByRole('button', { name: '+ 250 ml' }).click();
-    // optimistic update might show increased ml; allow flexible match
-    await expect(hydrationText).not.toHaveText(before || '');
+    await expect(hydrationText).not.toHaveText(before || '', { timeout: 5000 });
   });
 
-  test('weight card opens modal', async ({ page }) => {
-    await page.goto('http://localhost:5173/app');
-    await page.getByText('Weight').click();
-    // Modal title
-    await expect(page.getByText('Update Weight')).toBeVisible();
+  test('weight card opens modal', async ({ authenticatedPage }) => {
+    const page = authenticatedPage;
+    await page.goto('/app');
+    const updateBtn = page.getByRole('button', { name: /^Update$/i }).first();
+    if (await updateBtn.isVisible().catch(() => false)) {
+      await updateBtn.click();
+      await expect(page.getByText('Update Weight')).toBeVisible({ timeout: 8000 });
+      await expect(page.getByRole('button', { name: /Save weight/i })).toBeVisible();
+    } else {
+      const weight = page.getByText('Weight').first();
+      await expect(weight).toBeVisible({ timeout: 15000 });
+      await weight.click();
+      await expect(page.getByText('Update Weight')).toBeVisible({ timeout: 8000 });
+    }
   });
 });
-

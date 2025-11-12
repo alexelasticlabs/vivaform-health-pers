@@ -2,6 +2,8 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useUserStore } from "@/store/user-store";
 import {
   createCheckoutSession,
   createPortalSession,
@@ -9,11 +11,9 @@ import {
   fetchSubscription,
   type SubscriptionRecord,
   extractErrorMessage
-} from "../api";
+} from "@/api";
 import { SUBSCRIPTION_PLANS } from "@vivaform/shared";
 import type { AuthUser, SubscriptionPlan } from "@vivaform/shared";
-import { ThemeToggle } from "../components/theme-toggle";
-import { useUserStore } from "../store/user-store";
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleString("en-US", {
@@ -41,9 +41,9 @@ const describeStatus = (record: SubscriptionRecord | null | undefined) => {
 };
 
 export const SettingsPage = () => {
-  const tokens = useUserStore((state) => state.tokens);
   const profile = useUserStore((state) => state.profile);
   const setProfile = useUserStore((state) => state.setProfile);
+  const accessToken = useUserStore((state) => state.accessToken);
 
   const {
     data: profileData,
@@ -51,7 +51,7 @@ export const SettingsPage = () => {
   } = useQuery<AuthUser>({
     queryKey: ["profile", "current"],
     queryFn: fetchCurrentUser,
-    enabled: Boolean(tokens)
+    enabled: Boolean(accessToken)
   });
 
   const {
@@ -61,7 +61,7 @@ export const SettingsPage = () => {
   } = useQuery<SubscriptionRecord | null>({
     queryKey: ["subscription", "current"],
     queryFn: fetchSubscription,
-    enabled: Boolean(tokens),
+    enabled: Boolean(accessToken),
     refetchOnWindowFocus: false
   });
 

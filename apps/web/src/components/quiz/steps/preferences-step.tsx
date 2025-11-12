@@ -1,31 +1,7 @@
 import { useState } from 'react';
 import { useQuizStore } from '@/store/quiz-store';
 import { logQuizOptionSelected, logQuizSliderChanged, logQuizToggleChanged } from '@/lib/analytics';
-import { QuizCard } from '../quiz-card';
-import { SliderInput } from '../slider-input';
-import { OptionPill } from '../options/option-pill';
-import { OptionTile } from '../options/option-tile';
-import { ChoiceToggle } from '../options/choice-toggle';
-
-const COMMON_ALLERGENS = [
-  'Gluten',
-  'Lactose',
-  'Nuts',
-  'Seafood',
-  'Eggs',
-  'Soy',
-  'Fish',
-];
-
-const COMMON_AVOIDED_FOODS = [
-  'Meat',
-  'Dairy',
-  'Sugar',
-  'Alcohol',
-  'Caffeine',
-  'Spicy food',
-  'Fried food',
-];
+import { QuizCard, SliderInput, OptionPill, OptionTile, ChoiceToggle, COMMON_ALLERGENS, COMMON_AVOIDED_FOODS } from '@/components/quiz';
 
 export function PreferencesStep() {
   const { answers, updateAnswers } = useQuizStore();

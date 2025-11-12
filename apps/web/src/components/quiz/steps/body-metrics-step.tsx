@@ -1,8 +1,6 @@
 import { useState, useEffect } from 'react';
-import { QuizCard } from '../quiz-card';
-import { SliderInput } from '../slider-input';
-import { BMIIndicator } from '../bmi-indicator';
-import { useQuizStore } from '../../../store/quiz-store';
+import { QuizCard, SliderInput, BMIIndicator } from '@/components/quiz';
+import { useQuizStore } from '@/store/quiz-store';
 
 type UnitSystem = 'metric' | 'imperial';
 
@@ -164,7 +162,7 @@ export function BodyMetricsStep() {
           />
         )}
 
-        {bmi && <BMIIndicator bmi={bmi} />}
+        {typeof bmi === 'number' && <BMIIndicator bmi={bmi} />}
 
         {/* Target Weight Input */}
         {unitSystem === 'metric' ? (

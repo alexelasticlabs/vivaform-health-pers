@@ -24,18 +24,19 @@ const HydrationWidget = ({ fail }: { fail?: boolean }) => {
 
 describe('KpiCard with React Query', () => {
   it('renders loading state', () => {
-    const { getByText } = render(<Wrapper><HydrationWidget /></Wrapper>);
-    expect(getByText(/Loading…/i)).toBeInTheDocument();
+    const { getAllByText } = render(<Wrapper><HydrationWidget /></Wrapper>);
+    expect(getAllByText(/Loading…/i)[0]).toBeInTheDocument();
   });
 
   it('renders error state', async () => {
-    const { findByText } = render(<Wrapper><HydrationWidget fail /></Wrapper>);
-    expect(await findByText(/Error/i)).toBeInTheDocument();
+    const { findAllByText } = render(<Wrapper><HydrationWidget fail /></Wrapper>);
+    const nodes = await findAllByText(/Error/i);
+    expect(nodes[0]).toBeInTheDocument();
   });
 
   it('renders data state', async () => {
-    const { findByText, getByTestId } = render(<Wrapper><HydrationWidget /></Wrapper>);
-    await findByText(/500 ml/);
+    const { findAllByText, getByTestId } = render(<Wrapper><HydrationWidget /></Wrapper>);
+    await findAllByText(/500 ml/);
     expect(getByTestId('kpi-value-hydration')).toHaveTextContent('500 ml');
   });
 });

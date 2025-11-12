@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from "vitest";
-import { buildTrend, deriveProgress } from "./progress";
+import { buildTrend, deriveProgress } from "@/utils/progress";
 
 describe("progress utils", () => {
   it("buildTrend produces diffs", () => {
@@ -29,4 +29,3 @@ describe("progress utils", () => {
     expect(res.delta).toBe(-0.5);
   });
 });
-

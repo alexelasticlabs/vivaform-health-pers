@@ -1,9 +1,9 @@
 ﻿import { describe, it, expect, vi } from 'vitest';
 import { waitFor } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
-import renderWithProviders, { createTestQueryClient } from './render-helper';
+import renderWithProviders, { createTestQueryClient } from '@/test/render-helper';
 import { DashboardPage } from '@/pages/dashboard/dashboard-page';
-import { applyCommonMocks } from './mocks/common-mocks';
+import { applyCommonMocks } from '@/test/mocks/common-mocks';
 
 applyCommonMocks();
 

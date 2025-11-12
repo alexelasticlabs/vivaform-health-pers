@@ -1,6 +1,6 @@
 ﻿import { describe, it, expect, vi } from 'vitest';
-import renderWithProviders from '../../../../test/render-helper';
-import { PreferencesStep } from '../preferences-step';
+import renderWithProviders from '@/test/render-helper';
+import { PreferencesStep } from '@/components/quiz';
 
 vi.mock('../../../../store/quiz-store', () => {
   let state: any = { clientId: 'test-client', answers: { preferences: {} }, updateAnswers: (patch: any) => { state.answers = { ...state.answers, ...patch }; } };
@@ -19,4 +19,3 @@ describe('PreferencesStep', () => {
     expect(container).toMatchSnapshot();
   });
 });
-

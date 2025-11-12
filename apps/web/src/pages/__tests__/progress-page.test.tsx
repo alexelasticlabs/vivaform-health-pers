@@ -1,7 +1,7 @@
 ﻿import { waitFor } from "@testing-library/react";
 import renderWithProviders from "@/test/render-helper";
 import { describe, it, expect, vi } from "vitest";
-import { ProgressPage } from "../progress-page";
+import { ProgressPage } from "@/pages/progress-page";
 
 vi.mock("@/api", () => ({
   fetchWeightHistory: vi.fn(async () => ([

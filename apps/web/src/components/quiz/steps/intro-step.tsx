@@ -1,8 +1,7 @@
-import { QuizCard } from '../quiz-card';
-import { OptionTile } from '../options/option-tile';
-import { useQuizStore } from '../../../store/quiz-store';
+import { QuizCard, OptionTile } from '@/components/quiz';
+import { useQuizStore } from '@/store/quiz-store';
+import { logQuizOptionSelected } from '@/lib/analytics';
 import { DIET_PLANS } from '@vivaform/shared';
-import { logQuizOptionSelected } from '../../../lib/analytics';
 
 export function IntroStep() {
   const { answers, updateAnswers } = useQuizStore();

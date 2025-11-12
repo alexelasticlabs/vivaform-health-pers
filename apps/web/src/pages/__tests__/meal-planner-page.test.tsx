@@ -1,7 +1,7 @@
 ﻿import { describe, it, vi } from 'vitest';
 import renderWithProviders from '@/test/render-helper';
-import { MealPlannerPage } from '../meal-planner-page';
-import { useUserStore } from '@/store/user-store';
+import { MealPlannerPage } from '@/pages/meal-planner-page';
+import { initUserPremium } from '@/test/store-helpers';
 
 vi.mock('../../api', async () => {
   const mod = await vi.importActual<any>('../../api');
@@ -20,7 +20,7 @@ vi.mock('../../api', async () => {
 
 describe('MealPlannerPage', () => {
   it('renders and switches days', async () => {
-    useUserStore.setState({ profile: { id: 'u1', tier: 'PREMIUM' } } as any);
+    initUserPremium();
     const { findByText, getAllByRole } = renderWithProviders(<MealPlannerPage />);
     await findByText(/Weekly Averages/i);
     const dayButtons = getAllByRole('button');
@@ -31,9 +31,23 @@ describe('MealPlannerPage', () => {
   });
 
   it('matches snapshot of initial render and shows daily totals block', async () => {
-    useUserStore.setState({ profile: { id: 'u1', tier: 'PREMIUM' } } as any);
+    initUserPremium();
     const { findByText, container } = renderWithProviders(<MealPlannerPage />);
     await findByText(/Weekly Averages/i);
     expect(container).toMatchSnapshot();
+  });
+
+  it('switches day and updates daily totals calories', async () => {
+    initUserPremium();
+    const { findByTestId, getByTestId } = renderWithProviders(<MealPlannerPage />);
+    // ждём первый рендер
+    const caloriesInitialEl = await findByTestId('planner-total-calories');
+    const initial = caloriesInitialEl.textContent;
+    // кликаем по следующему дню
+    const nextDayBtn = getByTestId('planner-day-1');
+    nextDayBtn.click();
+    const caloriesAfter = (await findByTestId('planner-total-calories')).textContent;
+    // значения из мока: 1800 -> 1900
+    expect(initial).not.toBe(caloriesAfter);
   });
 });

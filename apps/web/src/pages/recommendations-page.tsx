@@ -1,6 +1,6 @@
 ﻿import { useQuery } from "@tanstack/react-query";
 
-import { fetchLatestRecommendations } from "../api";
+import { fetchLatestRecommendations } from "@/api";
 
 export const RecommendationsPage = () => {
   const {

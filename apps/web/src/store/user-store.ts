@@ -1,14 +1,14 @@
 ﻿import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-import type { AuthTokens, AuthUser, SubscriptionTier } from "@vivaform/shared";
+import type { AuthUser, SubscriptionTier } from "@vivaform/shared";
 
 export type UserStore = {
   profile: (AuthUser & { tier?: SubscriptionTier; mustChangePassword?: boolean }) | null;
-  tokens: AuthTokens | null;
+  accessToken: string | null;
   isAuthenticated: boolean;
-  setAuth: (profile: AuthUser & { tier?: SubscriptionTier; mustChangePassword?: boolean }, accessToken: string, refreshToken: string) => void;
-  setTokens: (tokens: AuthTokens) => void;
+  setAuth: (profile: AuthUser & { tier?: SubscriptionTier; mustChangePassword?: boolean }, accessToken: string) => void;
+  setAccessToken: (accessToken: string) => void;
   setProfile: (profile: Partial<AuthUser & { mustChangePassword?: boolean }>) => void;
   setTier: (tier: SubscriptionTier) => void;
   logout: () => void;
@@ -16,30 +16,48 @@ export type UserStore = {
 
 const initialState = {
   profile: null,
-  tokens: null,
+  accessToken: null,
   isAuthenticated: false
+};
+
+// Dynamic storage: переключается на лету по флагу rememberMe в localStorage
+const getEffectiveStorage = (): Storage => {
+  if (typeof window === 'undefined') {
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {}
+    } as unknown as Storage;
+  }
+  try {
+    const remember = localStorage.getItem('rememberMe');
+    return remember === 'true' ? localStorage : sessionStorage;
+  } catch {
+    return sessionStorage;
+  }
+};
+
+const dynamicStorage = {
+  getItem: (name: string) => getEffectiveStorage().getItem(name),
+  setItem: (name: string, value: string) => getEffectiveStorage().setItem(name, value),
+  removeItem: (name: string) => getEffectiveStorage().removeItem(name)
 };
 
 export const useUserStore = create<UserStore>()(
   persist(
     (set) => ({
       ...initialState,
-      setAuth: (profile, accessToken, refreshToken) =>
+      setAuth: (profile, accessToken) =>
         set({
           profile: { ...profile, tier: profile.tier ?? "FREE" },
-          tokens: { accessToken, refreshToken },
+          accessToken,
           isAuthenticated: true
         }),
-      setTokens: (tokens) =>
-        set((state) =>
-          state.profile
-            ? {
-                tokens,
-                profile: state.profile,
-                isAuthenticated: true
-              }
-            : { tokens, isAuthenticated: false, profile: null }
-        ),
+      setAccessToken: (accessToken) =>
+        set((state) => ({
+          accessToken,
+          isAuthenticated: !!state.profile && !!accessToken
+        })),
       setProfile: (profile) =>
         set((state) =>
           state.profile
@@ -56,10 +74,12 @@ export const useUserStore = create<UserStore>()(
               }
             : state
         ),
-      logout: () => set({ profile: null, tokens: null, isAuthenticated: false })
+      logout: () => set({ profile: null, accessToken: null, isAuthenticated: false })
     }),
     {
-      name: "vivaform-auth"
+      name: "vivaform-auth",
+      storage: createJSONStorage(() => dynamicStorage),
+      partialize: (state) => ({ accessToken: state.accessToken, profile: state.profile, isAuthenticated: state.isAuthenticated }) as Pick<UserStore, 'accessToken' | 'profile' | 'isAuthenticated'>
     }
   )
 );

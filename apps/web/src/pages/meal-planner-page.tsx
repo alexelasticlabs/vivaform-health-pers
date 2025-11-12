@@ -185,6 +185,7 @@ export function MealPlannerPage() {
             <button
               key={day.date}
               onClick={() => setSelectedDayIndex(index)}
+              data-testid={`planner-day-${index}`}
               className={`flex-shrink-0 px-6 py-3 rounded-xl font-semibold transition ${
                 selectedDayIndex === index
                   ? "bg-gradient-to-r from-blue-600 to-green-600 text-white shadow-lg"
@@ -219,7 +220,7 @@ export function MealPlannerPage() {
                 <div className="space-y-4">
                   <div className="flex justify-between items-center pb-3 border-b">
                     <span className="text-gray-600">Calories</span>
-                    <span className="text-xl font-bold text-blue-600">
+                    <span className="text-xl font-bold text-blue-600" data-testid="planner-total-calories">
                       {selectedDay.dailyTotals.calories}
                     </span>
                   </div>

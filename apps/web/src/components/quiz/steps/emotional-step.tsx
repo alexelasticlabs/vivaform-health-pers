@@ -1,9 +1,6 @@
+import { QuizCard, SliderInput, OptionTile, ChoiceToggle } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
-import { logQuizToggleChanged, logQuizOptionSelected, logQuizSliderChanged } from '@/lib/analytics';
-import { QuizCard } from '../quiz-card';
-import { SliderInput } from '../slider-input';
-import { OptionTile } from '../options/option-tile';
-import { ChoiceToggle } from '../options/choice-toggle';
+import { logQuizOptionSelected } from '@/lib/analytics';
 
 export function EmotionalStep() {
   const { answers, updateAnswers } = useQuizStore();
@@ -23,7 +20,7 @@ export function EmotionalStep() {
           <ChoiceToggle
             label="I eat more when I'm stressed"
             selected={!!answers.habits?.eatWhenStressed}
-            onClick={() => { const v = !answers.habits?.eatWhenStressed; updateAnswers({ habits: { eatWhenStressed: v } }); try { logQuizToggleChanged(useQuizStore.getState().clientId, 'emotional', 'habits.eatWhenStressed', v); } catch {} }}
+            onClick={() => { const v = !answers.habits?.eatWhenStressed; updateAnswers({ habits: { eatWhenStressed: v } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'emotional', 'habits.eatWhenStressed', v); } catch {} }}
           />
         </div>
 
@@ -58,7 +55,7 @@ export function EmotionalStep() {
           </label>
           <SliderInput
             value={answers.habits?.stressLevel ?? 5}
-            onChange={(value) => { updateAnswers({ habits: { stressLevel: value } }); try { logQuizSliderChanged(useQuizStore.getState().clientId, 'emotional', 'habits.stressLevel', value); } catch {} }}
+            onChange={(value) => { updateAnswers({ habits: { stressLevel: value } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'emotional', 'habits.stressLevel', value); } catch {} }}
             min={1}
             max={10}
             step={1}
@@ -101,7 +98,7 @@ export function EmotionalStep() {
           </label>
           <SliderInput
             value={answers.habits?.routineConfidence ?? 5}
-            onChange={(value) => { updateAnswers({ habits: { routineConfidence: value } }); try { logQuizSliderChanged(useQuizStore.getState().clientId, 'emotional', 'habits.routineConfidence', value); } catch {} }}
+            onChange={(value) => { updateAnswers({ habits: { routineConfidence: value } }); try { logQuizOptionSelected(useQuizStore.getState().clientId, 'emotional', 'habits.routineConfidence', value); } catch {} }}
             min={1}
             max={10}
             step={1}

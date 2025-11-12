@@ -1,9 +1,15 @@
 ﻿import type { ExpoConfig } from "expo/config";
 
-type Environment = "development" | "production";
-
 const defineConfig = (): ExpoConfig => {
-  const environment: Environment = (process.env.NODE_ENV as Environment) ?? "development";
+  const env = ((globalThis as any)?.process?.env ?? {}) as Record<string, string | undefined>;
+  const environment: Environment = (env.NODE_ENV as Environment) ?? "development";
+
+  const projectId = env.EXPO_PUBLIC_EAS_PROJECT_ID || '';
+
+  if (environment === 'production' && !projectId) {
+    // Fail fast to prevent building without push credentials
+    throw new Error('EXPO_PUBLIC_EAS_PROJECT_ID is required in production for push notifications');
+  }
 
   return {
     name: "VivaForm",
@@ -21,11 +27,15 @@ const defineConfig = (): ExpoConfig => {
     platforms: ["ios", "android", "web"],
     extra: {
       environment,
-      apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000",
-      checkoutSuccessUrl: process.env.EXPO_PUBLIC_CHECKOUT_SUCCESS_URL ?? "https://vivaform.app/checkout-success",
-      checkoutCancelUrl: process.env.EXPO_PUBLIC_CHECKOUT_CANCEL_URL ?? "https://vivaform.app/checkout-cancel",
+      apiUrl: env.EXPO_PUBLIC_API_URL ?? "http://localhost:4000",
+      checkoutSuccessUrl: env.EXPO_PUBLIC_CHECKOUT_SUCCESS_URL ?? "https://vivaform.app/checkout-success",
+      checkoutCancelUrl: env.EXPO_PUBLIC_CHECKOUT_CANCEL_URL ?? "https://vivaform.app/checkout-cancel",
       eas: {
-        projectId: process.env.EXPO_PUBLIC_EAS_PROJECT_ID || ""
+        projectId
+      },
+      push: {
+        // Expose flag to runtime indicating push is fully configured
+        enabled: !!projectId
       }
     },
     plugins: ["expo-router", "expo-secure-store", "expo-notifications"],

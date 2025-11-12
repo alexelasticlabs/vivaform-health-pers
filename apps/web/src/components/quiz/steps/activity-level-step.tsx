@@ -1,8 +1,7 @@
-import { QuizCard } from '../quiz-card';
-import { OptionTile } from '../options/option-tile';
-import { useQuizStore } from '../../../store/quiz-store';
+import { QuizCard, OptionTile } from '@/components/quiz';
+import { useQuizStore } from '@/store/quiz-store';
+import { logQuizOptionSelected } from '@/lib/analytics';
 import { ACTIVITY_LEVELS } from '@vivaform/shared';
-import { logQuizOptionSelected } from '../../../lib/analytics';
 
 export function ActivityLevelStep() {
   const { answers, updateAnswers } = useQuizStore();

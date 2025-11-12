@@ -19,7 +19,8 @@ export const DashboardPage = () => {
   const [modalState, setModalState] = useState<{ type: 'meal' | 'weight' | null; mealType?: string }>({ type: null });
   const [trendTab, setTrendTab] = useState<'weight'|'calories'|'hydration'|'steps'>('weight');
   const [trendRange, setTrendRange] = useState<7|30>(7);
-  
+  const [optimisticWaterMl, setOptimisticWaterMl] = useState(0);
+
   const queryClient = useQueryClient();
   const user = useUserStore((state: UserStore) => state.profile);
   const isPremium = user?.tier === "PREMIUM";
@@ -72,12 +73,33 @@ export const DashboardPage = () => {
   // Water mutation
   const waterMutation = useMutation<WaterEntry, Error, CreateWaterEntryPayload>({
     mutationFn: createWaterEntry,
-    onSuccess: async () => {
+    onMutate: async (variables) => {
+      // Optimistic UI update: сразу увеличиваем отображаемое значение
+      setOptimisticWaterMl(prev => prev + variables.amountMl);
+    },
+    onSuccess: async (_result, variables) => {
+      // Обновляем кэш dashboard с новым значением воды
+      const currentData = queryClient.getQueryData<any>(["dashboard", selectedDate]);
+      if (currentData) {
+        queryClient.setQueryData(["dashboard", selectedDate], {
+          ...currentData,
+          water: {
+            ...currentData.water,
+            totalMl: (currentData.water?.totalMl || 0) + variables.amountMl
+          }
+        });
+      }
       await queryClient.invalidateQueries({ queryKey: ["dashboard", selectedDate] });
       toast.success("Water logged! 💧");
     },
-    onError: () => {
+    onError: (_error, variables) => {
+      // Откатываем optimistic update при ошибке
+      setOptimisticWaterMl(prev => prev - variables.amountMl);
       toast.error("Failed to log water");
+    },
+    onSettled: () => {
+      // Сбрасываем оптимистичное значение после завершения
+      setOptimisticWaterMl(0);
     }
   });
 
@@ -110,7 +132,7 @@ export const DashboardPage = () => {
   // Derived values
   const caloriesConsumed = data?.nutrition.summary.calories || 0;
   const macros = data?.nutrition.summary || { protein: 0, fat: 0, carbs: 0 };
-  const waterConsumed = data?.water.totalMl || 0;
+  const waterConsumed = (data?.water.totalMl || 0) + optimisticWaterMl;
   const latestWeight = data?.weight.latest?.weightKg ?? null;
   const weightSeries = useMemo(() => (weightHistory as Array<{ weightKg: number }>).map((w) => w.weightKg), [weightHistory]);
   const streakDays =  Math.max(0, (data?.nutrition.entries?.length || 0) > 0 || (data?.water.totalMl || 0) > 0 ? 1 : 0); // minimal streak heuristic

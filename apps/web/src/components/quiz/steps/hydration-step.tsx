@@ -1,9 +1,6 @@
 import { useEffect } from 'react';
 import { useQuizStore } from '@/store/quiz-store';
-import { QuizCard } from '../quiz-card';
-import { SliderInput } from '../slider-input';
-import { ChoiceToggle } from '../options/choice-toggle';
-import { OptionPill } from '../options/option-pill';
+import { QuizCard, SliderInput, ChoiceToggle, OptionPill } from '@/components/quiz';
 import { logQuizSliderChanged, logQuizToggleChanged, logQuizOptionSelected } from '@/lib/analytics';
 
 export function HydrationStep() {

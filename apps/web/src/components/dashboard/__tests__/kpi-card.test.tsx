@@ -4,9 +4,9 @@ import { KpiCard } from '../kpi-card';
 
 describe('KpiCard', () => {
   it('renders value and progress bar', () => {
-    const { getByText, container } = render(<KpiCard title="Hydration" value="500 ml" progressPercent={25} />);
-    expect(getByText(/Hydration/i)).toBeInTheDocument();
-    expect(getByText(/500 ml/i)).toBeInTheDocument();
+    const { getAllByText, container } = render(<KpiCard title="Hydration" value="500 ml" progressPercent={25} />);
+    expect(getAllByText(/Hydration/i)[0]).toBeInTheDocument();
+    expect(getAllByText(/500 ml/i)[0]).toBeInTheDocument();
     const bar = container.querySelector('[style*="width"]');
     expect(bar).toBeTruthy();
   });
@@ -21,4 +21,3 @@ describe('KpiCard', () => {
     expect(getByRole('button')).toBeInTheDocument();
   });
 });
-

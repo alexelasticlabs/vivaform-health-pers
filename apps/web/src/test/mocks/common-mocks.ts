@@ -23,7 +23,7 @@ export function applyCommonMocks() {
   vi.mock('@/api/quiz', () => ({ tryGetQuizProfile: vi.fn().mockResolvedValue(null) }));
 
   vi.mock('@/store/user-store', async () => {
-    const mockState = { profile: { tier: 'FREE', name: 'Test', email: 't@e.com' }, tokens: null };
+    const mockState = { profile: { tier: 'FREE', name: 'Test', email: 't@e.com' }, accessToken: null };
     const api = {
       useUserStore: (selector: any) => selector(mockState),
     } as any;

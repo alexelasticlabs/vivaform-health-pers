@@ -1,55 +1,26 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Crown, Check, Lock, Sparkles, Shield, TrendingUp, Star, ChevronDown } from 'lucide-react';
-import { createCheckoutSession, logPremiumView } from '../api';
-import { useUserStore } from '../store/user-store';
+import { createCheckoutSession, logPremiumView } from '@/api';
+import { useUserStore } from '@/store/user-store';
 import { toast } from 'sonner';
+import { SUBSCRIPTION_PLANS } from "@vivaform/shared";
 
 type PlanType = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
 
-interface PricingPlan {
-  id: PlanType;
-  name: string;
-  duration: string;
-  price: number;
-  pricePerMonth: number;
-  savings: string;
-  emoji: string;
-  recommended: boolean;
-}
-
-const PRICING_PLANS: PricingPlan[] = [
-  {
-    id: 'MONTHLY',
-    name: 'Monthly',
-    duration: '1 month',
-    price: 4.87,
-    pricePerMonth: 4.87,
-    savings: '',
-    emoji: '📅',
-    recommended: false,
-  },
-  {
-    id: 'QUARTERLY',
-    name: 'Quarterly',
-    duration: '3 months',
-    price: 12.99,
-    pricePerMonth: 4.33,
-    savings: 'Save 11%',
-    emoji: '🎯',
-    recommended: false,
-  },
-  {
-    id: 'ANNUAL',
-    name: 'Annual',
-    duration: '12 months',
-    price: 28.76,
-    pricePerMonth: 2.40,
-    savings: 'Save 51%',
-    emoji: '🏆',
-    recommended: true,
-  },
-];
+const PLANS = SUBSCRIPTION_PLANS.map(p => {
+  const numericPrice = parseFloat(p.price.replace(/[^0-9.]/g, ''));
+  return {
+    id: p.plan,
+    name: p.title,
+    duration: p.plan === 'MONTHLY' ? '1 month' : p.plan === 'QUARTERLY' ? '3 months' : '12 months',
+    price: numericPrice,
+    pricePerMonth: p.plan === 'ANNUAL' ? +(numericPrice / 12).toFixed(2) : p.plan === 'QUARTERLY' ? +(numericPrice / 3).toFixed(2) : numericPrice,
+    savings: p.description.includes('50') ? 'Save ~50%' : p.description.includes('10') ? 'Save ~10%' : '',
+    emoji: p.plan === 'MONTHLY' ? '🗓️' : p.plan === 'QUARTERLY' ? '🎯' : '🏆',
+    recommended: p.plan === 'ANNUAL'
+  } as const;
+});
 
 const BENEFITS = [
   {
@@ -174,8 +145,8 @@ export default function PremiumPage() {
         window.gtag('event', 'premium_checkout_start', {
           plan_id: selectedPlan,
           user_id: user.id,
-          currency: 'RUB',
-          value: PRICING_PLANS.find((p) => p.id === selectedPlan)?.price,
+          currency: 'USD',
+          value: PLANS.find((p) => p.id === selectedPlan)?.price,
         });
       }
 
@@ -212,7 +183,7 @@ export default function PremiumPage() {
             Premium Access
           </div>
           
-          <h1 className="mb-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
+          <h1 data-testid="premium-title" className="mb-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl md:text-6xl">
             Unlock your personalized<br />nutrition plan 🥗
           </h1>
           
@@ -221,7 +192,7 @@ export default function PremiumPage() {
           </p>
 
           {isPremium && (
-            <div className="mb-8 inline-flex items-center gap-2 rounded-lg bg-green-100 px-6 py-3 text-green-800">
+            <div data-testid="premium-active-indicator" className="mb-8 inline-flex items-center gap-2 rounded-lg bg-green-100 px-6 py-3 text-green-800">
               <Crown className="h-5 w-5" />
               <span className="font-medium">Your VivaForm+ is active</span>
             </div>
@@ -301,62 +272,39 @@ export default function PremiumPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20">
+      <section className="py-20" data-testid="premium-plans-section">
         <div className="container mx-auto max-w-6xl px-4">
-          <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">
+          <h2 className="mb-12 text-center text-3xl font-bold text-gray-900" data-testid="premium-plans-title">
             Choose your plan
           </h2>
           
           <div className="grid gap-6 md:grid-cols-3">
-            {PRICING_PLANS.map((plan) => (
-              <div
-                key={plan.id}
-                className={`relative rounded-2xl border-2 bg-white p-8 transition-all cursor-pointer ${
-                  selectedPlan === plan.id
-                    ? 'border-green-500 shadow-xl'
-                    : 'border-gray-200 hover:border-gray-300'
-                } ${plan.recommended ? 'ring-2 ring-green-500 ring-offset-4' : ''}`}
-                onClick={() => handlePlanSelect(plan.id)}
+            {PLANS.map(plan => (
+              <button key={plan.id} type="button"
+                      data-testid={`plan-card-${plan.id}`}
+                      onClick={() => handlePlanSelect(plan.id as PlanType)}
+                      className={`group relative rounded-2xl border p-6 text-left shadow-sm transition-all ${selectedPlan === plan.id ? 'border-emerald-500 ring-2 ring-emerald-500/40' : 'border-gray-200 hover:border-emerald-300'} ${plan.recommended ? 'bg-gradient-to-br from-emerald-50 to-teal-50' : 'bg-white'}`}
               >
-                {plan.recommended && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-green-500 to-blue-500 px-4 py-1 text-xs font-semibold text-white">
-                    Best Value
-                  </div>
-                )}
-
-                <div className="mb-6 text-center">
-                  <div className="mb-2 text-4xl">{plan.emoji}</div>
-                  <h3 className="mb-2 text-xl font-bold text-gray-900">{plan.name}</h3>
-                  <p className="text-sm text-gray-600">{plan.duration}</p>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-2xl">{plan.emoji}</span>
+                  {plan.recommended && <span data-testid="plan-badge-best" className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Best value</span>}
                 </div>
-
-                <div className="mb-6 text-center">
-                  <div className="mb-2 text-4xl font-bold text-gray-900">${plan.price}</div>
-                  <div className="text-sm text-gray-600">${plan.pricePerMonth}/month</div>
-                  {plan.savings && (
-                    <div className="mt-2 text-sm font-semibold text-green-600">{plan.savings}</div>
-                  )}
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">{plan.name}</h3>
+                <p className="text-sm text-gray-500 mb-4">{plan.duration}</p>
+                <div className="flex items-end gap-1 mb-1">
+                  <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
+                  <span className="text-sm text-gray-500">USD</span>
                 </div>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handlePlanSelect(plan.id);
-                  }}
-                  className={`w-full rounded-xl px-6 py-3 font-semibold transition-colors ${
-                    selectedPlan === plan.id
-                      ? 'bg-green-500 text-white hover:bg-green-600'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {selectedPlan === plan.id ? 'Selected' : 'Select plan'}
-                </button>
-              </div>
+                {plan.savings && <p className="text-xs font-medium text-emerald-600 mb-2">{plan.savings}</p>}
+                <p className="text-xs text-gray-500">{plan.pricePerMonth} USD / month</p>
+                <div className={`absolute inset-0 rounded-2xl pointer-events-none ${selectedPlan === plan.id ? 'ring-2 ring-emerald-500/60' : ''}`}></div>
+              </button>
             ))}
           </div>
 
           <div className="mt-12 text-center">
             <button
+              data-testid="premium-activate-button"
               onClick={handleCheckout}
               disabled={isLoading || isPremium}
               className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-50"
@@ -383,6 +331,7 @@ export default function PremiumPage() {
               <p>
                 or{' '}
                 <button
+                  data-testid="premium-continue-free"
                   onClick={() => navigate('/app')}
                   className="text-green-600 hover:underline"
                 >
@@ -391,6 +340,7 @@ export default function PremiumPage() {
               </p>
               <p>
                 <button
+                  data-testid="premium-view-history"
                   onClick={() => navigate('/premium/history')}
                   className="text-green-600 hover:underline"
                 >

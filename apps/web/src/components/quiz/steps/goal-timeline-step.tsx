@@ -1,8 +1,7 @@
-import { QuizCard } from '../quiz-card';
-import { OptionPill } from '../options/option-pill';
-import { useQuizStore } from '../../../store/quiz-store';
+import { QuizCard, OptionPill } from '@/quiz';
+import { useQuizStore } from '@/store/quiz-store';
 import { GOAL_TIMELINES } from '@vivaform/shared';
-import { logQuizOptionSelected } from '../../../lib/analytics';
+import { logQuizOptionSelected } from '@/lib/analytics';
 
 export function GoalTimelineStep() {
   const { answers, updateAnswers } = useQuizStore();

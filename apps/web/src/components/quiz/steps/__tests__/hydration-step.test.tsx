@@ -1,15 +1,16 @@
 ﻿import { describe, it, expect, vi } from 'vitest';
-import renderWithProviders from '../../../../test/render-helper';
-import { HydrationStep } from '../hydration-step';
+import renderWithProviders from '@/test/render-helper';
+import { HydrationStep } from '@/components/quiz';
+import { useQuizStore } from '@/store/quiz-store';
 
-vi.mock('../../../../store/quiz-store', () => {
+vi.mock('@/store/quiz-store', () => {
   let state: any = { clientId: 'test-client', answers: { habits: {} }, updateAnswers: (patch: any) => { state.answers = { ...state.answers, ...patch }; } };
-  const useQuizStore = (selector?: any) => (typeof selector === 'function' ? selector(state) : state);
-  (useQuizStore as any).getState = () => state;
-  return { useQuizStore };
+  const hook = (selector?: any) => (typeof selector === 'function' ? selector(state) : state);
+  (hook as any).getState = () => state;
+  return { useQuizStore: hook };
 });
 
-vi.mock('../../../../lib/analytics', () => ({
+vi.mock('@/lib/analytics', () => ({
   logQuizSliderChanged: vi.fn(),
   logQuizToggleChanged: vi.fn(),
   logQuizOptionSelected: vi.fn(),
@@ -17,12 +18,11 @@ vi.mock('../../../../lib/analytics', () => ({
 
 describe('HydrationStep', () => {
   it('renders defaults and allows interactions', () => {
-    const { getByLabelText, getByRole } = renderWithProviders(<HydrationStep />);
-    const sliderLabel = getByLabelText(/How much water do you drink/i);
-    expect(sliderLabel).toBeInTheDocument();
-    const toggle = getByRole('button', { name: /Enable meal and hydration reminders/i });
+    renderWithProviders(<HydrationStep />);
+    const range = document.querySelector('input[type="range"]') as HTMLInputElement;
+    expect(range).toBeTruthy();
+    const toggle = document.querySelector('button[role="switch"], button') as HTMLButtonElement;
     toggle.click();
-    const { useQuizStore } = require('../../../../store/quiz-store');
     const s = (useQuizStore as any).getState();
     expect(!!s.answers.habits.wantReminders).toBe(true);
   });

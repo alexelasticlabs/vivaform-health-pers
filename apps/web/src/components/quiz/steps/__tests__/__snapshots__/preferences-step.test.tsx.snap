@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`PreferencesStep > renders and matches snapshot 1`] = `
+exports[`PreferencesStep > snapshot default render 1`] = `
 <div>
   <div
     class="w-full max-w-2xl mx-auto p-6 md:p-8 rounded-2xl shadow-lg border border-border bg-card"

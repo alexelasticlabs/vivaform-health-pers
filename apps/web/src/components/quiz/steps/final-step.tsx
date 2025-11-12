@@ -1,10 +1,17 @@
 import { useMemo } from 'react';
-import { useQuizStore, calculateBMI } from '../../../store/quiz-store';
-import { QuizCard } from '../quiz-card';
+import { QuizCard } from '@/quiz';
+import { useQuizStore } from '@/store/quiz-store';
 
 export function FinalStep() {
   const { answers } = useQuizStore();
-  const bmi = calculateBMI(answers);
+  const bmi = (() => {
+    const h = answers.body?.height?.cm ?? 170;
+    const w = answers.body?.weight?.kg ?? 70;
+    const m = h / 100;
+    return w / (m * m);
+  })();
+
+  const bmiCategory = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
 
   const kcalRange = useMemo(() => {
     if (!bmi) return null;
@@ -31,11 +38,11 @@ export function FinalStep() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">BMI</p>
-                <p className="text-2xl font-bold text-emerald-600">{bmi.bmi}</p>
+                <p className="text-2xl font-bold text-emerald-600">{bmi.toFixed(1)}</p>
               </div>
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Category</p>
-                <p className="text-lg font-semibold">{bmi.category}</p>
+                <p className="text-lg font-semibold">{bmiCategory}</p>
               </div>
             </div>
           </div>

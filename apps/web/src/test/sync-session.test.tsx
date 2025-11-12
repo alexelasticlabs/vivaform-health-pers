@@ -1,16 +1,15 @@
 ﻿import { describe, it, beforeEach, expect, vi } from 'vitest';
-import { AppShell } from '../components/layouts/app-shell';
+import { AppShell } from '@/components/layouts/app-shell';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { useUserStore } from '../store/user-store';
+import { useUserStore } from '@/store/user-store';
 import { render, screen } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { createQueryClient } from '../lib/query-client';
+import { createQueryClient } from '@/lib/query-client';
+import { syncCheckoutSession } from '@/api/subscriptions';
 
-vi.mock('../api/subscriptions', () => ({
+vi.mock('@/api/subscriptions', () => ({
   syncCheckoutSession: vi.fn().mockResolvedValue({ success: true })
 }));
-
-import { syncCheckoutSession } from '../api/subscriptions';
 
 function mountWithPath(path: string) {
   window.history.pushState({}, '', path);
@@ -30,7 +29,7 @@ describe('syncCheckoutSession on premium=success', () => {
   beforeEach(() => {
     useUserStore.setState({
       profile: { id: 'u1', email: 'a@b.c', tier: 'FREE' } as any,
-      tokens: { accessToken: 'x', refreshToken: 'y' },
+      accessToken: 'x',
       isAuthenticated: true
     } as any);
     vi.clearAllMocks();

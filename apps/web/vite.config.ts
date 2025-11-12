@@ -1,12 +1,42 @@
 ﻿import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+
+// Валидация окружения: требуем VITE_API_URL для production сборок
+const requireEnvForProd = () => {
+  const isProdBuild = process.env.NODE_ENV === 'production' || process.env.BUILD === 'production';
+  if (isProdBuild) {
+    if (!process.env.VITE_API_URL) {
+      // Бросаем ошибку на этапе загрузки конфигурации
+      throw new Error("[build] VITE_API_URL is required for production builds");
+    }
+  }
+};
+requireEnvForProd();
+
 export default defineConfig({
   plugins: [react()],
+  build: {
+    sourcemap: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+        marketing: path.resolve(__dirname, 'marketing.html')
+      }
+    },
+    cssCodeSplit: true
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@vivaform/shared": path.resolve(__dirname, "../../packages/shared/src")
+      "@vivaform/shared": path.resolve(__dirname, "../../packages/shared/src"),
+      "@/test": path.resolve(__dirname, "./src/test"),
+      "@/store": path.resolve(__dirname, "./src/store"),
+      "@/api": path.resolve(__dirname, "./src/api"),
+      "@/lib": path.resolve(__dirname, "./src/lib"),
+      "@/components": path.resolve(__dirname, "./src/components"),
+      "@/pages": path.resolve(__dirname, "./src/pages"),
+      "@/utils": path.resolve(__dirname, "./src/utils")
     }
   },
   server: {

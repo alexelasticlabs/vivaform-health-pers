@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import React from "react";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
@@ -12,11 +12,11 @@ import { useUserStore } from "../store/user-store";
  */
 export function usePushNotifications() {
   const profile = useUserStore((state) => state.profile);
-  const hasRegistered = useRef(false);
-  const lastUserId = useRef<string | null>(null);
+  const hasRegistered = React.useRef(false);
+  const lastUserId = React.useRef<string | null>(null);
 
   // Сброс флага при смене пользователя
-  useEffect(() => {
+  React.useEffect(() => {
     const currentId = profile?.id ?? null;
     if (currentId !== lastUserId.current) {
       hasRegistered.current = false;
@@ -25,20 +25,26 @@ export function usePushNotifications() {
   }, [profile?.id]);
 
   // Дерегистрация токена при логауте (когда профиль стал null)
-  useEffect(() => {
+  React.useEffect(() => {
     if (profile === null) {
       // Fire-and-forget: если к этому моменту токен ещё валиден, запрос выполнится
       void unregisterDevice().catch(() => undefined);
     }
   }, [profile]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!profile || hasRegistered.current) {
       return;
     }
 
     const register = async () => {
       try {
+        const runtimePushEnabled = Boolean(Constants?.expoConfig?.extra?.push?.enabled);
+        if (!runtimePushEnabled) {
+          console.warn("Push disabled by config (extra.push.enabled=false)");
+          return;
+        }
+
         // Запрашиваем разрешения
         const { status: existingStatus } = await Notifications.getPermissionsAsync();
         let finalStatus = existingStatus;

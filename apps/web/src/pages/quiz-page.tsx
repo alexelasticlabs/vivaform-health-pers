@@ -2,21 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Check } from 'lucide-react';
-import { useQuizStore, useQuizAutosave, calculateBMI } from '../store/quiz-store';
-import { submitQuiz, saveQuizPreview, getQuizPreview } from '../api';
-import { useUserStore } from '../store/user-store';
-import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '../lib/analytics';
-import { QuizProgress } from '../components/quiz/quiz-progress';
-import { IntroStep } from '../components/quiz/steps/intro-step';
-import { BodyMetricsStep } from '../components/quiz/steps/body-metrics-step';
-import { GoalTimelineStep } from '../components/quiz/steps/goal-timeline-step';
-import { ActivityLevelStep } from '../components/quiz/steps/activity-level-step';
-import { FoodHabitsStep } from '../components/quiz/steps/food-habits-step';
-import { EnergyScheduleStep } from '../components/quiz/steps/energy-schedule-step';
-import { PreferencesStep } from '../components/quiz/steps/preferences-step';
-import { EmotionalStep } from '../components/quiz/steps/emotional-step';
-import { HydrationStep } from '../components/quiz/steps/hydration-step';
-import { FinalStep } from '../components/quiz/steps/final-step';
+import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store';
+import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
+import { useUserStore } from '@/store/user-store';
+import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
+import { QuizProgress, IntroStep, BodyMetricsStep, GoalTimelineStep, ActivityLevelStep, FoodHabitsStep, EnergyScheduleStep, PreferencesStep, EmotionalStep, HydrationStep, FinalStep } from '@/components/quiz';
 
 const TOTAL_STEPS = 10;
 

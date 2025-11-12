@@ -2,9 +2,9 @@ import { useState, useMemo, type FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Eye, EyeOff, Lock, ArrowRight } from 'lucide-react';
-import { resetPassword } from '../api';
-import { VivaFormLogo } from '../components/viva-form-logo';
-import { AuthLayout } from '../components/auth/auth-layout';
+import { resetPassword } from '@/api';
+import { VivaFormLogo } from '@/components/viva-form-logo';
+import { AuthLayout } from '@/components/auth/auth-layout';
 
 export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();

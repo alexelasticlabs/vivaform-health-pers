@@ -1,5 +1,5 @@
 ﻿import type { WeightEntry } from "@vivaform/shared";
-import type { WeightProgressResponse } from "../api";
+import type { WeightProgressResponse } from "@/api";
 
 export const buildTrend = (entries: WeightEntry[]) =>
   entries.map((entry, index) => {

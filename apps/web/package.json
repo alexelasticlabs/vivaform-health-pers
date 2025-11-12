@@ -14,7 +14,8 @@
     "test:run": "vitest run",
     "format": "prettier --check .",
     "screenshots": "pnpm build && node scripts/screenshot.ts",
-    "install-browsers": "playwright install chromium"
+    "install-browsers": "playwright install chromium",
+    "e2e": "pnpm run build && pnpm run install-browsers && playwright test"
   },
   "dependencies": {
     "@radix-ui/react-toast": "^1.1.5",
@@ -33,7 +34,9 @@
     "react-router-dom": "^7.9.0",
     "sonner": "^1.6.2",
     "zustand": "5.0.8",
-    "@react-buddy/ide-toolbox": "^2.4.0"
+    "@react-buddy/ide-toolbox": "^2.4.0",
+    "@sentry/react": "^8.38.0",
+    "@sentry/browser": "^8.38.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.48.2",

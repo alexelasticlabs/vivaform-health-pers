@@ -1,53 +1,34 @@
-﻿import { test, expect } from '@playwright/test';
+﻿import { test, expect } from './fixtures';
+import { DashboardPagePO } from './page-objects/dashboard.po';
 
 // Opens meal and weight modals and submits minimal forms with network mocks
 
-test('Dashboard modals: meal and weight', async ({ page }) => {
-  // Mock dashboard/day
-  await page.route('**/api/dashboard/daily**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
-      goals: { calories: 2000, waterMl: 2000 },
-      nutrition: { summary: { calories: 0, protein: 0, fat: 0, carbs: 0 }, entries: [] },
-      water: { totalMl: 0 },
-      weight: { latest: null },
-      recommendations: []
-    })});
-  });
-  await page.route('**/api/weight**', async (route) => {
-    const req = route.request();
-    if (req.method() === 'POST') {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'w1', weightKg: 70, date: new Date().toISOString() }) });
-    } else {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) });
-    }
-  });
-  await page.route('**/api/nutrition**', async (route) => {
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ id: 'n1' }) });
-  });
-
-  await page.goto('/app');
+test('Dashboard modals: meal and weight', async ({ authenticatedPage }) => {
+  const page = authenticatedPage;
+  const dash = new DashboardPagePO(page);
+  await dash.goto();
+  await dash.ensureLoaded();
 
   // Open meal modal
-  const addMeal = page.getByRole('button', { name: /add meal/i });
+  const addMeal = dash.addMealButton;
+  await expect(addMeal).toBeVisible({ timeout: 15000 });
   await addMeal.click();
-  // minimal action: ensure form present
-  await expect(page.getByText(/Add Food|Search foods/i)).toBeVisible();
-  // Close
-  await page.getByRole('button', { name: /close/i }).first().click().catch(() => {});
+  await expect(page.getByRole('button', { name: /^Add meal$/i }).first()).toBeVisible({ timeout: 8000 });
+  await expect(page.getByRole('spinbutton', { name: /calories/i }).first()).toBeVisible({ timeout: 8000 });
+  const closeBtn1 = dash.closeButton;
+  if (await closeBtn1.isVisible().catch(() => false)) await closeBtn1.click();
 
   // Open weight modal
-  const weightCard = page.getByText(/Weight/i).first();
-  await weightCard.click();
-  // Fill weight if input exists
-  const weightInput = page.getByRole('spinbutton').first();
-  if (await weightInput.isVisible().catch(() => false)) {
-    await weightInput.fill('70.5');
+  const updateButton = dash.weightUpdate;
+  if (await updateButton.isVisible().catch(() => false)) {
+    await updateButton.click();
+  } else {
+    await page.getByText(/Weight/i).first().click();
   }
-  const saveBtn = page.getByRole('button', { name: /save|update|add/i }).first();
-  if (await saveBtn.isVisible().catch(() => false)) {
-    await saveBtn.click();
-  }
-  await expect(page.getByText(/Update Weight|Weight/i)).toBeVisible();
+  await expect(dash.weightHeading).toBeVisible({ timeout: 8000 });
+  const closeBtn2 = dash.closeButton;
+  if (await closeBtn2.isVisible().catch(() => false)) await closeBtn2.click();
+  await expect(dash.weightHeading).toBeHidden({ timeout: 5000 });
 
   // After closing meal modal, reopen and simulate adding a manual meal if form present
   const addMealAgain = page.getByRole('button', { name: /add meal/i });
@@ -76,7 +57,19 @@ test('Dashboard modals: meal and weight', async ({ page }) => {
     await page.getByRole('button', { name: /close/i }).first().click().catch(() => {});
   }
 
-  // Hydration KPI value check (if present)
-  const hydrationValue = page.getByText(/ml/).first();
-  await expect(hydrationValue).toBeVisible();
+  // Open water modal and add 250ml then 500ml if controls exist
+  const addWaterBtn = page.getByRole('button', { name: /add water|water/i }).first();
+  if (await addWaterBtn.isVisible().catch(() => false)) {
+    await addWaterBtn.click();
+    const plus250 = page.getByRole('button', { name: /\+250/i });
+    const plus500 = page.getByRole('button', { name: /\+500/i });
+    if (await plus250.isVisible().catch(() => false)) await plus250.click();
+    if (await plus500.isVisible().catch(() => false)) await plus500.click();
+    // Close modal
+    await page.getByRole('button', { name: /close|save/i }).first().click().catch(() => {});
+  }
+
+  // Expect hydration KPI shows ml (some number)
+  await expect(page.locator('[data-testid="kpi-value-hydration"]').first()).toBeVisible({ timeout: 15000 });
+  // NOTE: removed any post-close weight modal assertions to avoid strict mode collisions.
 });

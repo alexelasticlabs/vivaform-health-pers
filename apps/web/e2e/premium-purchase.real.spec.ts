@@ -8,10 +8,12 @@
 const runReal = process.env.E2E_STRIPE_REAL === '1';
 
 (runReal ? test : test.skip)('real checkout: create session on backend, jump to success and show toast', async ({ page, baseURL }) => {
-  // Auth: inject persisted store (zustand)
+  // Auth: inject persisted store (zustand) — use sessionStorage per app convention
   await page.addInitScript(() => {
-    const state = { state: { profile: { id: 'u1', email: 't@e.com', tier: 'FREE' }, tokens: { accessToken: 'x', refreshToken: 'y' }, isAuthenticated: true } };
-    window.localStorage.setItem('vivaform-auth', JSON.stringify(state));
+    const state = { state: { profile: { id: 'u1', email: 't@e.com', tier: 'FREE' }, accessToken: 'mock-at', isAuthenticated: true }, version: 0 };
+    window.sessionStorage.setItem('vivaform-auth', JSON.stringify(state));
+    // Ensure rememberMe is false so sessionStorage is selected on boot
+    try { window.localStorage.setItem('rememberMe', 'false'); } catch {}
   });
 
   let createdSessionId: string | null = null;
@@ -43,3 +45,7 @@ const runReal = process.env.E2E_STRIPE_REAL === '1';
   await expect(page).toHaveURL(/\/app(\?.*)?$/);
 });
 
+/**
+ * NOTE: Этот тест всегда пропускается в CI, если E2E_STRIPE_REAL !== '1'.
+ * Рекомендуется использовать mock сценарий (premium-purchase.mock.spec.ts) для стабильности.
+ */

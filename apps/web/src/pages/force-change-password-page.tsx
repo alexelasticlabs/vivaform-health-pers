@@ -62,12 +62,10 @@ export function ForceChangePasswordPage() {
       
       // Update user profile to clear mustChangePassword flag
       if (profile) {
-        const accessToken = (typeof globalThis !== 'undefined' && (globalThis as any).localStorage)?.getItem('accessToken') || '';
-        const refreshToken = (typeof globalThis !== 'undefined' && (globalThis as any).localStorage)?.getItem('refreshToken') || '';
+        const accessToken = useUserStore.getState().accessToken || '';
         setAuth(
           { ...profile, mustChangePassword: false },
-          accessToken,
-          refreshToken
+          accessToken
         );
       }
       

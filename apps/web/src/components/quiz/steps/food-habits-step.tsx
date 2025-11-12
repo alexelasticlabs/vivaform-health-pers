@@ -1,8 +1,6 @@
-import { useQuizStore } from '../../../store/quiz-store';
-import { QuizCard } from '../quiz-card';
-import { OptionPill } from '../options/option-pill';
-import { OptionTile } from '../options/option-tile';
-import { logQuizOptionSelected, logQuizToggleChanged } from '../../../lib/analytics';
+import { useQuizStore } from '@/store/quiz-store';
+import { QuizCard, OptionPill, OptionTile } from '@/quiz';
+import { logQuizOptionSelected, logQuizToggleChanged } from '@/lib/analytics';
 
 export function FoodHabitsStep() {
   const { answers, updateAnswers } = useQuizStore();

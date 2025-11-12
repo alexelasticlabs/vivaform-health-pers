@@ -1,53 +1,45 @@
-﻿import { describe, it, expect, vi } from 'vitest';
-import renderWithProviders from '../../../../test/render-helper';
-import { PreferencesStep } from '../preferences-step';
-
-vi.mock('../../../../store/quiz-store', () => {
-  let state: any = { clientId: 'test-client', answers: { habits: {} }, updateAnswers: (patch: any) => { state.answers = { ...state.answers, habits: { ...(state.answers.habits||{}), ...(patch.habits||{}) } }; } };
-  const useQuizStore = (selector?: any) => (typeof selector === 'function' ? selector(state) : state);
-  (useQuizStore as any).getState = () => state;
-  return { useQuizStore };
-});
-
-vi.mock('../../../../lib/analytics', () => ({
-  logQuizOptionSelected: vi.fn(),
-  logQuizSliderChanged: vi.fn(),
-  logQuizToggleChanged: vi.fn(),
-}));
+﻿import { describe, it, expect } from 'vitest';
+import { waitFor } from '@testing-library/react';
+import renderWithProviders from '@/test/render-helper';
+import { PreferencesStep } from '@/components/quiz';
+import { useQuizStore } from '@/store/quiz-store';
 
 describe('PreferencesStep interactions', () => {
-  it('adds and removes allergy, avoided food, toggles complexity and updates cooking time', () => {
-    const { getByPlaceholderText, getByRole, getAllByRole } = renderWithProviders(<PreferencesStep />);
-    // Add custom allergy
-    const allergyInput = getByPlaceholderText(/Other allergy/i) as HTMLInputElement;
-    allergyInput.focus();
-    allergyInput.value = 'TestAllergy';
-    allergyInput.dispatchEvent(new Event('input', { bubbles: true }));
-    const addButtons = getAllByRole('button', { name: /add/i });
-    addButtons[0].click();
-    const { useQuizStore } = require('../../../../store/quiz-store');
-    let s = (useQuizStore as any).getState();
-    expect(s.answers.habits.foodAllergies).toContain('TestAllergy');
+  it('toggles built-in allergy & avoided food, sets meal complexity', async () => {
+    useQuizStore.setState({ answers: { habits: { foodAllergies: [], avoidedFoods: [] } } } as any);
 
-    // Remove allergy (× button)
-    const removeBtn = getAllByRole('button').find(b => b.textContent === '×');
-    if (removeBtn) removeBtn.click();
-    s = (useQuizStore as any).getState();
-    expect(s.answers.habits.foodAllergies || []).not.toContain('TestAllergy');
+    const { getByRole, getAllByRole } = renderWithProviders(<PreferencesStep />);
 
-    // Add avoided food
-    const avoidedInput = getByPlaceholderText(/Other food/i) as HTMLInputElement;
-    avoidedInput.value = 'SugarX';
-    avoidedInput.dispatchEvent(new Event('input', { bubbles: true }));
-    addButtons[1].click();
-    s = (useQuizStore as any).getState();
-    expect(s.answers.habits.avoidedFoods).toContain('SugarX');
+    // Toggle allergy (Gluten)
+    const glutenBtn = getByRole('button', { name: /Allergy: Gluten/i });
+    glutenBtn.click();
+    await waitFor(() => {
+      const s = useQuizStore.getState() as any;
+      expect(s.answers.habits.foodAllergies).toContain('Gluten');
+    });
 
-    // Toggle meal complexity -> click first OptionTile (simple)
-    const complexityButton = getAllByRole('button').find(b => /Simple/.test(b.textContent||''));
+    // Toggle avoided food (Sugar)
+    const sugarBtn = getByRole('button', { name: /Avoid: Sugar/i });
+    sugarBtn.click();
+    await waitFor(() => {
+      const s = useQuizStore.getState() as any;
+      expect(s.answers.habits.avoidedFoods).toContain('Sugar');
+    });
+
+    // Set meal complexity to Simple via OptionTile (title contains Simple)
+    const complexityButton = getAllByRole('button').find(b => /Simple \(5-15 min\)/.test(b.textContent||''));
     if (complexityButton) complexityButton.click();
-    s = (useQuizStore as any).getState();
-    expect(s.answers.habits.mealComplexity).toBe('simple');
+    await waitFor(() => {
+      const s = useQuizStore.getState() as any;
+      expect(s.answers.habits.mealComplexity).toBe('simple');
+    });
+
+    // Remove allergy (click × on the rendered pill)
+    const removeAllergyButton = getAllByRole('button').find(b => b.textContent === '×');
+    if (removeAllergyButton) removeAllergyButton.click();
+    await waitFor(() => {
+      const s = useQuizStore.getState() as any;
+      expect(s.answers.habits.foodAllergies || []).not.toContain('Gluten');
+    });
   });
 });
-

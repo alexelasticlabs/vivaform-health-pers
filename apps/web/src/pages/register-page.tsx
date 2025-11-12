@@ -4,12 +4,12 @@ import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { Eye, EyeOff, Check, Mail, Lock, ArrowRight } from "lucide-react";
 
-import { extractErrorMessage, login, registerUser, submitQuiz } from "../api";
-import { useUserStore } from "../store/user-store";
-import { useQuizStore } from "../store/quiz-store";
-import { logQuizSubmitSuccess, logQuizSubmitError } from "../lib/analytics";
-import { VivaFormLogo } from "../components/viva-form-logo";
-import { AuthLayout } from "../components/auth/auth-layout";
+import { extractErrorMessage, login, registerUser, submitQuiz } from "@/api";
+import { useUserStore } from "@/store/user-store";
+import { useQuizStore } from "@/store/quiz-store";
+import { logQuizSubmitSuccess, logQuizSubmitError } from "@/lib/analytics";
+import { VivaFormLogo } from "@/components/viva-form-logo";
+import { AuthLayout } from "@/components/auth/auth-layout";
 
 export const RegisterPage = () => {
   const [email, setEmail] = useState("");
@@ -47,8 +47,8 @@ export const RegisterPage = () => {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: async (data) => {
-      setAuth(data.user, data.tokens.accessToken, data.tokens.refreshToken);
-      
+      setAuth(data.user, data.tokens.accessToken);
+
       // Try to submit quiz draft if exists
       try {
         const draft = getDraft();

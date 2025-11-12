@@ -1,6 +1,6 @@
 ﻿import { describe, it, expect, vi } from 'vitest';
-import renderWithProviders from '../../../../test/render-helper';
-import { EmotionalStep } from '../emotional-step';
+import renderWithProviders from '@/test/render-helper';
+import { EmotionalStep } from '@/components/quiz';
 
 vi.mock('../../../../store/quiz-store', () => {
   let state: any = { clientId: 'test-client', answers: { habits: {} }, updateAnswers: (patch: any) => { state.answers = { ...state.answers, ...patch }; } };
@@ -19,4 +19,3 @@ describe('EmotionalStep', () => {
     expect(container).toMatchSnapshot();
   });
 });
-
