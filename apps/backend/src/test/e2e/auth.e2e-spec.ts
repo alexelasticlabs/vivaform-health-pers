@@ -5,8 +5,9 @@ import * as argon2 from "argon2";
 import request from "supertest";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AppModule } from "../../app.module";
+import { AppE2eModule } from "../../app.e2e.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
+import { truncateAll } from '../setup-e2e';
 
 describe("Auth E2E", () => {
   let app: INestApplication;
@@ -14,7 +15,7 @@ describe("Auth E2E", () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule]
+      imports: [AppE2eModule]
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -25,24 +26,14 @@ describe("Auth E2E", () => {
       })
     );
     await app.init();
-
     prisma = app.get(PrismaService);
     await prisma.$connect();
-  });
-
-  beforeEach(async () => {
-    // Clean database before each test
-    await prisma.recommendation.deleteMany();
-    await prisma.nutritionEntry.deleteMany();
-    await prisma.waterEntry.deleteMany();
-    await prisma.weightEntry.deleteMany();
-    await prisma.subscription.deleteMany();
-    await prisma.profile.deleteMany();
-    await prisma.user.deleteMany();
+    // Clean DB once per suite to avoid heavy TRUNCATE in every test
+    await truncateAll(prisma);
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
+    if (prisma) { await prisma.$disconnect(); }
     await app?.close();
   });
 
@@ -128,6 +119,7 @@ describe("Auth E2E", () => {
     };
 
     beforeEach(async () => {
+      await prisma.user.deleteMany({ where: { email: userCredentials.email } });
       await prisma.user.create({
         data: {
           email: userCredentials.email,
@@ -203,11 +195,40 @@ describe("Auth E2E", () => {
     });
   });
 
+  describe("POST /auth/resend-verification", () => {
+    it("возвращает 201 для неизвестного email (не раскрывает существование)", async () => {
+      const resp = await request(app.getHttpServer())
+        .post("/auth/resend-verification")
+        .send({ email: "unknown@example.com" })
+        .expect(201);
+      expect(resp.body.message).toBeDefined();
+    });
+
+    it("отправляет письмо для не верифицированного пользователя", async () => {
+      const email = "resend@example.com";
+      await prisma.user.create({
+        data: {
+          email,
+          passwordHash: await argon2.hash("password"),
+          name: "Resend User",
+          emailVerified: false
+        }
+      });
+
+      const resp = await request(app.getHttpServer())
+        .post("/auth/resend-verification")
+        .send({ email })
+        .expect(201);
+      expect(resp.body.message).toBeDefined();
+    });
+  });
+
   describe("Защищенные эндпоинты", () => {
     let accessToken: string;
     let userId: string;
 
     beforeEach(async () => {
+      await prisma.user.deleteMany({ where: { email: "protected-test@example.com" } });
       const response = await request(app.getHttpServer())
         .post("/auth/register")
         .send({

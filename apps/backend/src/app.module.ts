@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ScheduleModule } from "@nestjs/schedule";
 import { APP_GUARD } from "@nestjs/core";
+import { Controller, Get, Res } from '@nestjs/common';
 
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { appConfig, jwtConfig, stripeConfig } from "./config";
@@ -22,6 +23,31 @@ import { StripeModule } from "./modules/stripe/stripe.module";
 import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
 import { QuizModule } from "./modules/quiz/quiz.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
+
+@Controller('health')
+class HealthController {
+  @Get()
+  get() {
+    return { status: 'ok', ts: Date.now() };
+  }
+}
+
+@Controller('metrics')
+class MetricsController {
+  private readonly prom: any;
+  constructor() {
+    // Lazy require to avoid TS type issues
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    this.prom = require('prom-client');
+    try { this.prom.collectDefaultMetrics(); } catch {}
+  }
+
+  @Get()
+  async get(@Res() res: any) {
+    res.setHeader('Content-Type', this.prom.register.contentType);
+    res.send(await this.prom.register.metrics());
+  }
+}
 
 @Module({
   imports: [
@@ -65,6 +91,10 @@ import { WebhooksModule } from "./modules/webhooks/webhooks.module";
     QuizModule,
     WebhooksModule,
     DashboardModule
+  ],
+  controllers: [
+    HealthController,
+    MetricsController
   ],
   providers: [
     {

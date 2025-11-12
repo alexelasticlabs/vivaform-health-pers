@@ -4,8 +4,9 @@ import { Test } from "@nestjs/testing";
 import request from "supertest";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AppModule } from "../../app.module";
+import { AppE2eModule } from "../../app.e2e.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
+import { truncateAll } from '../setup-e2e';
 
 describe("Quiz E2E", () => {
   let app: INestApplication;
@@ -14,8 +15,9 @@ describe("Quiz E2E", () => {
   let userId: string;
 
   beforeAll(async () => {
+    console.log('[E2E] Quiz beforeAll start');
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule]
+      imports: [AppE2eModule]
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -29,18 +31,11 @@ describe("Quiz E2E", () => {
 
     prisma = app.get(PrismaService);
     await prisma.$connect();
+    await truncateAll(prisma);
+    console.log('[E2E] Quiz beforeAll complete');
   });
 
   beforeEach(async () => {
-    // Clean database
-    await prisma.recommendation.deleteMany();
-    await prisma.nutritionEntry.deleteMany();
-    await prisma.waterEntry.deleteMany();
-    await prisma.weightEntry.deleteMany();
-    await prisma.subscription.deleteMany();
-    await prisma.profile.deleteMany();
-    await prisma.user.deleteMany();
-
     // Create authenticated user for protected endpoints
     const registerResponse = await request(app.getHttpServer())
       .post("/auth/register")
@@ -55,7 +50,7 @@ describe("Quiz E2E", () => {
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
+    if (prisma) { await prisma.$disconnect(); }
     await app?.close();
   });
 

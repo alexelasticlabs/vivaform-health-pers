@@ -7,7 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vites
 import { AppModule } from "../../app.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { StripeService } from "../../modules/stripe/stripe.service";
-// Use literal values for enums to avoid Prisma client enum import drift in tests
+import { truncateAll } from "../setup-e2e";
 
 describe("Subscriptions E2E", () => {
   let app: INestApplication;
@@ -33,18 +33,10 @@ describe("Subscriptions E2E", () => {
     prisma = app.get(PrismaService);
     stripeService = app.get(StripeService);
     await prisma.$connect();
+    await truncateAll(prisma);
   });
 
   beforeEach(async () => {
-    // Clean database
-    await prisma.recommendation.deleteMany();
-    await prisma.nutritionEntry.deleteMany();
-    await prisma.waterEntry.deleteMany();
-    await prisma.weightEntry.deleteMany();
-    await prisma.subscription.deleteMany();
-    await prisma.profile.deleteMany();
-    await prisma.user.deleteMany();
-
     // Create authenticated user
     const registerResponse = await request(app.getHttpServer())
       .post("/auth/register")
@@ -59,7 +51,7 @@ describe("Subscriptions E2E", () => {
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
+    if (prisma) { await prisma.$disconnect(); }
     await app?.close();
   });
 

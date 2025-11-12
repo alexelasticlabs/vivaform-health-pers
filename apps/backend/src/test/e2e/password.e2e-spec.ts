@@ -1,21 +1,23 @@
 import type { INestApplication } from "@nestjs/common";
 import { ValidationPipe } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import * as argon2 from "argon2";
-import request from "supertest";
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-
-import { AppModule } from "../../app.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
 import { EmailService } from "../../modules/email/email.service";
+import * as argon2 from "argon2";
+import request from "supertest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+
+import { AppE2eModule } from "../../app.e2e.module";
+import { truncateAll } from '../setup-e2e';
 
 describe("Password reset E2E", () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let emailService: EmailService;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule]
+      imports: [AppE2eModule]
     }).compile();
 
     app = moduleRef.createNestApplication();
@@ -26,21 +28,14 @@ describe("Password reset E2E", () => {
       })
     );
     await app.init();
-
     prisma = app.get(PrismaService);
+    emailService = app.get(EmailService);
     await prisma.$connect();
-  });
-
-  beforeEach(async () => {
-    await prisma.passwordResetToken.deleteMany();
-    await prisma.tempPassword.deleteMany();
-    await prisma.subscription.deleteMany();
-    await prisma.profile.deleteMany();
-    await prisma.user.deleteMany();
+    await truncateAll(prisma);
   });
 
   afterAll(async () => {
-    await prisma.$disconnect();
+    if (prisma) { await prisma.$disconnect(); }
     await app?.close();
   });
 
@@ -55,7 +50,6 @@ describe("Password reset E2E", () => {
     });
 
     // Spy on EmailService to avoid network
-    const emailService = app.get(EmailService);
     const spy = vi.spyOn(emailService, "sendPasswordResetEmail").mockResolvedValue(undefined as any);
 
     const resp = await request(app.getHttpServer())

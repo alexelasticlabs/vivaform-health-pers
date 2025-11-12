@@ -4,13 +4,54 @@ import { NestFactory } from "@nestjs/core";
 import { raw } from "body-parser";
 import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const cookieParser = require('cookie-parser');
+import * as Sentry from '@sentry/node';
+import { nodeProfilingIntegration } from '@sentry/profiling-node';
 
 import { AppModule } from "./app.module";
+
+const initSentryBackend = () => {
+  const dsn = process.env.SENTRY_DSN;
+  if (!dsn) return;
+  Sentry.init({
+    dsn,
+    environment: process.env.NODE_ENV,
+    integrations: [nodeProfilingIntegration()],
+    tracesSampleRate: 0.2,
+    release: process.env.GIT_COMMIT || process.env.VERCEL_GIT_COMMIT_SHA || undefined
+  });
+};
+
+function assertEmailConfigOrFail(config: ConfigService, logger: Logger) {
+  const nodeEnv = config.get<string>('NODE_ENV') || process.env.NODE_ENV || 'development';
+  const emailService = config.get<string>('EMAIL_SERVICE') || 'smtp';
+
+  if (nodeEnv === 'production') {
+    if (emailService === 'sendgrid') {
+      const apiKey = config.get<string>('SENDGRID_API_KEY');
+      if (!apiKey) {
+        logger.error('SENDGRID_API_KEY is required in production when EMAIL_SERVICE=sendgrid');
+        throw new Error('Email provider not configured');
+      }
+    } else {
+      const smtpUser = config.get<string>('SMTP_USER');
+      const smtpPass = config.get<string>('SMTP_PASSWORD');
+      if (!smtpUser || !smtpPass) {
+        logger.error('SMTP_USER/SMTP_PASSWORD are required in production when EMAIL_SERVICE=smtp');
+        throw new Error('Email provider not configured');
+      }
+    }
+  }
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
   const logger = new Logger('Bootstrap');
+
+  // Fail-fast email config in production
+  assertEmailConfigOrFail(configService, logger);
 
   const corsOrigins = configService.get<string[]>("app.corsOrigins", ["http://localhost:5173", "http://localhost:5174"]);
 
@@ -52,6 +93,8 @@ async function bootstrap() {
     })
   );
 
+  app.use(cookieParser());
+
   if (configService.get<boolean>("app.enableSwagger", true)) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle("VivaForm API")
@@ -69,6 +112,7 @@ async function bootstrap() {
   logger.log(`🚀 Backend started on port ${port} (CORS: ${corsOrigins.join(', ')})`);
 }
 
+initSentryBackend();
 bootstrap().catch((error) => {
   const logger = new Logger('Bootstrap');
   logger.error(error instanceof Error ? error.stack ?? error.message : String(error));

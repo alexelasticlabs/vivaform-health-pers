@@ -20,11 +20,17 @@ export class EmailService {
   private readonly fromEmail: string;
   private readonly fromName: string;
   private smtpInitPromise?: Promise<void>;
+  private readonly testMode = (process.env.NODE_ENV === 'test') || (process.env.VITEST !== undefined) || (process.env.EMAIL_TEST_MODE === 'true');
 
   constructor(private configService: ConfigService) {
     this.emailService = this.configService?.get<string>('EMAIL_SERVICE') || 'smtp';
     this.fromEmail = this.configService?.get<string>('EMAIL_FROM') || 'noreply@example.com';
     this.fromName = this.configService?.get<string>('EMAIL_FROM_NAME') || 'VivaForm';
+
+    if (this.testMode) {
+      this.logger.log('📪 EmailService running in TEST MODE — all sends and transports are skipped');
+      return; // Полностью пропускаем инициализацию внешних транспортов
+    }
 
     if (this.emailService === 'sendgrid') {
       this.initializeSendGrid();
@@ -85,6 +91,10 @@ export class EmailService {
   }
 
   private async createEtherealTransporter() {
+    if (this.testMode) {
+      this.logger.log('🧪 [TEST MODE] Skip ethereal transport initialization');
+      return;
+    }
     try {
       const testAccount = await nodemailer.createTestAccount();
       this.transporter = nodemailer.createTransport({
@@ -104,6 +114,9 @@ export class EmailService {
 
   /** @public Welcome email used after user registration */
   async sendWelcomeEmail(email: string, name: string) {
+    if (this.testMode) {
+      this.logger.log(`👋 [TEST MODE] Welcome email suppressed for ${email}`);
+      return; }
     const subject = 'Добро пожаловать в VivaForm! 🎉';
     const html = this.getWelcomeTemplate(name);
 
@@ -112,6 +125,7 @@ export class EmailService {
 
   /** @public Verification email triggered during signup */
   async sendVerificationEmail(email: string, token: string) {
+    if (this.testMode) { this.logger.log(`🔐 [TEST MODE] Verification email suppressed for ${email}`); return; }
     const verificationUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/verify-email?token=${token}`;
     const subject = 'Подтвердите ваш email - VivaForm';
     const html = this.getVerificationTemplate(verificationUrl);
@@ -120,6 +134,7 @@ export class EmailService {
   }
 
   async sendPasswordResetEmail(email: string, token: string) {
+    if (this.testMode) { this.logger.log(`🔄 [TEST MODE] Password reset email suppressed for ${email}`); return; }
     const resetUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/reset-password?token=${token}`;
     const subject = 'Reset your VivaForm password';
     const html = this.getPasswordResetTemplate(resetUrl);
@@ -128,6 +143,7 @@ export class EmailService {
   }
 
   async sendTempPasswordEmail(email: string, tempPassword: string) {
+    if (this.testMode) { this.logger.log(`🕒 [TEST MODE] Temp password email suppressed for ${email}`); return; }
     const subject = 'Your temporary VivaForm password';
     const html = this.getTempPasswordTemplate(tempPassword);
 
@@ -135,6 +151,10 @@ export class EmailService {
   }
 
   async sendEmail(dto: SendEmailDto): Promise<void> {
+    if (this.testMode) {
+      this.logger.log(`✉️ [TEST MODE] Skipped email to ${dto.to}: ${dto.subject}`);
+      return; // Ничего не отправляем и не падаем
+    }
     try {
       if (this.emailService === 'sendgrid') {
         await this.sendViaSendGrid(dto);

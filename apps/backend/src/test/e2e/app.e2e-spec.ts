@@ -2,35 +2,42 @@
 import { Test } from "@nestjs/testing";
 import * as argon2 from "argon2";
 import request from "supertest";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import { AppModule } from "../../app.module";
+import { AppE2eModule } from "../../app.e2e.module";
 import { PrismaService } from "../../common/prisma/prisma.service";
+import { truncateAll } from '../setup-e2e';
 
 describe("AppModule e2e", () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
   beforeAll(async () => {
+    console.log('[E2E] AppModule beforeAll start');
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule]
+      imports: [AppE2eModule]
     }).compile();
+    console.log('[E2E] module compiled');
 
     app = moduleRef.createNestApplication();
     await app.init();
+    console.log('[E2E] app.init done');
 
     prisma = app.get(PrismaService);
     await prisma.$connect();
-    await prisma.recommendation.deleteMany();
-    await prisma.nutritionEntry.deleteMany();
-    await prisma.waterEntry.deleteMany();
-    await prisma.weightEntry.deleteMany();
-    await prisma.subscription.deleteMany();
-    await prisma.user.deleteMany();
+    console.log('[E2E] prisma connected');
+    // await truncateAll(prisma);
+    console.log('[E2E] beforeAll complete');
+  });
+
+  beforeEach(async () => {
+    // await truncateAll(prisma);
   });
 
   afterAll(async () => {
+    console.log('[E2E] AppModule afterAll start');
     await app?.close();
+    console.log('[E2E] AppModule afterAll complete');
   });
 
   it("GET /health", async () => {

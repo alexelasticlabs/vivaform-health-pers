@@ -21,7 +21,9 @@ export enum AuditAction {
   PAYMENT_FAILED = 'PAYMENT_FAILED',
   
   DATA_EXPORTED = 'DATA_EXPORTED',
-  ACCOUNT_DELETED = 'ACCOUNT_DELETED'
+  ACCOUNT_DELETED = 'ACCOUNT_DELETED',
+
+  PREMIUM_PAGE_VIEW = 'PREMIUM_PAGE_VIEW'
 }
 
 interface AuditLogDto {
@@ -202,7 +204,7 @@ export class AuditService {
   async logPremiumPageView(userId?: string, ipAddress?: string): Promise<void> {
     await this.log({
       userId: userId || undefined,
-      action: AuditAction.SUBSCRIPTION_CREATED, // сохраняем как created view (отдельно от upgrade)
+      action: AuditAction.PREMIUM_PAGE_VIEW,
       metadata: { event: 'PREMIUM_PAGE_VIEW' },
       ipAddress
     });

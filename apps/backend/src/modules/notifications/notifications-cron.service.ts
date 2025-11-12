@@ -17,6 +17,10 @@ import { NotificationsService } from "./notifications.service";
 @Injectable()
 export class NotificationsCronService {
   private readonly logger = new Logger(NotificationsCronService.name);
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  private readonly prom: any = require('prom-client');
+  private readonly jobCounter = new this.prom.Counter({ name: 'cron_notifications_jobs_total', help: 'Notifications cron jobs total', labelNames: ['job','status'] as const });
+  private readonly jobDuration = new this.prom.Histogram({ name: 'cron_notifications_job_duration_ms', help: 'Duration of notifications cron jobs', labelNames: ['job'] as const });
 
   constructor(
     private readonly notificationsService: NotificationsService,
@@ -31,6 +35,7 @@ export class NotificationsCronService {
     timeZone: "Europe/Moscow"
   })
   async sendWaterReminders() {
+    const endTimer = this.jobDuration.startTimer({ job: 'water' } as any);
     this.logger.log("Sending water reminders...");
 
     try {
@@ -55,8 +60,12 @@ export class NotificationsCronService {
       }
 
       this.logger.log(`Water reminders sent to ${sentCount}/${users.length} users`);
+      this.jobCounter.inc({ job: 'water', status: 'success' } as any);
     } catch (error) {
+      this.jobCounter.inc({ job: 'water', status: 'error' } as any);
       this.logger.error("Failed to send water reminders", error instanceof Error ? error.stack : String(error));
+    } finally {
+      endTimer();
     }
   }
 
@@ -68,6 +77,7 @@ export class NotificationsCronService {
     timeZone: "Europe/Moscow"
   })
   async sendWeightTrackingReminders() {
+    const endTimer = this.jobDuration.startTimer({ job: 'weight' } as any);
     this.logger.log("Sending weight tracking reminders...");
 
     try {
@@ -92,8 +102,12 @@ export class NotificationsCronService {
       }
 
       this.logger.log(`Weight tracking reminders sent to ${sentCount}/${users.length} users`);
+      this.jobCounter.inc({ job: 'weight', status: 'success' } as any);
     } catch (error) {
+      this.jobCounter.inc({ job: 'weight', status: 'error' } as any);
       this.logger.error("Failed to send weight tracking reminders", error instanceof Error ? error.stack : String(error));
+    } finally {
+      endTimer();
     }
   }
 
@@ -105,7 +119,8 @@ export class NotificationsCronService {
     timeZone: "Europe/Moscow"
   })
   async sendBreakfastReminders() {
-    await this.sendMealReminderToAll("breakfast");
+    const endTimer = this.jobDuration.startTimer({ job: 'breakfast' } as any);
+    try { await this.sendMealReminderToAll("breakfast"); this.jobCounter.inc({ job: 'breakfast', status: 'success' } as any);} catch { this.jobCounter.inc({ job: 'breakfast', status: 'error' } as any);} finally { endTimer(); }
   }
 
   /**
@@ -116,7 +131,8 @@ export class NotificationsCronService {
     timeZone: "Europe/Moscow"
   })
   async sendLunchReminders() {
-    await this.sendMealReminderToAll("lunch");
+    const endTimer = this.jobDuration.startTimer({ job: 'lunch' } as any);
+    try { await this.sendMealReminderToAll("lunch"); this.jobCounter.inc({ job: 'lunch', status: 'success' } as any);} catch { this.jobCounter.inc({ job: 'lunch', status: 'error' } as any);} finally { endTimer(); }
   }
 
   /**
@@ -127,7 +143,8 @@ export class NotificationsCronService {
     timeZone: "Europe/Moscow"
   })
   async sendDinnerReminders() {
-    await this.sendMealReminderToAll("dinner");
+    const endTimer = this.jobDuration.startTimer({ job: 'dinner' } as any);
+    try { await this.sendMealReminderToAll("dinner"); this.jobCounter.inc({ job: 'dinner', status: 'success' } as any);} catch { this.jobCounter.inc({ job: 'dinner', status: 'error' } as any);} finally { endTimer(); }
   }
 
   /**
@@ -174,11 +191,16 @@ export class NotificationsCronService {
     timeZone: "Europe/Moscow"
   })
   async cleanupInvalidTokens() {
+    const endTimer = this.jobDuration.startTimer({ job: 'cleanup' } as any);
     try {
       const removed = await this.notificationsService.cleanupInvalidTokens();
       this.logger.log(`Invalid push tokens cleanup removed: ${removed}`);
+      this.jobCounter.inc({ job: 'cleanup', status: 'success' } as any);
     } catch (error) {
+      this.jobCounter.inc({ job: 'cleanup', status: 'error' } as any);
       this.logger.error("Failed to cleanup invalid push tokens", error instanceof Error ? error.stack : String(error));
+    } finally {
+      endTimer();
     }
   }
 }
