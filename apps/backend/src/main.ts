@@ -12,6 +12,7 @@ import { validateEnvironment } from "./config/env.validator";
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
 import { requestIdMiddleware } from './common/middleware/request-id.middleware';
+import { CsrfCheckMiddleware } from './common/middleware/csrf-check.middleware';
 
 // Validate environment variables before initializing anything
 validateEnvironment();
@@ -89,6 +90,10 @@ async function bootstrap() {
 
   // request id for tracing
   app.use(requestIdMiddleware);
+
+  // CSRF protection для state-changing запросов
+  const csrfCheck = new CsrfCheckMiddleware();
+  app.use((req: any, res: any, next: any) => csrfCheck.use(req, res, next));
 
   app.use(
     helmet({

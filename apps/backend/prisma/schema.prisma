@@ -402,15 +402,24 @@ model TempPassword {
 
 model AuditLog {
   id        String   @id @default(cuid())
-  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String?
   action    String
+  entity    String
+  entityId  String?
   metadata  Json?
-  ipAddress String?
-  userAgent String?
   createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userId], references: [id])
 
   @@index([userId])
-  @@index([action])
   @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model ProcessedWebhookEvent {
+  id          String   @id // Stripe event.id
+  eventType   String
+  processedAt DateTime @default(now())
+
+  @@index([processedAt])
+  @@map("processed_webhook_events")
 }

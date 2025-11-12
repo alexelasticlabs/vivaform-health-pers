@@ -6,6 +6,8 @@ import type { Request } from 'express';
 import { StripeService } from '../stripe/stripe.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { PrismaService } from '../../common/prisma/prisma.service';
 import type Stripe from 'stripe';
 import { getRedis } from '../../common/utils/redis';
 
@@ -13,11 +15,12 @@ import { getRedis } from '../../common/utils/redis';
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
   private readonly redis = getRedis();
-  private processedIds = new Set<string>(); // fallback на память, если нет Redis
+  private processedIds = new Set<string>(); // fallback на память, если нет Redis и Prisma
 
   constructor(
     private readonly stripeService: StripeService,
-    private readonly subscriptionsService: SubscriptionsService
+    private readonly subscriptionsService: SubscriptionsService,
+    private readonly prisma: PrismaService,
   ) {}
 
   @Throttle({ name: 'medium' })
@@ -30,8 +33,6 @@ export class WebhooksController {
       throw new BadRequestException('Missing stripe-signature header');
     }
 
-    // Support both Nest rawBody (when app created with { rawBody: true }) and
-    // express raw() middleware (where body is already a Buffer)
     const rawBody = (request as any).rawBody ?? (request as any).body;
     if (!rawBody) {
       this.logger.error('❗ Missing raw body on webhook request');
@@ -47,32 +48,15 @@ export class WebhooksController {
       throw new BadRequestException('Invalid signature');
     }
 
-    // Idempotency: если событие уже обрабатывалось — игнорируем
+    // Idempotency: проверяем через Prisma → Redis → memory
     const evtId = event.id;
-    try {
-      if (this.redis) {
-        const key = `stripe:webhook:${evtId}`;
-        const res = await (this.redis as any).set(key, '1', 'EX', 24 * 60 * 60, 'NX');
-        if (res !== 'OK') {
-          this.logger.log(`🔁 Duplicate webhook ignored: ${evtId} (${event.type})`);
-          return { received: true, duplicate: true } as any;
-        }
-      } else {
-        if (this.processedIds.has(evtId)) {
-          this.logger.log(`🔁 Duplicate webhook (memory) ignored: ${evtId}`);
-          return { received: true, duplicate: true } as any;
-        }
-        this.processedIds.add(evtId);
-        // Очистка набора при росте
-        if (this.processedIds.size > 5000) {
-          this.processedIds.clear();
-        }
-      }
-    } catch (e) {
-      this.logger.warn(`Idempotency check failed, proceeding without it: ${(e as Error)?.message}`);
+    const isDuplicate = await this.checkIdempotency(evtId, event.type);
+    if (isDuplicate) {
+      this.logger.log(`🔁 Duplicate webhook ignored: ${evtId} (${event.type})`);
+      return { received: true, duplicate: true };
     }
 
-    this.logger.log(`🔔 Received webhook: ${event.type}`);
+    this.logger.log(`🔔 Received webhook: ${event.type} (id: ${evtId})`);
 
     try {
       switch (event.type) {
@@ -101,6 +85,50 @@ export class WebhooksController {
       this.logger.error(`Error processing webhook ${event.type}`, error);
       throw new BadRequestException('Webhook processing failed');
     }
+  }
+
+  private async checkIdempotency(eventId: string, eventType: string): Promise<boolean> {
+    // 1. Проверка Prisma (персистентная)
+    try {
+      const existing = await this.prisma.processedWebhookEvent.findUnique({ where: { id: eventId } });
+      if (existing) return true;
+
+      // Записываем в Prisma для будущих запусков
+      await this.prisma.processedWebhookEvent.create({
+        data: { id: eventId, eventType }
+      });
+
+      // Периодическая очистка старых (>7 дней) - можно вынести в cron
+      if (Math.random() < 0.01) { // 1% вероятность
+        const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        await this.prisma.processedWebhookEvent.deleteMany({
+          where: { processedAt: { lt: cutoff } }
+        }).catch(() => {});
+      }
+
+      return false;
+    } catch (prismaErr) {
+      this.logger.warn(`Prisma idempotency check failed: ${(prismaErr as Error)?.message}`);
+    }
+
+    // 2. Fallback на Redis
+    if (this.redis) {
+      try {
+        const key = `stripe:webhook:${eventId}`;
+        const res = await (this.redis as any).set(key, '1', 'EX', 7 * 24 * 60 * 60, 'NX');
+        return res !== 'OK';
+      } catch (redisErr) {
+        this.logger.warn(`Redis idempotency check failed: ${(redisErr as Error)?.message}`);
+      }
+    }
+
+    // 3. Fallback на in-memory
+    if (this.processedIds.has(eventId)) return true;
+    this.processedIds.add(eventId);
+    if (this.processedIds.size > 5000) {
+      this.processedIds.clear();
+    }
+    return false;
   }
 
   private async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {

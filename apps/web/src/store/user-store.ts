@@ -2,6 +2,7 @@
 import { persist, createJSONStorage } from "zustand/middleware";
 
 import type { AuthUser, SubscriptionTier } from "@vivaform/shared";
+import { cleanupAnalyticsIdentifiers } from '@/lib/analytics-cleanup';
 
 export type UserStore = {
   profile: (AuthUser & { tier?: SubscriptionTier; mustChangePassword?: boolean }) | null;
@@ -74,7 +75,10 @@ export const useUserStore = create<UserStore>()(
               }
             : state
         ),
-      logout: () => set({ profile: null, accessToken: null, isAuthenticated: false })
+      logout: () => {
+        cleanupAnalyticsIdentifiers();
+        set({ profile: null, accessToken: null, isAuthenticated: false });
+      }
     }),
     {
       name: "vivaform-auth",
