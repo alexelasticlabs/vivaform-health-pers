@@ -17,6 +17,13 @@ import type { ResendVerificationDto } from './dto/resend-verification.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  private getCookiePath() {
+    const prefix = process.env.API_PREFIX || '';
+    // Гарантируем ведущий слэш если prefix указан без него
+    const norm = prefix ? (prefix.startsWith('/') ? prefix : `/${prefix}`) : '';
+    return `${norm}/auth/refresh`.replace(/\/+/g, '/');
+  }
+
   @Post("register")
   @ApiCreatedResponse({ description: "Регистрация пользователя и выдача токенов" })
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
@@ -25,7 +32,7 @@ export class AuthController {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === 'production',
-      path: '/auth/refresh',
+      path: this.getCookiePath(),
       maxAge: 1000 * 60 * 60 * 24 * 30
     });
     return {
@@ -42,7 +49,7 @@ export class AuthController {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === 'production',
-        path: '/auth/refresh',
+        path: this.getCookiePath(),
         maxAge: 1000 * 60 * 60 * 24 * 30
       });
       return { user, tokens };
@@ -58,7 +65,7 @@ export class AuthController {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === 'production',
-      path: '/auth/refresh',
+      path: this.getCookiePath(),
       maxAge: 1000 * 60 * 60 * 24 * 30
     });
     // Возвращаем вместе с user для клиентов, ожидающих user + tokens
