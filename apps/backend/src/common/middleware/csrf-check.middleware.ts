@@ -1,5 +1,6 @@
-﻿import { Injectable, NestMiddleware, ForbiddenException } from '@nestjs/common';
-import { Request, Response, NextFunction } from 'express';
+﻿import { Injectable, ForbiddenException } from '@nestjs/common';
+import type { NestMiddleware } from '@nestjs/common';
+import type { Request, Response, NextFunction } from 'express';
 
 /**
  * CSRF protection middleware для state-changing запросов.
