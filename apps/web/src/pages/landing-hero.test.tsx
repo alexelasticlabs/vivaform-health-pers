@@ -1,5 +1,5 @@
 ﻿import { describe, it, expect } from 'vitest';
-import { RouterProvider, createMemoryRouter } from 'react-router-dom';
+import { RouterProvider } from 'react-router-dom';
 import { render } from '@testing-library/react';
 import { AppProviders } from '@/providers/app-providers';
 import { createAppRouter } from '@/routes/router';
@@ -14,7 +14,10 @@ describe('landing hero', () => {
         <RouterProvider router={router} />
       </AppProviders>
     );
-    const ctas = await view.findAllByText(/get started|start quiz|sign up/i);
-    expect(ctas.length).toBeGreaterThan(0);
+    // Проверяем наличие ключевых CTA по role и name (стабильные селекторы)
+    const quizLink = await view.findByRole('link', { name: /take the quiz/i }, { timeout: 3000 });
+    const loginLink = view.getByRole('link', { name: /log in/i });
+    expect(quizLink).toBeInTheDocument();
+    expect(loginLink).toBeInTheDocument();
   });
 });

@@ -6,10 +6,10 @@ export function applyCommonMocks() {
     syncCheckoutSession: vi.fn().mockResolvedValue({ status: 'ok' })
   }));
 
-  vi.mock('@/api', async (importOriginal) => {
-    const actual = await importOriginal();
+  vi.mock('@/api', async (importOriginal: any) => {
+    const actual: any = await importOriginal();
     return {
-      ...actual,
+      ...(actual as object),
       login: actual.login,
       registerUser: actual.registerUser,
       fetchDailyDashboard: vi.fn().mockResolvedValue({
@@ -20,7 +20,20 @@ export function applyCommonMocks() {
       }),
       createWaterEntry: vi.fn().mockResolvedValue({}),
       createNutritionEntry: vi.fn().mockResolvedValue({}),
-      createWeightEntry: vi.fn().mockResolvedValue({})
+      createWeightEntry: vi.fn().mockResolvedValue({}),
+      getArticleBySlug: vi.fn().mockImplementation((slug: string) => Promise.resolve({
+        id: 'a1',
+        title: 'Test',
+        slug,
+        excerpt: 'Ex',
+        category: 'Cat',
+        coverImage: null,
+        tags: ['x'],
+        publishedAt: new Date().toISOString(),
+        viewCount: 10,
+        author: { name: 'Author' },
+        content: '<script>alert(1)</script><p>Safe</p>'
+      }))
     };
   });
 

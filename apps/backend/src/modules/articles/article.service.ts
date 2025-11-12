@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import sanitizeHtml from 'sanitize-html';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 
@@ -54,7 +55,7 @@ export class ArticleService {
       data: {
         title: data.title,
         slug,
-        content: data.content,
+        content: sanitizeHtml(data.content),
         excerpt: data.excerpt,
         category: data.category,
         coverImage: data.coverImage,
@@ -64,13 +65,7 @@ export class ArticleService {
         authorId
       },
       include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
+        author: { select: { id: true, name: true, email: true } }
       }
     });
   }
@@ -164,17 +159,10 @@ export class ArticleService {
   async getArticleBySlug(slug: string) {
     const article = await this.prisma.article.findUnique({
       where: { slug },
-      include: {
-        author: {
-          select: {
-            name: true,
-            email: true
-          }
-        }
-      }
+      include: { author: { select: { name: true, email: true } } }
     });
 
-    if (!article) {
+    if (!article || !article.published) {
       throw new NotFoundException(`Article with slug "${slug}" not found`);
     }
 
@@ -204,38 +192,32 @@ export class ArticleService {
    * Обновить статью (только admin)
    */
   async updateArticle(articleId: string, data: UpdateArticleDto) {
-    const article = await this.prisma.article.findUnique({
-      where: { id: articleId }
-    });
+    const article = await this.prisma.article.findUnique({ where: { id: articleId } });
 
-    if (!article) {
-      throw new NotFoundException("Article not found");
-    }
+    if (!article) { throw new NotFoundException("Article not found"); }
 
     const updateData: any = { ...data };
 
     // Если меняем статус на published и статья еще не опубликована
-    if (data.published && !article.published) {
-      updateData.publishedAt = new Date();
-    }
+    if (data.published && !article.published) { updateData.publishedAt = new Date(); }
 
     // Если меняем заголовок, обновляем slug
     if (data.title && data.title !== article.title) {
-      updateData.slug = this.generateSlug(data.title);
+      const newSlug = this.generateSlug(data.title);
+      if (newSlug !== article.slug) {
+        const collision = await this.prisma.article.findUnique({ where: { slug: newSlug } });
+        if (collision) throw new BadRequestException(`Article with slug "${newSlug}" already exists`);
+        updateData.slug = newSlug;
+      }
+    }
+    if (typeof data.content === 'string') {
+      updateData.content = sanitizeHtml(data.content);
     }
 
     return this.prisma.article.update({
       where: { id: articleId },
       data: updateData,
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            email: true
-          }
-        }
-      }
+      include: { author: { select: { id: true, name: true, email: true } } }
     });
   }
 

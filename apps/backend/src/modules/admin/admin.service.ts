@@ -124,9 +124,21 @@ export class AdminService {
     const days = 30;
     const now = new Date();
 
-    // Предзагрузка тарифов по известным priceId для снижения количества обращений в Stripe
-    const allActive = await this.prisma.subscription.findMany({ where: { status: 'ACTIVE' as any } });
-    const allPriceIds = Array.from(new Set(allActive.map(s => s.stripePriceId))).filter(Boolean) as string[];
+    // Предзагрузка активных подписок за весь период для агрегации в памяти
+    const startWindow = new Date(now);
+    startWindow.setDate(startWindow.getDate() - (days - 1));
+    const allInWindow = await this.prisma.subscription.findMany({
+      where: {
+        status: 'ACTIVE' as any,
+        // Берём подписки, которые пересекались с окном
+        OR: [
+          { currentPeriodStart: { lte: now } },
+          { currentPeriodEnd:   { gte: startWindow } }
+        ]
+      }
+    });
+
+    const allPriceIds = Array.from(new Set(allInWindow.map(s => s.stripePriceId))).filter(Boolean) as string[];
     const priceMap = new Map<string, { monthlyAmount: number; currency: string }>();
     await Promise.all(allPriceIds.map(async (id) => {
       try { priceMap.set(id, await this.stripe.getMonthlyAmountForPrice(id)); } catch { priceMap.set(id, { monthlyAmount: 0, currency: 'USD' }); }
@@ -136,14 +148,8 @@ export class AdminService {
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      const active = await this.prisma.subscription.findMany({
-        where: {
-          status: 'ACTIVE' as any,
-          currentPeriodStart: { lte: d },
-          currentPeriodEnd: { gte: d }
-        }
-      });
-      const revenue = active.reduce((s, sub) => s + (priceMap.get(sub.stripePriceId)?.monthlyAmount ?? 0), 0);
+      const dayActive = allInWindow.filter(s => (s as any).currentPeriodStart <= d && (s as any).currentPeriodEnd >= d);
+      const revenue = dayActive.reduce((s, sub) => s + (priceMap.get(sub.stripePriceId)?.monthlyAmount ?? 0), 0);
       series.push({ date: d.toISOString().slice(0,10), revenue, ma7: 0 });
     }
     for (let i = 0; i < series.length; i++) {
@@ -160,26 +166,38 @@ export class AdminService {
     const days = 30;
     const today = new Date();
     const startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const current: { date: string; count: number }[] = [];
-    for (let i = days - 1; i >= 0; i--) {
-      const dayStart = new Date(startDate);
-      dayStart.setDate(dayStart.getDate() - i);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
-      const count = await this.prisma.user.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } });
-      current.push({ date: dayStart.toISOString().slice(0,10), count });
-    }
+    const windowStart = new Date(startDate);
+    windowStart.setDate(windowStart.getDate() - (days - 1));
+
+    // Предзагрузка пользователей за окно и за предыдущее окно
+    const prevWindowStart = new Date(windowStart);
+    prevWindowStart.setDate(prevWindowStart.getDate() - days);
+
+    const [currentUsers, prevUsers] = await Promise.all([
+      this.prisma.user.findMany({ where: { createdAt: { gte: windowStart, lt: new Date(startDate.getTime() + 24*60*60*1000) } }, select: { createdAt: true } }),
+      compare ? this.prisma.user.findMany({ where: { createdAt: { gte: prevWindowStart, lt: windowStart } }, select: { createdAt: true } }) : Promise.resolve([])
+    ]);
+
+    const bucket = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString().slice(0,10);
+    const countByDay = (rows: { createdAt: Date }[], baseStart: Date) => {
+      const map = new Map<string, number>();
+      for (const r of rows) {
+        const key = bucket(r.createdAt);
+        map.set(key, (map.get(key) ?? 0) + 1);
+      }
+      const out: { date: string; count: number }[] = [];
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(baseStart);
+        d.setDate(d.getDate() + (days - 1 - i) - (days - 1));
+        const key = d.toISOString().slice(0,10);
+        out.push({ date: key, count: map.get(key) ?? 0 });
+      }
+      return out;
+    };
+
+    const current = countByDay(currentUsers, startDate);
     if (!compare) return { current };
-    // Предыдущие 30 дней
-    const prev: { date: string; count: number }[] = [];
-    for (let i = days - 1; i >= 0; i--) {
-      const dayStart = new Date(startDate);
-      dayStart.setDate(dayStart.getDate() - days - i);
-      const dayEnd = new Date(dayStart);
-      dayEnd.setDate(dayEnd.getDate() + 1);
-      const count = await this.prisma.user.count({ where: { createdAt: { gte: dayStart, lt: dayEnd } } });
-      prev.push({ date: dayStart.toISOString().slice(0,10), count });
-    }
+    const prev = countByDay(prevUsers as any, new Date(windowStart));
     return { current, prev };
   }
 
@@ -551,7 +569,7 @@ export class AdminService {
   ]);
 
   async getSettings() {
-    const rows = await (this.prisma as any).setting.findMany();
+    const rows = await (this.prisma as any).setting.findMany({ where: { key: { in: Array.from(this.settingsWhitelist) } } });
     const obj: Record<string, unknown> = {};
     for (const r of rows) obj[r.key] = r.value as unknown;
     return obj;

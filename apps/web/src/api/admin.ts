@@ -135,3 +135,6 @@ export const replyTicket = async (id: string, body: string) => {
 
 export const getSettings = async () => { const { data } = await apiClient.get('/admin/settings'); return data; };
 export const patchSettings = async (patch: Record<string, unknown>) => { const { data } = await apiClient.patch('/admin/settings', patch); return data; };
+
+// Re-export admin overview helpers so consumers can import from '@/api/admin'
+export { getOverviewKpis, getRevenueTrend, getNewUsers, getSubsDistribution, getActivityHeatmap, getSystemHealth } from './admin-overview';
