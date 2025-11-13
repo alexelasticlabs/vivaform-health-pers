@@ -24,7 +24,7 @@ export function MidpointCelebrationStep() {
 
   const completedItems = [
     { text: `Your goal: ${goalText}`, icon: CheckCircle },
-    bmi ? { text: `Current BMI: ${bmi.toFixed(1)}`, icon: CheckCircle } : null,
+    bmi ? { text: `Current BMI: ${bmi.bmi}`, icon: CheckCircle } : null,
     { text: `Preferred: ${dietPlan}`, icon: CheckCircle },
     { text: `Ready to cook: ${cookingTime} min/day`, icon: CheckCircle },
   ].filter(Boolean);
@@ -39,7 +39,6 @@ export function MidpointCelebrationStep() {
         title=""
         subtitle=""
         emoji=""
-        className="border-2 border-emerald-300 dark:border-emerald-700"
       >
         <div className="text-center space-y-6 py-8">
           {/* Confetti Icon */}

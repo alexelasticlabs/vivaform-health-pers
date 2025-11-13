@@ -6,7 +6,7 @@ import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store'
 import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
 import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
-import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep, SleepPatternStep, StressLevelStep, SocialEatingStep, BudgetStep, MotivationRankStep, AccountabilityStep, TimelineStep, ResultsPreviewStep, MealPlanPreviewStep, FinalCTAStep, ExitIntentModal, BadgeUnlock } from '@/components/quiz';
+import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep, SleepPatternStep, StressLevelStep, SocialEatingStep, BudgetStep, MotivationRankStep, AccountabilityStep, TimelineStep, ResultsPreviewStep, MealPlanPreviewStep, FinalCTAStep, ExitIntentModal, BadgeUnlock, ActivityLevelStep, QuizProgress } from '@/components/quiz';
 import { getUnlockedBadges, QUIZ_BADGES } from '@/components/quiz/steps/enhanced-quiz-constants';
 
 const TOTAL_STEPS = ENHANCED_TOTAL_STEPS;

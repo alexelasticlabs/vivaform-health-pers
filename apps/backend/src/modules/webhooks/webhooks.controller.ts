@@ -23,7 +23,7 @@ export class WebhooksController {
     private readonly prisma: PrismaService,
   ) {}
 
-  @Throttle({ name: 'medium' })
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('stripe')
   async handleStripeWebhook(
     @Headers('stripe-signature') signature: string,

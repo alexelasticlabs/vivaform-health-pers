@@ -4,6 +4,8 @@ import { QuizCard } from '@/components/quiz';
 import { BODY_TYPES } from './enhanced-quiz-constants';
 import { logQuizOptionSelected } from '@/lib/analytics';
 
+const MDiv = motion.div as any;
+
 export function BodyTypeStep() {
   const { answers, updateAnswers, clientId } = useQuizStore();
 
@@ -62,13 +64,13 @@ export function BodyTypeStep() {
 
               {/* Selected Indicator */}
               {answers.bodyType === type.id && (
-                <motion.div
+                <MDiv
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   className="mt-3 text-emerald-600 dark:text-emerald-400 font-semibold text-sm"
                 >
                   ✓ Selected
-                </motion.div>
+                </MDiv>
               )}
             </button>
           </motion.div>
@@ -76,15 +78,15 @@ export function BodyTypeStep() {
       </div>
 
       {answers.bodyType && (
-        <motion.div
+        <MDiv
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg text-center"
         >
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            Great! We’ll factor your body type into calorie and macro targets 💪
+            Great! We'll factor your body type into calorie and macro targets 💪
           </p>
-        </motion.div>
+        </MDiv>
       )}
     </QuizCard>
   );

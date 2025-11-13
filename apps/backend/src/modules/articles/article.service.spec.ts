@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, beforeEach } from 'vitest';
+﻿﻿import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ArticleService } from './article.service';
 
 class PrismaMock {
