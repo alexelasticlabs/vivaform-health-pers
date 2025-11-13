@@ -6,22 +6,11 @@ import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store'
 import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
 import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
-import { QuizProgress, IntroStep, BodyMetricsStep, GoalTimelineStep, ActivityLevelStep, FoodHabitsStep, EnergyScheduleStep, PreferencesStep, EmotionalStep, HydrationStep, FinalStep } from '@/components/quiz';
+import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES } from '@/components/quiz';
 
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = ENHANCED_TOTAL_STEPS;
 
-const STEP_NAMES = [
-  'intro',
-  'body_metrics',
-  'goal_timeline',
-  'activity_level',
-  'food_habits',
-  'energy_schedule',
-  'preferences',
-  'emotional',
-  'hydration',
-  'final',
-];
+const STEP_NAMES = ENHANCED_STEP_NAMES as unknown as string[];
 
 export function QuizPage() {
   const navigate = useNavigate();
@@ -150,38 +139,16 @@ export function QuizPage() {
 
   const canGoNext = () => {
     switch (currentStep) {
-      case 0: {
-        return !!answers.diet?.plan;
-      }
-      case 1: {
-        const hasHeight = !!answers.body?.height?.cm || (answers.body?.height?.ft !== undefined);
-        const hasWeight = !!answers.body?.weight?.kg || !!answers.body?.weight?.lb;
-        return hasHeight && hasWeight;
-      }
-      case 2: {
-        return answers.goals?.etaMonths !== undefined;
-      }
-      case 3: {
-        return !!answers.habits?.activityLevel;
-      }
-      case 4: {
-        return answers.habits?.mealsPerDay !== undefined;
-      }
-      case 5: {
-        return answers.habits?.sleepHours !== undefined;
-      }
-      case 6: {
-        return (
-          answers.habits?.foodAllergies !== undefined ||
-          answers.habits?.mealComplexity !== undefined
-        );
-      }
-      case 7: {
-        return answers.habits?.mainMotivation !== undefined;
-      }
-      case 8: {
-        return answers.habits?.dailyWaterMl !== undefined;
-      }
+      case 0: // splash has CTA only
+        return true;
+      case 1: // primary goal
+        return !!answers.primaryGoal;
+      case 2: // personal story
+        return (answers.painPoints?.length ?? 0) > 0;
+      case 3: // quick win screen
+        return true;
+      case 4: // body type
+        return !!answers.bodyType;
       default:
         return true;
     }
@@ -256,25 +223,17 @@ export function QuizPage() {
   const renderStep = () => {
     switch (currentStep) {
       case 0:
-        return <IntroStep />;
+        return <SplashStep onStart={nextStep} />;
       case 1:
-        return <BodyMetricsStep />;
+        return <PrimaryGoalStep />;
       case 2:
-        return <GoalTimelineStep />;
+        return <PersonalStoryStep />;
       case 3:
-        return <ActivityLevelStep />;
+        return <QuickWinStep />;
       case 4:
-        return <FoodHabitsStep />;
+        return <BodyTypeStep />;
       case 5:
-        return <EnergyScheduleStep />;
-      case 6:
-        return <PreferencesStep />;
-      case 7:
-        return <EmotionalStep />;
-      case 8:
-        return <HydrationStep />;
-      case 9:
-        return <FinalStep />;
+        return <MidpointCelebrationStep />;
       default:
         return <div>Step {currentStep + 1}</div>;
     }

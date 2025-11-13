@@ -16,5 +16,12 @@ export { PreferencesStep } from './steps/preferences-step';
 export { EmotionalStep } from './steps/emotional-step';
 export { HydrationStep } from './steps/hydration-step';
 export { FinalStep } from './steps/final-step';
+export { SplashStep } from './steps/splash-step';
+export { PrimaryGoalStep } from './steps/primary-goal-step';
+export { PersonalStoryStep } from './steps/personal-story-step';
+export { QuickWinStep } from './steps/quick-win-step';
+export { BodyTypeStep } from './steps/body-type-step';
+export { MidpointCelebrationStep } from './steps/midpoint-celebration-step';
 // Реэкспорт общих констант и типов шагов квиза
 export { COMMON_ALLERGENS, COMMON_AVOIDED_FOODS, type Allergen, type AvoidedFood } from './steps/quiz-constants';
+export { TOTAL_STEPS as ENHANCED_TOTAL_STEPS, STEP_NAMES as ENHANCED_STEP_NAMES } from './steps/enhanced-quiz-constants';
