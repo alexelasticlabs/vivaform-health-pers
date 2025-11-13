@@ -6,7 +6,7 @@ import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store'
 import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
 import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
-import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep } from '@/components/quiz';
+import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep } from '@/components/quiz';
 
 const TOTAL_STEPS = ENHANCED_TOTAL_STEPS;
 
@@ -141,10 +141,10 @@ export function QuizPage() {
     switch (currentStep) {
       // Hook
       case 0: return true; // splash
-      case 1: return !!answers.primaryGoal; // primary goal
-      case 2: return (answers.painPoints?.length ?? 0) > 0; // personal story
-      case 3: return true; // quick win
-      case 4: return !!answers.bodyType; // body type
+      case 1: return !!answers.primaryGoal;
+      case 2: return (answers.painPoints?.length ?? 0) > 0;
+      case 3: return true;
+      case 4: return !!answers.bodyType;
       // Engage
       case 5: { // body metrics extended
         const hasHeight = !!answers.body?.height?.cm;
@@ -154,12 +154,15 @@ export function QuizPage() {
       case 6: { // age & gender
         return !!answers.demographics?.age && !!answers.demographics?.gender;
       }
-      case 7: { // health conditions (optional)
-        return true;
+      case 7: return true; // health conditions (optional)
+      case 8: return true; // meal timing (optional)
+      case 9: return true; // current diet (optional)
+      case 10: { // food preferences deep - at least one list
+        const fp = answers.foodPreferences;
+        return !!(fp && (fp.favorites?.length || fp.dislikes?.length || fp.allergens?.length || fp.intolerances?.length || fp.restrictions?.length));
       }
-      case 8: { // meal timing (optional)
-        return true;
-      }
+      case 11: return !!answers.cooking?.skillLevel; // cooking skills
+      case 12: return true; // kitchen equipment (optional)
       default:
         return true;
     }
@@ -242,7 +245,11 @@ export function QuizPage() {
       case 6: return <AgeGenderStep />;
       case 7: return <HealthConditionsStep />;
       case 8: return <MealTimingStep />;
-      case 9: return <MidpointCelebrationStep />;
+      case 9: return <CurrentDietStep />;
+      case 10: return <FoodPreferencesDeepStep />;
+      case 11: return <CookingSkillsStep />;
+      case 12: return <KitchenEquipmentStep />;
+      case 13: return <MidpointCelebrationStep />;
       default:
         return <div>Step {currentStep + 1}</div>;
     }
