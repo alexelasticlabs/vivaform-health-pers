@@ -6,7 +6,7 @@ import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store'
 import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
 import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
-import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep } from '@/components/quiz';
+import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep, SleepPatternStep, StressLevelStep, SocialEatingStep, BudgetStep, MotivationRankStep, AccountabilityStep, TimelineStep, ResultsPreviewStep, MealPlanPreviewStep, FinalCTAStep } from '@/components/quiz';
 
 const TOTAL_STEPS = ENHANCED_TOTAL_STEPS;
 
@@ -163,6 +163,41 @@ export function QuizPage() {
       }
       case 11: return !!answers.cooking?.skillLevel; // cooking skills
       case 12: return true; // kitchen equipment (optional)
+      // Commit
+      case 13: return true; // midpoint celebration
+      case 14: return !!answers.habits?.activityLevel; // activity level (legacy component)
+      case 15: { // sleep
+        const s = answers.sleep;
+        const hoursOk = typeof s?.hoursPerNight === 'number' && s.hoursPerNight >= 2 && s.hoursPerNight <= 14;
+        const timeOk = (s?.bedtime && s?.waketime) ? /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(s.bedtime) && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(s.waketime) : false;
+        return hoursOk || timeOk;
+      }
+      case 16: { // stress
+        const lvl = answers.stress?.level;
+        return typeof lvl === 'number' && lvl >= 1 && lvl <= 10;
+      }
+      case 17: { // social eating
+        return !!answers.socialEating?.frequency;
+      }
+      case 18: { // budget
+        const rangeOk = !!answers.budget?.range;
+        const num = answers.budget?.weeklyBudget;
+        const numOk = typeof num === 'number' && num >= 10 && num <= 10000;
+        return rangeOk || numOk;
+      }
+      case 19: { // motivation rank
+        return (answers.motivation?.ranking?.length ?? 0) >= 3;
+      }
+      case 20: { // accountability
+        return !!answers.accountability?.type;
+      }
+      case 21: { // timeline
+        const m = answers.goals?.etaMonths;
+        return typeof m === 'number' && m >= 1 && m <= 24;
+      }
+      case 22: return true; // results preview
+      case 23: return true; // meal plan preview
+      case 24: return true; // final CTA
       default:
         return true;
     }
@@ -250,6 +285,17 @@ export function QuizPage() {
       case 11: return <CookingSkillsStep />;
       case 12: return <KitchenEquipmentStep />;
       case 13: return <MidpointCelebrationStep />;
+      case 14: return <ActivityLevelStep />;
+      case 15: return <SleepPatternStep />;
+      case 16: return <StressLevelStep />;
+      case 17: return <SocialEatingStep />;
+      case 18: return <BudgetStep />;
+      case 19: return <MotivationRankStep />;
+      case 20: return <AccountabilityStep />;
+      case 21: return <TimelineStep />;
+      case 22: return <ResultsPreviewStep />;
+      case 23: return <MealPlanPreviewStep />;
+      case 24: return <FinalCTAStep onContinue={handleNext} />;
       default:
         return <div>Step {currentStep + 1}</div>;
     }

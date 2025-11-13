@@ -30,6 +30,16 @@ export { CurrentDietStep } from './steps/current-diet-step';
 export { FoodPreferencesDeepStep } from './steps/food-preferences-deep-step';
 export { CookingSkillsStep } from './steps/cooking-skills-step';
 export { KitchenEquipmentStep } from './steps/kitchen-equipment-step';
+export { SleepPatternStep } from './steps/sleep-pattern-step';
+export { StressLevelStep } from './steps/stress-level-step';
+export { SocialEatingStep } from './steps/social-eating-step';
+export { BudgetStep } from './steps/budget-step';
+export { MotivationRankStep } from './steps/motivation-rank-step';
+export { AccountabilityStep } from './steps/accountability-step';
+export { TimelineStep } from './steps/timeline-step';
+export { ResultsPreviewStep } from './steps/results-preview-step';
+export { MealPlanPreviewStep } from './steps/meal-plan-preview-step';
+export { FinalCTAStep } from './steps/final-cta-step';
 // Реэкспорт общих констант и типов шагов квиза
 export { COMMON_ALLERGENS, COMMON_AVOIDED_FOODS, type Allergen, type AvoidedFood } from './steps/quiz-constants';
 export { TOTAL_STEPS as ENHANCED_TOTAL_STEPS, STEP_NAMES as ENHANCED_STEP_NAMES } from './steps/enhanced-quiz-constants';
