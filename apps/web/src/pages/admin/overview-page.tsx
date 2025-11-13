@@ -1,6 +1,6 @@
 ﻿import { useQuery } from '@tanstack/react-query';
-import { TrendingUp, TrendingDown, Users, CreditCard, DollarSign, Activity, Calendar, AlertCircle } from 'lucide-react';
-import { getOverviewKpis, getRevenueTrend, getNewUsers, getSubsDistribution, getActivityHeatmap, getSystemHealth } from '@/api/admin-overview';
+import { TrendingUp, TrendingDown, Users, CreditCard, DollarSign, Activity, AlertCircle } from 'lucide-react';
+import { getOverviewKpis, getRevenueTrend, getNewUsers, getSubsDistribution, getSystemHealth } from '@/api/admin-overview';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -63,7 +63,7 @@ export function AdminOverviewPage() {
 
   const { data: newUsers, isLoading: newUsersLoading } = useQuery({
     queryKey: ['admin', 'overview', 'newUsers'],
-    queryFn: getNewUsers,
+    queryFn: () => getNewUsers(false),
   });
 
   const { data: subsDistribution, isLoading: subsDistributionLoading } = useQuery({
@@ -167,9 +167,9 @@ export function AdminOverviewPage() {
           <CardContent>
             {newUsersLoading ? (
               <Skeleton className="h-64 w-full" />
-            ) : newUsers && newUsers.length > 0 ? (
+            ) : newUsers && newUsers.current && newUsers.current.length > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={newUsers}>
+                <BarChart data={newUsers.current}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                   <YAxis tick={{ fontSize: 12 }} />
@@ -192,19 +192,24 @@ export function AdminOverviewPage() {
           <CardContent>
             {subsDistributionLoading ? (
               <Skeleton className="h-64 w-full" />
-            ) : subsDistribution && subsDistribution.length > 0 ? (
+            ) : subsDistribution ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
-                    data={subsDistribution}
+                    data={[
+                      { plan: 'Free', count: subsDistribution.free },
+                      { plan: 'Monthly', count: subsDistribution.monthly },
+                      { plan: 'Quarterly', count: subsDistribution.quarterly },
+                      { plan: 'Annual', count: subsDistribution.annual },
+                    ].filter(item => item.count > 0)}
                     dataKey="count"
                     nameKey="plan"
                     cx="50%"
                     cy="50%"
                     outerRadius={80}
-                    label={(entry) => `${entry.plan}: ${entry.count}`}
+                    label={(entry: any) => `${entry.plan}: ${entry.count}`}
                   >
-                    {subsDistribution.map((_entry: any, index: number) => (
+                    {[0, 1, 2, 3].map((index: number) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
@@ -232,10 +237,10 @@ export function AdminOverviewPage() {
               </div>
             ) : systemHealth ? (
               <div className="space-y-3">
-                <HealthItem label="Database" status={systemHealth.database} />
-                <HealthItem label="Redis Cache" status={systemHealth.redis} />
-                <HealthItem label="Email Service" status={systemHealth.email} />
-                <HealthItem label="Stripe API" status={systemHealth.stripe} />
+                <HealthItem label="Database" status={systemHealth.db?.status || 'unknown'} />
+                <HealthItem label="Redis Cache" status={systemHealth.redis?.status || 'unknown'} />
+                <HealthItem label="API" status={systemHealth.api ? 'healthy' : 'unknown'} />
+                <HealthItem label="Stripe API" status={systemHealth.stripe?.status || 'unknown'} />
               </div>
             ) : (
               <div className="text-neutral-500">Unable to fetch system health</div>
