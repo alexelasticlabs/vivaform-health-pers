@@ -1,0 +1,170 @@
+﻿import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Sparkles, Users, Clock, TrendingUp } from 'lucide-react';
+import { QuizCard } from '@/components/quiz';
+import { Button } from '@/components/ui/button';
+
+interface SplashStepProps {
+  onStart: () => void;
+}
+
+export function SplashStep({ onStart }: SplashStepProps) {
+  const [countdown, setCountdown] = useState(300); // 5 minutes in seconds
+  const [usersToday] = useState(Math.floor(Math.random() * 1000) + 2000); // 2000-3000
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const minutes = Math.floor(countdown / 60);
+  const seconds = countdown % 60;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-blue-50 dark:from-emerald-950 dark:via-neutral-950 dark:to-blue-950 p-4"
+    >
+      <div className="max-w-2xl w-full">
+        <QuizCard
+          title=""
+          subtitle=""
+          emoji=""
+          className="border-2 border-emerald-200 dark:border-emerald-800 shadow-xl"
+        >
+          <div className="text-center space-y-8 py-8">
+            {/* Main Title */}
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="space-y-4"
+            >
+              <div className="flex justify-center">
+                <div className="relative">
+                  <motion.div
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      rotate: [0, 5, -5, 0],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'easeInOut',
+                    }}
+                  >
+                    <Sparkles className="h-16 w-16 text-emerald-600 dark:text-emerald-400" />
+                  </motion.div>
+                  <motion.div
+                    className="absolute -top-2 -right-2"
+                    animate={{
+                      scale: [1, 1.3, 1],
+                      opacity: [0.5, 1, 0.5],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                    }}
+                  >
+                    <TrendingUp className="h-8 w-8 text-blue-500" />
+                  </motion.div>
+                </div>
+              </div>
+
+              <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+                Узнайте Свой
+                <br />
+                Персональный План
+              </h1>
+
+              <p className="text-xl text-neutral-600 dark:text-neutral-400">
+                Всего за <span className="font-bold text-emerald-600">{minutes} минут</span>
+              </p>
+            </motion.div>
+
+            {/* Timer Display */}
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.4, type: 'spring' }}
+              className="flex justify-center"
+            >
+              <div className="bg-gradient-to-r from-emerald-100 to-blue-100 dark:from-emerald-900 dark:to-blue-900 rounded-2xl px-8 py-4 inline-flex items-center gap-3">
+                <Clock className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+                <div className="text-3xl font-mono font-bold text-emerald-700 dark:text-emerald-300">
+                  {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Features */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left"
+            >
+              {[
+                { icon: '🎯', title: 'Персонализировано', desc: 'Под ваши цели и образ жизни' },
+                { icon: '🧬', title: 'Научно обосновано', desc: 'Методики от диетологов' },
+                { icon: '📊', title: 'Реальные результаты', desc: 'Отслеживайте прогресс' },
+              ].map((feature, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.7 + idx * 0.1 }}
+                  className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-neutral-200 dark:border-neutral-800"
+                >
+                  <div className="text-3xl mb-2">{feature.icon}</div>
+                  <h3 className="font-semibold text-sm mb-1">{feature.title}</h3>
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                    {feature.desc}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {/* Social Proof */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1 }}
+              className="flex items-center justify-center gap-2 text-sm text-neutral-600 dark:text-neutral-400"
+            >
+              <Users className="h-4 w-4" />
+              <span>
+                <span className="font-bold text-emerald-600">{usersToday.toLocaleString()}</span> человек
+                прошли сегодня
+              </span>
+            </motion.div>
+
+            {/* CTA Button */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.2 }}
+            >
+              <Button
+                onClick={onStart}
+                size="lg"
+                className="w-full md:w-auto px-12 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
+              >
+                Начать Сейчас
+                <Sparkles className="ml-2 h-5 w-5" />
+              </Button>
+              <p className="mt-3 text-xs text-neutral-500">
+                Бесплатно • Без регистрации • 5 минут
+              </p>
+            </motion.div>
+          </div>
+        </QuizCard>
+      </div>
+    </motion.div>
+  );
+}
+

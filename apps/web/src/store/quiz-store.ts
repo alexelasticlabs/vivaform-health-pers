@@ -14,8 +14,14 @@ const safeStorage = {
   }
 };
 
-// Quiz answer structure matching backend DTO
+// Quiz answer structure matching backend DTO - Extended for 30-step quiz
 export interface QuizAnswers {
+  // Phase 1: Hook
+  primaryGoal?: string; // lose_weight, gain_muscle, stay_healthy, more_energy
+  painPoints?: string[]; // Multiple selection
+  bodyType?: string; // ectomorph, mesomorph, endomorph
+
+  // Phase 2: Engage
   diet?: {
     plan?: string;
   };
@@ -29,12 +35,85 @@ export interface QuizAnswers {
       kg?: number;
       lb?: number;
     };
+    waist?: number; // cm
+    hips?: number; // cm
+    clothingSize?: string;
+    targetClothingSize?: string;
+  };
+  demographics?: {
+    age?: number;
+    gender?: 'male' | 'female' | 'other';
+  };
+  health?: {
+    conditions?: string[]; // diabetes, hypertension, pcos, hypothyroid, none
+    takingMedication?: boolean;
+  };
+  currentDiet?: {
+    breakfast?: string;
+    lunch?: string;
+    dinner?: string;
+    typicalDay?: string;
+  };
+  mealTiming?: {
+    breakfast?: string; // "08:00"
+    lunch?: string;
+    dinner?: string;
+    snacks?: string[];
+  };
+  foodPreferences?: {
+    favorites?: string[];
+    dislikes?: string[];
+    allergens?: string[];
+    intolerances?: string[];
+    restrictions?: string[]; // religious, ethical
+  };
+  cooking?: {
+    skillLevel?: 'beginner' | 'intermediate' | 'advanced';
+    timeAvailable?: number; // minutes per day
+    equipment?: string[];
+  };
+  activity?: {
+    level?: string;
+    workType?: 'sedentary' | 'light' | 'moderate' | 'active';
+    dailySteps?: number;
+    currentExercise?: string[];
+    plannedExercise?: string[];
+  };
+
+  // Phase 3: Commit
+  sleep?: {
+    bedtime?: string;
+    waketime?: string;
+    hoursPerNight?: number;
+    quality?: 'excellent' | 'good' | 'fair' | 'poor';
+  };
+  stress?: {
+    level?: number; // 1-10
+    factors?: string[];
+  };
+  socialEating?: {
+    frequency?: string; // daily, few_per_week, weekly, rarely
+    occasions?: string[];
+  };
+  budget?: {
+    weeklyBudget?: number; // rubles
+    range?: string; // low, medium, high, premium
+  };
+  motivation?: {
+    ranking?: string[]; // ordered list of motivation factors
+    primaryFactor?: string;
+  };
+  accountability?: {
+    type?: string; // friend, community, coach, solo
+    referFriend?: boolean;
   };
   goals?: {
     type?: 'lose' | 'maintain' | 'gain';
     deltaKg?: number;
     etaMonths?: number;
   };
+
+  // Legacy/compatibility
   habits?: {
     mealsPerDay?: number;
     snacks?: boolean;
@@ -42,6 +121,7 @@ export interface QuizAnswers {
     exerciseRegularly?: boolean;
     [key: string]: any;
   };
+
   [key: string]: any; // Allow additional sections
 }
 
@@ -58,11 +138,28 @@ interface QuizStore {
   lastSaved: number | null;
   isSaving: boolean;
 
+  // Gamification state
+  currentPhase: number; // 1-4
+  badges: string[]; // Badge IDs earned
+  timeSpentPerStep: Record<number, number>; // milliseconds
+  stepStartTime: number | null;
+
+  // Engagement tracking
+  backNavigationCount: number;
+  helpViewCount: number;
+
+  // Predictions
+  completionLikelihood: number; // 0-100
+
   // Actions
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
   
+  // Gamification actions
+  unlockBadge: (badgeId: string) => void;
+  recordStepTime: () => void;
+
   // Update answers with autosave
   updateAnswers: (updates: Partial<QuizAnswers>) => void;
   
@@ -120,6 +217,13 @@ const initialState = {
   isSubmitting: false,
   lastSaved: null,
   isSaving: false,
+  currentPhase: 1,
+  badges: [] as string[],
+  timeSpentPerStep: {} as Record<number, number>,
+  stepStartTime: null as number | null,
+  backNavigationCount: 0,
+  helpViewCount: 0,
+  completionLikelihood: 50,
 };
 
 export const useQuizStore = create<QuizStore>()(
@@ -218,6 +322,31 @@ export const useQuizStore = create<QuizStore>()(
           ...initialState,
           clientId: generateClientId(),
         });
+      },
+
+      // Gamification methods
+      unlockBadge: (badgeId: string) => {
+        set((state) => ({
+          badges: state.badges.includes(badgeId)
+            ? state.badges
+            : [...state.badges, badgeId]
+        }));
+      },
+
+      recordStepTime: () => {
+        const state = get();
+        if (state.stepStartTime) {
+          const timeSpent = Date.now() - state.stepStartTime;
+          set((prevState) => ({
+            timeSpentPerStep: {
+              ...prevState.timeSpentPerStep,
+              [prevState.currentStep]: timeSpent
+            },
+            stepStartTime: Date.now() // Reset for next step
+          }));
+        } else {
+          set({ stepStartTime: Date.now() });
+        }
       },
 
       setSubmitting: (isSubmitting) => set({ isSubmitting }),
