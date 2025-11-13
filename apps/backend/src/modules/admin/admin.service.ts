@@ -600,5 +600,135 @@ export class AdminService {
     ]);
     return { items, pagination: { page, limit: safeLimit, total, totalPages: Math.ceil(total / safeLimit) } };
   }
-}
 
+  // === Feature Toggles ===
+  async listFeatureToggles() {
+    const toggles = await this.prisma.featureToggle.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    return toggles.map(t => ({
+      id: t.id,
+      key: t.key,
+      enabled: t.enabled,
+      rolloutPercent: t.rolloutPercent,
+      description: t.description,
+      metadata: t.metadata,
+      createdAt: t.createdAt.toISOString(),
+      updatedAt: t.updatedAt.toISOString(),
+    }));
+  }
+
+  async getFeatureToggle(key: string) {
+    const toggle = await this.prisma.featureToggle.findUnique({ where: { key } });
+    if (!toggle) throw new Error(`Feature toggle ${key} not found`);
+    return {
+      id: toggle.id,
+      key: toggle.key,
+      enabled: toggle.enabled,
+      rolloutPercent: toggle.rolloutPercent,
+      description: toggle.description,
+      metadata: toggle.metadata,
+      createdAt: toggle.createdAt.toISOString(),
+      updatedAt: toggle.updatedAt.toISOString(),
+    };
+  }
+
+  async updateFeatureToggle(key: string, dto: { enabled?: boolean; rolloutPercent?: number; description?: string; metadata?: any }) {
+    const existing = await this.prisma.featureToggle.findUnique({ where: { key } });
+    if (!existing) {
+      // Create if not exists
+      const created = await this.prisma.featureToggle.create({
+        data: {
+          key,
+          enabled: dto.enabled ?? false,
+          rolloutPercent: dto.rolloutPercent ?? 0,
+          description: dto.description,
+          metadata: dto.metadata,
+        }
+      });
+      return {
+        id: created.id,
+        key: created.key,
+        enabled: created.enabled,
+        rolloutPercent: created.rolloutPercent,
+        description: created.description,
+        metadata: created.metadata,
+        createdAt: created.createdAt.toISOString(),
+        updatedAt: created.updatedAt.toISOString(),
+      };
+    }
+
+    const updated = await this.prisma.featureToggle.update({
+      where: { key },
+      data: {
+        enabled: dto.enabled ?? existing.enabled,
+        rolloutPercent: dto.rolloutPercent ?? existing.rolloutPercent,
+        description: dto.description ?? existing.description,
+        metadata: dto.metadata ?? existing.metadata,
+      }
+    });
+
+    return {
+      id: updated.id,
+      key: updated.key,
+      enabled: updated.enabled,
+      rolloutPercent: updated.rolloutPercent,
+      description: updated.description,
+      metadata: updated.metadata,
+      createdAt: updated.createdAt.toISOString(),
+      updatedAt: updated.updatedAt.toISOString(),
+    };
+  }
+
+  // === Audit Logs ===
+  async getAuditLogs(filters: { action?: string; entity?: string; userId?: string; page?: number; limit?: number }) {
+    const page = Math.max(1, filters.page ?? 1);
+    const limit = Math.min(100, Math.max(1, filters.limit ?? 50));
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    if (filters.action) where.action = filters.action;
+    if (filters.entity) where.entity = filters.entity;
+    if (filters.userId) where.userId = filters.userId;
+
+    const [logs, total] = await Promise.all([
+      this.prisma.auditLog.findMany({
+        where,
+        include: { User: { select: { email: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
+
+    return {
+      logs: logs.map(l => ({
+        id: l.id,
+        actorId: l.userId,
+        actorEmail: l.User?.email,
+        action: l.action,
+        targetType: l.entity,
+        targetId: l.entityId,
+        meta: l.metadata,
+        createdAt: l.createdAt.toISOString(),
+      })),
+      total,
+      page,
+      limit,
+      pages: Math.ceil(total / limit),
+    };
+  }
+
+  async createAuditLog(userId: string | null, action: string, entity: string, entityId: string | null, metadata?: any) {
+    await this.prisma.auditLog.create({
+      data: {
+        userId,
+        action,
+        entity,
+        entityId,
+        metadata,
+      }
+    });
+  }
+}
