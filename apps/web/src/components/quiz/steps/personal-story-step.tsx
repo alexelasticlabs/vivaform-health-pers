@@ -25,9 +25,9 @@ export function PersonalStoryStep() {
 
   return (
     <QuizCard
-      title="Что мешает вам достичь цели?"
-      subtitle="Выберите всё, что относится к вам (можно выбрать несколько)"
-      helpText="Это поможет нам создать план, учитывающий ваши трудности"
+      title="What holds you back most?"
+      subtitle="Choose everything that applies to you (multiple choice)"
+      helpText="We’ll use this to make your plan more realistic and supportive"
       emoji="💭"
     >
       <div className="space-y-3">
@@ -63,13 +63,12 @@ export function PersonalStoryStep() {
           className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg"
         >
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            <strong>Выбрано: {selectedPoints.length}</strong>
+            <strong>Selected: {selectedPoints.length}</strong>
             <br />
-            Мы учтем эти факторы при создании вашего плана! 💡
+            We’ll factor these into your personalized plan! 💡
           </p>
         </motion.div>
       )}
     </QuizCard>
   );
 }
-

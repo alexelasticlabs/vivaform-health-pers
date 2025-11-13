@@ -17,9 +17,9 @@ export function PrimaryGoalStep() {
 
   return (
     <QuizCard
-      title="Какая ваша главная цель?"
-      subtitle="Мы создадим персональный план специально под вашу цель"
-      helpText="Выберите то, что для вас сейчас важнее всего"
+      title="What is your main goal?"
+      subtitle="We’ll craft a personalized plan for your goal"
+      helpText="Pick the one that matters the most for you right now"
       emoji="🎯"
     >
       <div className="space-y-3">
@@ -36,7 +36,7 @@ export function PrimaryGoalStep() {
                   {goal.title}
                   {goal.popular && (
                     <Badge variant="default" className="text-xs">
-                      Популярный выбор
+                      Most popular
                     </Badge>
                   )}
                 </div>
@@ -56,10 +56,9 @@ export function PrimaryGoalStep() {
           animate={{ opacity: 1, y: 0 }}
           className="text-center text-sm text-emerald-700 dark:text-emerald-300 mt-6 p-4 bg-emerald-50 dark:bg-emerald-950 rounded-lg"
         >
-          Отлично! Мы создадим план специально для достижения этой цели. ✓
+          Great! We’ll tailor your plan exactly for this goal. ✓
         </motion.p>
       )}
     </QuizCard>
   );
 }
-

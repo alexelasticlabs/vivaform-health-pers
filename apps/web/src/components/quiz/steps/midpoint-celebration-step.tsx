@@ -9,22 +9,22 @@ export function MidpointCelebrationStep() {
 
   const bmi = calculateBMI(answers);
   const goal = answers.primaryGoal;
-  const dietPlan = answers.diet?.plan || 'персонализированную диету';
+  const dietPlan = answers.diet?.plan || 'a personalized diet';
   const cookingTime = answers.cooking?.timeAvailable || 30;
 
   const goalText = goal === 'lose_weight'
-    ? 'Похудеть'
+    ? 'Lose weight'
     : goal === 'gain_muscle'
-    ? 'Набрать мышечную массу'
+    ? 'Build muscle'
     : goal === 'more_energy'
-    ? 'Больше энергии'
-    : 'Поддерживать здоровье';
+    ? 'Gain more energy'
+    : 'Stay healthy';
 
   const completedItems = [
-    { text: `Ваша цель: ${goalText}`, icon: CheckCircle },
-    bmi ? { text: `Текущий BMI: ${bmi.toFixed(1)}`, icon: CheckCircle } : null,
-    { text: `Предпочитаете: ${dietPlan}`, icon: CheckCircle },
-    { text: `Готовы готовить: ${cookingTime} минут в день`, icon: CheckCircle },
+    { text: `Your goal: ${goalText}`, icon: CheckCircle },
+    bmi ? { text: `Current BMI: ${bmi.toFixed(1)}`, icon: CheckCircle } : null,
+    { text: `Preferred: ${dietPlan}`, icon: CheckCircle },
+    { text: `Ready to cook: ${cookingTime} min/day`, icon: CheckCircle },
   ].filter(Boolean);
 
   return (
@@ -78,10 +78,10 @@ export function MidpointCelebrationStep() {
             transition={{ delay: 0.3 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-              Отлично! Вы на полпути! 🎉
+              Great job! You’re halfway there! 🎉
             </h2>
             <p className="text-lg text-neutral-600 dark:text-neutral-400">
-              Мы уже узнали много о вас
+              Here’s what we’ve learned so far
             </p>
           </motion.div>
 
@@ -129,19 +129,19 @@ export function MidpointCelebrationStep() {
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-full">
               <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                Еще 2-3 минуты для идеального плана!
+                Just 2–3 more minutes to get your perfect plan!
               </span>
             </div>
 
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
-              Осталось всего несколько вопросов о вашем образе жизни
+              Only a few lifestyle questions left
               <br />
-              и ваш персональный план будет готов! 🚀
+              and your personalized plan will be ready! 🚀
             </p>
 
             <div className="flex items-center justify-center gap-2 text-xs text-neutral-500">
               <TrendingUp className="h-4 w-4" />
-              <span>У вас всё получится!</span>
+              <span>You’ve got this!</span>
             </div>
           </motion.div>
         </div>
@@ -149,4 +149,3 @@ export function MidpointCelebrationStep() {
     </motion.div>
   );
 }
-

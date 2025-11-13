@@ -2,7 +2,6 @@
 import { Check, TrendingUp } from 'lucide-react';
 import { useQuizStore } from '@/store/quiz-store';
 import { QuizCard } from '@/components/quiz';
-import { Button } from '@/components/ui/button';
 
 export function QuickWinStep() {
   const { answers } = useQuizStore();
@@ -10,36 +9,36 @@ export function QuickWinStep() {
 
   const benefits = goal === 'lose_weight'
     ? [
-        'Потерять 2-4 кг здоровым способом',
-        'Чувствовать больше энергии',
-        'Улучшить качество сна',
-        'Выработать здоровые привычки',
+        'Lose 2–4 kg in a healthy way',
+        'Feel more energized',
+        'Improve sleep quality',
+        'Build sustainable habits',
       ]
     : goal === 'gain_muscle'
     ? [
-        'Набрать 1-2 кг мышечной массы',
-        'Увеличить силу и выносливость',
-        'Улучшить форму тела',
-        'Сформировать режим тренировок',
+        'Gain 1–2 kg of lean muscle',
+        'Increase strength and endurance',
+        'Improve physique and posture',
+        'Establish a training routine',
       ]
     : goal === 'more_energy'
     ? [
-        'Избавиться от дневной усталости',
-        'Улучшить концентрацию',
-        'Нормализовать сон',
-        'Повысить работоспособность',
+        'Eliminate midday fatigue',
+        'Improve focus and clarity',
+        'Normalize sleep rhythm',
+        'Boost productivity',
       ]
     : [
-        'Сбалансировать питание',
-        'Улучшить самочувствие',
-        'Укрепить иммунитет',
-        'Поддерживать вес',
+        'Balance your nutrition',
+        'Feel healthier and lighter',
+        'Strengthen immunity',
+        'Maintain weight comfortably',
       ];
 
   return (
     <QuizCard
-      title="Отлично! Вот что вы сможете достичь"
-      subtitle="Всего через 30 дней с персональным планом"
+      title="Awesome! Here’s what you’ll achieve"
+      subtitle="In just 30 days with your personal plan"
       emoji="🎉"
     >
       <div className="space-y-4">
@@ -88,11 +87,11 @@ export function QuickWinStep() {
             <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
             <div>
               <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-1">
-                Реалистичные результаты
+                Realistic and sustainable results
               </p>
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Мы фокусируемся на устойчивых изменениях, которые вы сможете поддерживать
-                долгосрочно. Это не быстрая диета — это образ жизни!
+                We focus on long-term, manageable changes you can actually maintain.
+                This is not a quick-fix diet — it’s a lifestyle shift.
               </p>
             </div>
           </div>
@@ -105,11 +104,9 @@ export function QuickWinStep() {
           transition={{ delay: 2 }}
           className="text-center text-sm text-neutral-600 dark:text-neutral-400"
         >
-          <span className="font-bold text-emerald-600">93%</span> наших пользователей достигают
-          своих целей в первый месяц
+          <span className="font-bold text-emerald-600">93%</span> of users reach their goals in the first month
         </motion.div>
       </div>
     </QuizCard>
   );
 }
-

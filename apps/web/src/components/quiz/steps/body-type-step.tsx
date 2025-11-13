@@ -16,9 +16,9 @@ export function BodyTypeStep() {
 
   return (
     <QuizCard
-      title="Какой у вас тип телосложения?"
-      subtitle="Это поможет нам персонализировать калории и макронутриенты"
-      helpText="Выберите то, что ближе всего к вашему телосложению"
+      title="What is your body type?"
+      subtitle="This helps us personalize calories and macros"
+      helpText="Choose the one closest to your physique"
       emoji="🏋️"
     >
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -67,7 +67,7 @@ export function BodyTypeStep() {
                   animate={{ scale: 1 }}
                   className="mt-3 text-emerald-600 dark:text-emerald-400 font-semibold text-sm"
                 >
-                  ✓ Выбрано
+                  ✓ Selected
                 </motion.div>
               )}
             </button>
@@ -82,11 +82,10 @@ export function BodyTypeStep() {
           className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg text-center"
         >
           <p className="text-sm text-blue-700 dark:text-blue-300">
-            Отлично! Мы учтем особенности вашего телосложения при расчете калорий и БЖУ 💪
+            Great! We’ll factor your body type into calorie and macro targets 💪
           </p>
         </motion.div>
       )}
     </QuizCard>
   );
 }
-

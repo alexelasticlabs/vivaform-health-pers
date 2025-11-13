@@ -76,13 +76,13 @@ export function SplashStep({ onStart }: SplashStepProps) {
               </div>
 
               <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-                Узнайте Свой
+                Discover Your
                 <br />
-                Персональный План
+                Personalized Plan
               </h1>
 
               <p className="text-xl text-neutral-600 dark:text-neutral-400">
-                Всего за <span className="font-bold text-emerald-600">{minutes} минут</span>
+                In just <span className="font-bold text-emerald-600">{minutes} minutes</span>
               </p>
             </motion.div>
 
@@ -109,9 +109,9 @@ export function SplashStep({ onStart }: SplashStepProps) {
               className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left"
             >
               {[
-                { icon: '🎯', title: 'Персонализировано', desc: 'Под ваши цели и образ жизни' },
-                { icon: '🧬', title: 'Научно обосновано', desc: 'Методики от диетологов' },
-                { icon: '📊', title: 'Реальные результаты', desc: 'Отслеживайте прогресс' },
+                { icon: '🎯', title: 'Personalized', desc: 'Tailored to your goals and lifestyle' },
+                { icon: '🧬', title: 'Evidence-based', desc: 'Built with dietitian-approved methods' },
+                { icon: '📊', title: 'Real results', desc: 'Track progress and stay motivated' },
               ].map((feature, idx) => (
                 <motion.div
                   key={idx}
@@ -138,8 +138,7 @@ export function SplashStep({ onStart }: SplashStepProps) {
             >
               <Users className="h-4 w-4" />
               <span>
-                <span className="font-bold text-emerald-600">{usersToday.toLocaleString()}</span> человек
-                прошли сегодня
+                <span className="font-bold text-emerald-600">{usersToday.toLocaleString()}</span> people completed today
               </span>
             </motion.div>
 
@@ -154,11 +153,11 @@ export function SplashStep({ onStart }: SplashStepProps) {
                 size="lg"
                 className="w-full md:w-auto px-12 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
               >
-                Начать Сейчас
+                Start Now
                 <Sparkles className="ml-2 h-5 w-5" />
               </Button>
               <p className="mt-3 text-xs text-neutral-500">
-                Бесплатно • Без регистрации • 5 минут
+                Free • No sign-up • 5 minutes
               </p>
             </motion.div>
           </div>
@@ -167,4 +166,3 @@ export function SplashStep({ onStart }: SplashStepProps) {
     </motion.div>
   );
 }
-

@@ -52,73 +52,73 @@ export type StepName = typeof STEP_NAMES[number];
 export const PRIMARY_GOALS = [
   {
     id: 'lose_weight',
-    title: '🎯 Похудеть',
-    subtitle: 'Сбросить лишний вес здоровым способом',
+    title: '🎯 Lose weight',
+    subtitle: 'Reduce body fat in a healthy, sustainable way',
     popular: true,
-    description: 'Достигните желаемого веса с персональным планом питания'
+    description: 'Reach your goal weight with a personalized nutrition plan'
   },
   {
     id: 'gain_muscle',
-    title: '💪 Набрать мышечную массу',
-    subtitle: 'Построить сильное тело',
-    description: 'Увеличьте мышечную массу с правильным питанием и тренировками'
+    title: '💪 Build muscle',
+    subtitle: 'Develop a stronger and leaner physique',
+    description: 'Increase muscle mass with the right nutrition and training'
   },
   {
     id: 'stay_healthy',
-    title: '🌿 Поддерживать здоровье',
-    subtitle: 'Оставаться в форме',
-    description: 'Сбалансированное питание для поддержания здоровья'
+    title: '🌿 Stay healthy',
+    subtitle: 'Maintain weight and overall well-being',
+    description: 'Balanced nutrition to support your health and lifestyle'
   },
   {
     id: 'more_energy',
-    title: '⚡ Больше энергии',
-    subtitle: 'Чувствовать себя бодрее каждый день',
-    description: 'Повысьте уровень энергии через правильное питание'
+    title: '⚡ More energy',
+    subtitle: 'Feel energized throughout the day',
+    description: 'Boost energy levels with smarter meal timing and choices'
   }
 ] as const;
 
 // Personal Story Pain Points (Step 2)
 export const PAIN_POINTS = [
-  { id: 'no_energy', emoji: '😴', text: 'Нет энергии для тренировок' },
-  { id: 'junk_food', emoji: '🍕', text: 'Не могу отказаться от вредной еды' },
-  { id: 'no_time', emoji: '⏰', text: 'Нет времени готовить' },
-  { id: 'dont_know', emoji: '🤷', text: 'Не знаю с чего начать' },
-  { id: 'tracking', emoji: '📊', text: 'Сложно отслеживать прогресс' },
-  { id: 'motivation', emoji: '😔', text: 'Теряю мотивацию быстро' }
+  { id: 'no_energy', emoji: '😴', text: 'Not enough energy to work out' },
+  { id: 'junk_food', emoji: '🍕', text: 'Hard to resist junk food' },
+  { id: 'no_time', emoji: '⏰', text: 'No time to cook' },
+  { id: 'dont_know', emoji: '🤷', text: 'Don’t know where to start' },
+  { id: 'tracking', emoji: '📊', text: 'Hard to track progress' },
+  { id: 'motivation', emoji: '😔', text: 'Lose motivation quickly' }
 ] as const;
 
 // Body Types (Step 4)
 export const BODY_TYPES = [
   {
     id: 'ectomorph',
-    title: 'Эктоморф',
+    title: 'Ectomorph',
     emoji: '🏃',
-    description: 'Худощавое телосложение, быстрый метаболизм',
-    characteristics: ['Высокий', 'Тонкие кости', 'Сложно набрать вес']
+    description: 'Lean frame, faster metabolism',
+    characteristics: ['Often taller', 'Narrower build', 'Hard to gain weight']
   },
   {
     id: 'mesomorph',
-    title: 'Мезоморф',
+    title: 'Mesomorph',
     emoji: '💪',
-    description: 'Атлетичное телосложение, средний метаболизм',
-    characteristics: ['Мускулистый', 'Широкие плечи', 'Легко набирает мышцы']
+    description: 'Athletic frame, moderate metabolism',
+    characteristics: ['Naturally muscular', 'Broad shoulders', 'Gains muscle easily']
   },
   {
     id: 'endomorph',
-    title: 'Эндоморф',
+    title: 'Endomorph',
     emoji: '🧘',
-    description: 'Плотное телосложение, медленный метаболизм',
-    characteristics: ['Крупные кости', 'Округлые формы', 'Легко набирает вес']
+    description: 'Sturdier frame, slower metabolism',
+    characteristics: ['Heavier bone structure', 'Rounder physique', 'Gains weight easily']
   }
 ] as const;
 
 // Health Conditions (Step 7)
 export const HEALTH_CONDITIONS = [
-  { id: 'diabetes', label: 'Диабет 2 типа', requiresCareful: true },
-  { id: 'hypertension', label: 'Гипертония', requiresCareful: true },
-  { id: 'pcos', label: 'PCOS/Поликистоз', requiresCareful: true },
-  { id: 'hypothyroid', label: 'Гипотиреоз', requiresCareful: true },
-  { id: 'none', label: 'Нет заболеваний', requiresCareful: false }
+  { id: 'diabetes', label: 'Type 2 diabetes', requiresCareful: true },
+  { id: 'hypertension', label: 'Hypertension', requiresCareful: true },
+  { id: 'pcos', label: 'PCOS / Polycystic ovary syndrome', requiresCareful: true },
+  { id: 'hypothyroid', label: 'Hypothyroidism', requiresCareful: true },
+  { id: 'none', label: 'No health conditions', requiresCareful: false }
 ] as const;
 
 // Cooking Skills (Step 11)
@@ -126,114 +126,114 @@ export const COOKING_SKILLS = [
   {
     level: 'beginner',
     emoji: '🍳',
-    title: 'Новичок',
-    description: 'Могу сварить яйца и сделать бутерброд',
-    examples: ['Яичница', 'Салат', 'Бутерброды']
+    title: 'Beginner',
+    description: 'I can handle the basics',
+    examples: ['Scrambled eggs', 'Simple salads', 'Sandwiches']
   },
   {
     level: 'intermediate',
     emoji: '👨‍🍳',
-    title: 'Любитель',
-    description: 'Готовлю несколько блюд регулярно',
-    examples: ['Супы', 'Жаркое', 'Выпечка']
+    title: 'Intermediate',
+    description: 'I cook a few dishes regularly',
+    examples: ['Soups', 'Stir-fries', 'Baking']
   },
   {
     level: 'advanced',
     emoji: '⭐',
-    title: 'Опытный',
-    description: 'Люблю экспериментировать на кухне',
-    examples: ['Сложные блюда', 'Выпечка', 'Эксперименты']
+    title: 'Advanced',
+    description: 'I enjoy experimenting in the kitchen',
+    examples: ['Complex recipes', 'Baking', 'Creative dishes']
   }
 ] as const;
 
 // Kitchen Equipment (Step 12)
 export const KITCHEN_EQUIPMENT = [
-  { id: 'oven', label: 'Духовка', icon: '🔥' },
-  { id: 'multicooker', label: 'Мультиварка', icon: '🍲' },
-  { id: 'blender', label: 'Блендер', icon: '🥤' },
-  { id: 'microwave', label: 'Микроволновка', icon: '📡' },
-  { id: 'grill', label: 'Гриль', icon: '🔥' },
-  { id: 'airfryer', label: 'Air Fryer', icon: '💨' }
+  { id: 'oven', label: 'Oven', icon: '🔥' },
+  { id: 'multicooker', label: 'Multicooker', icon: '🍲' },
+  { id: 'blender', label: 'Blender', icon: '🥤' },
+  { id: 'microwave', label: 'Microwave', icon: '📡' },
+  { id: 'grill', label: 'Grill', icon: '🔥' },
+  { id: 'airfryer', label: 'Air fryer', icon: '💨' }
 ] as const;
 
 // Sleep Quality (Step 15)
 export const SLEEP_QUALITY = [
-  { value: 'excellent', label: 'Отличное', emoji: '😊', hours: '7-9' },
-  { value: 'good', label: 'Хорошее', emoji: '🙂', hours: '6-7' },
-  { value: 'fair', label: 'Среднее', emoji: '😐', hours: '5-6' },
-  { value: 'poor', label: 'Плохое', emoji: '😔', hours: '<5' }
+  { value: 'excellent', label: 'Excellent', emoji: '😊', hours: '7-9' },
+  { value: 'good', label: 'Good', emoji: '🙂', hours: '6-7' },
+  { value: 'fair', label: 'Fair', emoji: '😐', hours: '5-6' },
+  { value: 'poor', label: 'Poor', emoji: '😔', hours: '<5' }
 ] as const;
 
 // Stress Factors (Step 16)
 export const STRESS_FACTORS = [
-  { id: 'work', label: 'Работа', emoji: '💼' },
-  { id: 'family', label: 'Семья', emoji: '👨‍👩‍👧' },
-  { id: 'finances', label: 'Финансы', emoji: '💰' },
-  { id: 'health', label: 'Здоровье', emoji: '🏥' },
-  { id: 'relationships', label: 'Отношения', emoji: '❤️' },
-  { id: 'none', label: 'Нет стресса', emoji: '😌' }
+  { id: 'work', label: 'Work', emoji: '💼' },
+  { id: 'family', label: 'Family', emoji: '👨‍👩‍👧' },
+  { id: 'finances', label: 'Finances', emoji: '💰' },
+  { id: 'health', label: 'Health', emoji: '🏥' },
+  { id: 'relationships', label: 'Relationships', emoji: '❤️' },
+  { id: 'none', label: 'No stress', emoji: '😌' }
 ] as const;
 
 // Social Eating Frequency (Step 17)
 export const SOCIAL_EATING = [
-  { frequency: 'daily', label: 'Каждый день', emoji: '🍽️' },
-  { frequency: 'few_per_week', label: '3-5 раз в неделю', emoji: '👥' },
-  { frequency: 'weekly', label: '1-2 раза в неделю', emoji: '🗓️' },
-  { frequency: 'rarely', label: 'Редко', emoji: '🏠' }
+  { frequency: 'daily', label: 'Every day', emoji: '🍽️' },
+  { frequency: 'few_per_week', label: '3-5 times per week', emoji: '👥' },
+  { frequency: 'weekly', label: '1-2 times per week', emoji: '🗓️' },
+  { frequency: 'rarely', label: 'Rarely', emoji: '🏠' }
 ] as const;
 
 // Budget Ranges (Step 18)
 export const BUDGET_RANGES = [
-  { id: 'low', label: 'Бюджетный', range: '< 3,000 ₽', emoji: '💵' },
-  { id: 'medium', label: 'Средний', range: '3,000-6,000 ₽', emoji: '💳' },
-  { id: 'high', label: 'Комфортный', range: '6,000-10,000 ₽', emoji: '💰' },
-  { id: 'premium', label: 'Премиум', range: '> 10,000 ₽', emoji: '💎' }
+  { id: 'low', label: 'Budget', range: '< $40', emoji: '💵' },
+  { id: 'medium', label: 'Moderate', range: '$40-$80', emoji: '💳' },
+  { id: 'high', label: 'Comfortable', range: '$80-$150', emoji: '💰' },
+  { id: 'premium', label: 'Premium', range: '$150+', emoji: '💎' }
 ] as const;
 
 // Motivation Factors (Step 19) - for ranking
 export const MOTIVATION_FACTORS = [
-  { id: 'scale', label: 'Увидеть результаты на весах', emoji: '⚖️' },
-  { id: 'clothes', label: 'Влезть в любимую одежду', emoji: '👗' },
-  { id: 'health', label: 'Улучшить здоровье', emoji: '❤️' },
-  { id: 'energy', label: 'Больше энергии', emoji: '⚡' },
-  { id: 'looks', label: 'Лучше выглядеть', emoji: '✨' },
-  { id: 'example', label: 'Быть примером для близких', emoji: '🌟' }
+  { id: 'scale', label: 'See results on the scale', emoji: '⚖️' },
+  { id: 'clothes', label: 'Fit into favorite clothes', emoji: '👗' },
+  { id: 'health', label: 'Improve health', emoji: '❤️' },
+  { id: 'energy', label: 'Have more energy', emoji: '⚡' },
+  { id: 'looks', label: 'Look better', emoji: '✨' },
+  { id: 'example', label: 'Be a role model for loved ones', emoji: '🌟' }
 ] as const;
 
 // Accountability Options (Step 20)
 export const ACCOUNTABILITY_OPTIONS = [
   {
     type: 'friend',
-    title: '👥 С другом',
-    description: 'Пригласить друга в challenge',
-    benefits: ['Взаимная поддержка', 'Соревнование', 'Веселее вместе']
+    title: '👥 With a friend',
+    description: 'Invite a friend to a challenge',
+    benefits: ['Mutual support', 'Friendly competition', 'More fun together']
   },
   {
     type: 'community',
-    title: '🌍 Сообщество',
-    description: 'Присоединиться к группе',
-    benefits: ['Группа поддержки', 'Обмен опытом', 'Мотивация']
+    title: '🌍 Community',
+    description: 'Join a supportive group',
+    benefits: ['Peer support', 'Knowledge exchange', 'Motivation']
   },
   {
     type: 'coach',
-    title: '🎯 Коуч',
-    description: 'Персональная поддержка',
-    benefits: ['Личный коуч', 'Индивидуальный план', 'Постоянная связь']
+    title: '🎯 Coach',
+    description: 'Get personal guidance',
+    benefits: ['Personal coach', 'Tailored plan', 'Accountability']
   },
   {
     type: 'solo',
-    title: '🦸 Сам справлюсь',
-    description: 'Самостоятельное достижение цели',
-    benefits: ['Свобода действий', 'Свой темп', 'Самодисциплина']
+    title: '🦸 I got this',
+    description: 'Do it on your own',
+    benefits: ['Full freedom', 'Your own pace', 'Self-discipline']
   }
 ] as const;
 
 // Gamification: Badges
 export const QUIZ_BADGES = [
-  { id: 'starter', name: 'Starter', emoji: '🏁', step: 0, description: 'Начал квиз' },
-  { id: 'focused', name: 'Focused', emoji: '🎯', step: 4, description: 'Завершил Phase 1' },
-  { id: 'committed', name: 'Committed', emoji: '💪', step: 14, description: 'Завершил Phase 2' },
-  { id: 'champion', name: 'Champion', emoji: '🏆', step: 24, description: 'Завершил квиз!' }
+  { id: 'starter', name: 'Starter', emoji: '🏁', step: 0, description: 'Started the quiz' },
+  { id: 'focused', name: 'Focused', emoji: '🎯', step: 4, description: 'Completed Phase 1' },
+  { id: 'committed', name: 'Committed', emoji: '💪', step: 14, description: 'Completed Phase 2' },
+  { id: 'champion', name: 'Champion', emoji: '🏆', step: 24, description: 'Finished the quiz!' }
 ] as const;
 
 // Helper function to get current phase
@@ -258,4 +258,3 @@ export function getPhaseProgress(step: number): number {
 export function getUnlockedBadges(currentStep: number) {
   return QUIZ_BADGES.filter(badge => currentStep >= badge.step);
 }
-
