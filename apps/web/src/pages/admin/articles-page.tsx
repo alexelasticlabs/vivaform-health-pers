@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { FileText, Plus, Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { listArticles, createArticle, updateArticle, deleteArticle, publishArticle, unpublishArticle, type Article, type ArticleFormData } from '@/api/admin-articles';
-import { extractErrorMessage } from '@/api/admin';
+import { extractErrorMessage } from '@/api/errors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

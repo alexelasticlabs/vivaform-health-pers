@@ -2,7 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Settings as SettingsIcon, Save, RotateCcw } from 'lucide-react';
-import { getSettings, patchSettings, extractErrorMessage } from '@/api/admin';
+import { getSettings, patchSettings } from '@/api/admin';
+import { extractErrorMessage } from '@/api/errors';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

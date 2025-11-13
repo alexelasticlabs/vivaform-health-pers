@@ -2,7 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Package, CheckCircle, XCircle, Trash2, Eye, Search } from 'lucide-react';
-import { getAdminFoodItems, verifyFoodItem, deleteFoodItem, extractErrorMessage } from '@/api/admin';
+import { getAdminFoodItems, verifyFoodItem, deleteFoodItem } from '@/api/admin';
+import { extractErrorMessage } from '@/api/errors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

@@ -2,7 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Search, Filter, Download, UserPlus, MoreVertical, Shield, ShieldOff, Mail, Ban, CheckCircle, XCircle } from 'lucide-react';
-import { getAllUsersFiltered, exportUsersCsv, updateUserRole, extractErrorMessage } from '@/api';
+import { getAllUsersFiltered, exportUsersCsv, updateUserRole } from '@/api/admin';
+import { extractErrorMessage } from '@/api/errors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';

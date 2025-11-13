@@ -149,12 +149,6 @@ export const bulkUpdateUsers = async (userIds: string[], updates: { role?: 'USER
   return data;
 };
 
-// Error extraction helper
-export const extractErrorMessage = (error: any): string => {
-  if (error?.response?.data?.message) return error.response.data.message;
-  if (error?.message) return error.message;
-  return 'An unexpected error occurred';
-};
 
 // Re-export admin overview helpers so consumers can import from '@/api/admin'
 export { getOverviewKpis, getRevenueTrend, getNewUsers, getSubsDistribution, getActivityHeatmap, getSystemHealth } from './admin-overview';

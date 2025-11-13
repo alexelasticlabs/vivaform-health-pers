@@ -2,7 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { HeadphonesIcon, Clock, AlertCircle, Send } from 'lucide-react';
-import { listTickets, getTicket, updateTicket, replyTicket, extractErrorMessage } from '@/api/admin';
+import { listTickets, getTicket, updateTicket, replyTicket } from '@/api/admin';
+import { extractErrorMessage } from '@/api/errors';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
