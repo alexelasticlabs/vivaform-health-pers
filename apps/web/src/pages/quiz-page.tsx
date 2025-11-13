@@ -6,7 +6,7 @@ import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store'
 import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
 import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
-import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES } from '@/components/quiz';
+import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep } from '@/components/quiz';
 
 const TOTAL_STEPS = ENHANCED_TOTAL_STEPS;
 
@@ -139,16 +139,27 @@ export function QuizPage() {
 
   const canGoNext = () => {
     switch (currentStep) {
-      case 0: // splash has CTA only
+      // Hook
+      case 0: return true; // splash
+      case 1: return !!answers.primaryGoal; // primary goal
+      case 2: return (answers.painPoints?.length ?? 0) > 0; // personal story
+      case 3: return true; // quick win
+      case 4: return !!answers.bodyType; // body type
+      // Engage
+      case 5: { // body metrics extended
+        const hasHeight = !!answers.body?.height?.cm;
+        const hasWeight = !!answers.body?.weight?.kg;
+        return hasHeight && hasWeight;
+      }
+      case 6: { // age & gender
+        return !!answers.demographics?.age && !!answers.demographics?.gender;
+      }
+      case 7: { // health conditions (optional)
         return true;
-      case 1: // primary goal
-        return !!answers.primaryGoal;
-      case 2: // personal story
-        return (answers.painPoints?.length ?? 0) > 0;
-      case 3: // quick win screen
+      }
+      case 8: { // meal timing (optional)
         return true;
-      case 4: // body type
-        return !!answers.bodyType;
+      }
       default:
         return true;
     }
@@ -222,18 +233,16 @@ export function QuizPage() {
 
   const renderStep = () => {
     switch (currentStep) {
-      case 0:
-        return <SplashStep onStart={nextStep} />;
-      case 1:
-        return <PrimaryGoalStep />;
-      case 2:
-        return <PersonalStoryStep />;
-      case 3:
-        return <QuickWinStep />;
-      case 4:
-        return <BodyTypeStep />;
-      case 5:
-        return <MidpointCelebrationStep />;
+      case 0: return <SplashStep onStart={nextStep} />;
+      case 1: return <PrimaryGoalStep />;
+      case 2: return <PersonalStoryStep />;
+      case 3: return <QuickWinStep />;
+      case 4: return <BodyTypeStep />;
+      case 5: return <BodyMetricsExtendedStep />;
+      case 6: return <AgeGenderStep />;
+      case 7: return <HealthConditionsStep />;
+      case 8: return <MealTimingStep />;
+      case 9: return <MidpointCelebrationStep />;
       default:
         return <div>Step {currentStep + 1}</div>;
     }
