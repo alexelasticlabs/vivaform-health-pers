@@ -40,6 +40,8 @@ export { TimelineStep } from './steps/timeline-step';
 export { ResultsPreviewStep } from './steps/results-preview-step';
 export { MealPlanPreviewStep } from './steps/meal-plan-preview-step';
 export { FinalCTAStep } from './steps/final-cta-step';
+export { ExitIntentModal } from './exit-intent-modal';
+export { BadgeUnlock } from './badge-unlock';
 // Реэкспорт общих констант и типов шагов квиза
 export { COMMON_ALLERGENS, COMMON_AVOIDED_FOODS, type Allergen, type AvoidedFood } from './steps/quiz-constants';
 export { TOTAL_STEPS as ENHANCED_TOTAL_STEPS, STEP_NAMES as ENHANCED_STEP_NAMES } from './steps/enhanced-quiz-constants';

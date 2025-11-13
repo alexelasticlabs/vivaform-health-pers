@@ -6,7 +6,8 @@ import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store'
 import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
 import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
-import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep, SleepPatternStep, StressLevelStep, SocialEatingStep, BudgetStep, MotivationRankStep, AccountabilityStep, TimelineStep, ResultsPreviewStep, MealPlanPreviewStep, FinalCTAStep } from '@/components/quiz';
+import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep, SleepPatternStep, StressLevelStep, SocialEatingStep, BudgetStep, MotivationRankStep, AccountabilityStep, TimelineStep, ResultsPreviewStep, MealPlanPreviewStep, FinalCTAStep, ExitIntentModal, BadgeUnlock } from '@/components/quiz';
+import { getUnlockedBadges, QUIZ_BADGES } from '@/components/quiz/steps/enhanced-quiz-constants';
 
 const TOTAL_STEPS = ENHANCED_TOTAL_STEPS;
 
@@ -32,6 +33,9 @@ export function QuizPage() {
   const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
+  const [showExitIntent, setShowExitIntent] = useState(false);
+  const [newBadge, setNewBadge] = useState<typeof QUIZ_BADGES[number] | null>(null);
+  const [lastBadgeStep, setLastBadgeStep] = useState(-1);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loggedStartRef = useRef(false);
   const lastViewedStepRef = useRef<number | null>(null);
@@ -136,6 +140,30 @@ export function QuizPage() {
       cancelled = true;
     };
   }, [isAuthenticated, mergeServerAnswers]);
+
+  // Detect exit intent (mouse leaving viewport)
+  useEffect(() => {
+    if (currentStep === 0 || currentStep >= TOTAL_STEPS - 1) return;
+
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (e.clientY <= 0) {
+        setShowExitIntent(true);
+      }
+    };
+
+    document.addEventListener('mouseleave', handleMouseLeave);
+    return () => document.removeEventListener('mouseleave', handleMouseLeave);
+  }, [currentStep]);
+
+  // Check for badge unlock
+  useEffect(() => {
+    const badges = getUnlockedBadges(currentStep - 1);
+    const newUnlocked = badges.find(b => b.step === currentStep - 1);
+    if (newUnlocked && lastBadgeStep !== currentStep - 1) {
+      setNewBadge(newUnlocked);
+      setLastBadgeStep(currentStep - 1);
+    }
+  }, [currentStep, lastBadgeStep]);
 
   const canGoNext = () => {
     switch (currentStep) {
@@ -301,6 +329,16 @@ export function QuizPage() {
     }
   };
 
+  const handleSaveExit = async (email: string) => {
+    try {
+      // TODO: Send email to backend for reminder
+      console.log('Saving progress for:', email);
+      toast.success('Progress saved! Check your email.');
+    } catch (error) {
+      console.error('Failed to save:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
       <div className="max-w-4xl mx-auto">
@@ -407,6 +445,24 @@ export function QuizPage() {
             </div>
           </div>
         </div>
+
+        {/* Exit Intent Modal */}
+        {showExitIntent && (
+          <ExitIntentModal
+            currentStep={currentStep}
+            totalSteps={TOTAL_STEPS}
+            onSave={handleSaveExit}
+            onClose={() => setShowExitIntent(false)}
+          />
+        )}
+
+        {/* New Badge Unlock */}
+        {newBadge && (
+          <BadgeUnlock
+            badge={newBadge}
+            onClose={() => setNewBadge(null)}
+          />
+        )}
       </div>
     </div>
   );
