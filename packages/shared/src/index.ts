@@ -292,3 +292,178 @@ export type SubmitQuizResponse = {
   result: QuizResult;
   message: string;
 };
+
+// =====================
+// ADMIN TYPES
+// =====================
+
+export type UserRole = "USER" | "ADMIN" | "MANAGER" | "SUPPORT";
+
+export type AdminUserDto = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: UserRole;
+  tier: SubscriptionTier;
+  emailVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string | null;
+  subscription?: {
+    status: string;
+    plan: string;
+    currentPeriodEnd: string;
+  } | null;
+};
+
+export type AdminUserFilters = {
+  q?: string;
+  role?: string;
+  tier?: string;
+  regFrom?: string;
+  regTo?: string;
+  sortBy?: string;
+  sortDir?: "asc" | "desc";
+  page?: number;
+  limit?: number;
+};
+
+export type AdminUsersResponse = {
+  users: AdminUserDto[];
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+};
+
+export type AuditLogAction =
+  | "user.created"
+  | "user.updated"
+  | "user.deleted"
+  | "user.role_changed"
+  | "user.impersonated"
+  | "quiz.created"
+  | "quiz.updated"
+  | "quiz.deleted"
+  | "feature_toggle.created"
+  | "feature_toggle.updated"
+  | "settings.updated";
+
+export type AuditLogDto = {
+  id: string;
+  actorId: string;
+  actorEmail?: string;
+  action: AuditLogAction;
+  targetType: string;
+  targetId: string;
+  meta?: Record<string, any>;
+  createdAt: string;
+};
+
+export type FeatureToggleDto = {
+  id: string;
+  key: string;
+  enabled: boolean;
+  rolloutPercent: number;
+  description?: string;
+  meta?: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+// =====================
+// ENHANCED QUIZ TYPES
+// =====================
+
+export type QuizQuestionType =
+  | "single_choice"
+  | "multi_choice"
+  | "numeric_input"
+  | "range_slider"
+  | "text_short"
+  | "image_choice";
+
+export type QuizQuestion = {
+  id: string;
+  type: QuizQuestionType;
+  text: string;
+  description?: string;
+  options?: Array<{
+    id: string;
+    label: string;
+    value: string | number;
+    imageUrl?: string;
+  }>;
+  validation?: {
+    min?: number;
+    max?: number;
+    required?: boolean;
+  };
+  next?: string | ((answer: any) => string); // conditional branching
+};
+
+export type QuizConfig = {
+  id: string;
+  version: number;
+  title: string;
+  description?: string;
+  questions: QuizQuestion[];
+  branchingRules?: Record<string, any>;
+  meta?: Record<string, any>;
+};
+
+export type QuizResponse = {
+  id: string;
+  quizId: string;
+  userId?: string;
+  sessionId: string;
+  responses: Record<string, any>;
+  progressPercent: number;
+  completedAt?: string;
+  createdAt: string;
+};
+
+// Analytics event payloads (English names)
+export type QuizAnalyticsEvents = {
+  "quiz.started": {
+    quizId: string;
+    sessionId: string;
+    entryPoint?: string;
+    userId?: string;
+  };
+  "quiz.step_viewed": {
+    quizId: string;
+    sessionId: string;
+    stepIndex: number;
+    stepName?: string;
+    userId?: string;
+  };
+  "quiz.answer_selected": {
+    quizId: string;
+    sessionId: string;
+    stepIndex: number;
+    questionId: string;
+    answer: any;
+    elapsedMs?: number;
+    userId?: string;
+  };
+  "quiz.progress_saved": {
+    quizId: string;
+    sessionId: string;
+    progressPercent: number;
+    userId?: string;
+  };
+  "quiz.completed": {
+    quizId: string;
+    sessionId: string;
+    durationMs: number;
+    conversionTarget?: string;
+    userId?: string;
+  };
+  "ab_test.variant_assigned": {
+    experimentKey: string;
+    variant: string;
+    userId?: string;
+    sessionId?: string;
+  };
+};
