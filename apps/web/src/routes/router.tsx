@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter } from "react-router-dom";
+﻿﻿import { createBrowserRouter } from "react-router-dom";
 import React from "react";
 import { RouteErrorBoundary } from "./error-boundary";
 import { PageSkeleton } from "@/components/ui/skeleton";
@@ -46,6 +46,14 @@ const PremiumPage = lazyWithRetry(() => import("@/pages/premium-page") as any);
 const PremiumHistoryPage = lazyWithRetry(() => import("@/pages/premium-history-page").then(m => ({ default: m.default })) as any);
 const MealPlannerPage = lazyWithRetry(() => import("@/pages/meal-planner-page").then(m => ({ default: m.MealPlannerPage })) as any);
 const AdminGuard = lazyWithRetry(() => import("@/routes/slices/admin-guard").then(m => ({ default: m.AdminGuard })) as any);
+const AdminLayout = lazyWithRetry(() => import("@/components/admin/admin-layout").then(m => ({ default: m.AdminLayout })) as any);
+const AdminOverviewPage = lazyWithRetry(() => import("@/pages/admin/overview-page").then(m => ({ default: m.AdminOverviewPage })) as any);
+const AdminUsersPage = lazyWithRetry(() => import("@/pages/admin/users-page").then(m => ({ default: m.AdminUsersPage })) as any);
+const AdminFoodsPage = lazyWithRetry(() => import("@/pages/admin/foods-page").then(m => ({ default: m.AdminFoodsPage })) as any);
+const AdminSubscriptionsPage = lazyWithRetry(() => import("@/pages/admin/subscriptions-page").then(m => ({ default: m.AdminSubscriptionsPage })) as any);
+const AdminSupportPage = lazyWithRetry(() => import("@/pages/admin/support-page").then(m => ({ default: m.AdminSupportPage })) as any);
+const AdminSettingsPage = lazyWithRetry(() => import("@/pages/admin/settings-page").then(m => ({ default: m.AdminSettingsPage })) as any);
+const AdminArticlesPage = lazyWithRetry(() => import("@/pages/admin/articles-page").then(m => ({ default: m.AdminArticlesPage })) as any);
 const ArticlesPage = lazyWithRetry(() => import("@/pages/articles-page").then(m => ({ default: m.ArticlesPage })) as any);
 const ArticleDetailPage = lazyWithRetry(() => import("@/pages/article-detail-page").then(m => ({ default: m.ArticleDetailPage })) as any);
 const PrivacyPage = lazyWithRetry(() => import("@/pages/privacy-page").then(m => ({ default: m.PrivacyPage })) as any);
@@ -95,10 +103,28 @@ export const createAppRouter = () =>
             { path: "progress", element: suspense(<ProgressPage />) },
             { path: "recommendations", element: suspense(<RecommendationsPage />) },
             { path: "meal-planner", element: suspense(<MealPlannerPage />) },
-            { path: "admin", element: suspense(<AdminGuard />) },
             { path: "settings", element: suspense(<SettingsPage />) },
             { path: "my-plan", element: suspense(<MyPlanPage />) },
-            { path: "premium/history", element: suspense(<PremiumHistoryPage />) } // moved under auth
+            { path: "premium/history", element: suspense(<PremiumHistoryPage />) }
+          ]
+        },
+        // Admin routes - protected and with AdminLayout
+        {
+          path: "admin",
+          element: suspense(<AdminGuard />),
+          children: [
+            {
+              element: suspense(<AdminLayout />),
+              children: [
+                { index: true, element: suspense(<AdminOverviewPage />) },
+                { path: "users", element: suspense(<AdminUsersPage />) },
+                { path: "foods", element: suspense(<AdminFoodsPage />) },
+                { path: "subscriptions", element: suspense(<AdminSubscriptionsPage />) },
+                { path: "articles", element: suspense(<AdminArticlesPage />) },
+                { path: "support", element: suspense(<AdminSupportPage />) },
+                { path: "settings", element: suspense(<AdminSettingsPage />) }
+              ]
+            }
           ]
         }
       ]

@@ -133,8 +133,28 @@ export const replyTicket = async (id: string, body: string) => {
   return data;
 };
 
-export const getSettings = async () => { const { data } = await apiClient.get('/admin/settings'); return data; };
-export const patchSettings = async (patch: Record<string, unknown>) => { const { data } = await apiClient.patch('/admin/settings', patch); return data; };
+export const getSettings = async () => {
+  const { data } = await apiClient.get('/admin/settings');
+  return data;
+};
+
+export const patchSettings = async (patch: Record<string, unknown>) => {
+  const { data } = await apiClient.patch('/admin/settings', patch);
+  return data;
+};
+
+// Bulk operations
+export const bulkUpdateUsers = async (userIds: string[], updates: { role?: 'USER' | 'ADMIN'; tier?: 'FREE' | 'PREMIUM' }) => {
+  const { data } = await apiClient.patch('/admin/users/bulk', { userIds, updates });
+  return data;
+};
+
+// Error extraction helper
+export const extractErrorMessage = (error: any): string => {
+  if (error?.response?.data?.message) return error.response.data.message;
+  if (error?.message) return error.message;
+  return 'An unexpected error occurred';
+};
 
 // Re-export admin overview helpers so consumers can import from '@/api/admin'
 export { getOverviewKpis, getRevenueTrend, getNewUsers, getSubsDistribution, getActivityHeatmap, getSystemHealth } from './admin-overview';
