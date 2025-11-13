@@ -1,4 +1,4 @@
-﻿﻿import { createBrowserRouter } from "react-router-dom";
+﻿﻿﻿import { createBrowserRouter } from "react-router-dom";
 import React from "react";
 import { RouteErrorBoundary } from "./error-boundary";
 import { PageSkeleton } from "@/components/ui/skeleton";
@@ -54,6 +54,8 @@ const AdminSubscriptionsPage = lazyWithRetry(() => import("@/pages/admin/subscri
 const AdminSupportPage = lazyWithRetry(() => import("@/pages/admin/support-page").then(m => ({ default: m.AdminSupportPage })) as any);
 const AdminSettingsPage = lazyWithRetry(() => import("@/pages/admin/settings-page").then(m => ({ default: m.AdminSettingsPage })) as any);
 const AdminArticlesPage = lazyWithRetry(() => import("@/pages/admin/articles-page").then(m => ({ default: m.AdminArticlesPage })) as any);
+const AdminFeatureTogglesPage = lazyWithRetry(() => import("@/pages/admin/feature-toggles-page").then(m => ({ default: m.FeatureTogglesPage })) as any);
+const AdminAuditLogsPage = lazyWithRetry(() => import("@/pages/admin/audit-logs-page").then(m => ({ default: m.AuditLogsPage })) as any);
 const ArticlesPage = lazyWithRetry(() => import("@/pages/articles-page").then(m => ({ default: m.ArticlesPage })) as any);
 const ArticleDetailPage = lazyWithRetry(() => import("@/pages/article-detail-page").then(m => ({ default: m.ArticleDetailPage })) as any);
 const PrivacyPage = lazyWithRetry(() => import("@/pages/privacy-page").then(m => ({ default: m.PrivacyPage })) as any);
@@ -122,7 +124,9 @@ export const createAppRouter = () =>
                 { path: "subscriptions", element: suspense(<AdminSubscriptionsPage />) },
                 { path: "articles", element: suspense(<AdminArticlesPage />) },
                 { path: "support", element: suspense(<AdminSupportPage />) },
-                { path: "settings", element: suspense(<AdminSettingsPage />) }
+                { path: "settings", element: suspense(<AdminSettingsPage />) },
+                { path: "feature-toggles", element: suspense(<AdminFeatureTogglesPage />) },
+                { path: "audit-logs", element: suspense(<AdminAuditLogsPage />) }
               ]
             }
           ]

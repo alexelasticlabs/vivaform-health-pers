@@ -99,21 +99,38 @@ export const exportUsersCsv = async (params: { q?: string; role?: string; tier?:
   return data as { filename: string; mime: string; body: string };
 };
 
-export const getUserDetails = async (id: string) => {
-  const { data } = await apiClient.get(`/admin/users/${id}`);
+// === Feature Toggles ===
+export const listFeatureToggles = async () => {
+  const { data } = await apiClient.get('/admin/feature-toggles');
   return data;
 };
 
-export const listSubscriptions = async (params: { status?: string; plan?: string; page?: number; limit?: number }) => {
+export const getFeatureToggle = async (key: string) => {
+  const { data } = await apiClient.get(`/admin/feature-toggles/${key}`);
+  return data;
+};
+
+export const updateFeatureToggle = async (key: string, dto: { enabled?: boolean; rolloutPercent?: number; description?: string; metadata?: any }) => {
+  const { data } = await apiClient.patch(`/admin/feature-toggles/${key}`, dto);
+  return data;
+};
+
+// === Audit Logs ===
+export const getAuditLogs = async (filters: { action?: string; entity?: string; userId?: string; page?: number; limit?: number }) => {
   const usp = new URLSearchParams();
-  for (const [k,v] of Object.entries(params || {})) if (v !== undefined && v !== null) usp.set(k, String(v));
-  const { data } = await apiClient.get(`/admin/subs?${usp.toString()}`);
+  for (const [k, v] of Object.entries(filters || {})) {
+    if (v !== undefined && v !== null && v !== '') usp.set(k, String(v));
+  }
+  const { data } = await apiClient.get(`/admin/audit-logs?${usp.toString()}`);
   return data;
 };
 
+// === Support ===
 export const listTickets = async (params: { status?: string; priority?: string; assignee?: string; page?: number; limit?: number }) => {
   const usp = new URLSearchParams();
-  for (const [k,v] of Object.entries(params || {})) if (v !== undefined && v !== null) usp.set(k, String(v));
+  for (const [k, v] of Object.entries(params || {})) {
+    if (v !== undefined && v !== null && v !== '') usp.set(k, String(v));
+  }
   const { data } = await apiClient.get(`/admin/tickets?${usp.toString()}`);
   return data;
 };
@@ -133,6 +150,17 @@ export const replyTicket = async (id: string, body: string) => {
   return data;
 };
 
+// === Subscriptions ===
+export const listSubscriptions = async (params: { status?: string; plan?: string; page?: number; limit?: number }) => {
+  const usp = new URLSearchParams();
+  for (const [k, v] of Object.entries(params || {})) {
+    if (v !== undefined && v !== null && v !== '') usp.set(k, String(v));
+  }
+  const { data } = await apiClient.get(`/admin/subs?${usp.toString()}`);
+  return data;
+};
+
+// === Settings ===
 export const getSettings = async () => {
   const { data } = await apiClient.get('/admin/settings');
   return data;
@@ -143,12 +171,28 @@ export const patchSettings = async (patch: Record<string, unknown>) => {
   return data;
 };
 
-// Bulk operations
-export const bulkUpdateUsers = async (userIds: string[], updates: { role?: 'USER' | 'ADMIN'; tier?: 'FREE' | 'PREMIUM' }) => {
-  const { data } = await apiClient.patch('/admin/users/bulk', { userIds, updates });
-  return data;
+export const adminApi = {
+  getAllUsers,
+  getAllUsersFiltered,
+  getUserStats,
+  getSystemStats,
+  updateUserRole,
+  getAdminFoodItems,
+  verifyFoodItem,
+  deleteFoodItem,
+  exportUsersCsv,
+  listFeatureToggles,
+  getFeatureToggle,
+  updateFeatureToggle,
+  getAuditLogs,
+  listTickets,
+  getTicket,
+  updateTicket,
+  replyTicket,
+  listSubscriptions,
+  getSettings,
+  patchSettings,
 };
-
 
 // Re-export admin overview helpers so consumers can import from '@/api/admin'
 export { getOverviewKpis, getRevenueTrend, getNewUsers, getSubsDistribution, getActivityHeatmap, getSystemHealth } from './admin-overview';

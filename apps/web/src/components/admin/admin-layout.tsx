@@ -1,4 +1,4 @@
-﻿import { type ReactNode, useState } from 'react';
+﻿﻿import { type ReactNode, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation, Outlet } from 'react-router-dom';
 import {
@@ -12,7 +12,9 @@ import {
   CreditCard,
   ChevronLeft,
   ChevronRight,
-  Home
+  Home,
+  ToggleRight,
+  ScrollText
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -30,6 +32,8 @@ const navigation: NavItem[] = [
   { label: 'Food Items', href: '/app/admin/foods', icon: <Package className="h-4 w-4" /> },
   { label: 'Articles', href: '/app/admin/articles', icon: <FileText className="h-4 w-4" /> },
   { label: 'Support', href: '/app/admin/support', icon: <HeadphonesIcon className="h-4 w-4" /> },
+  { label: 'Feature Toggles', href: '/app/admin/feature-toggles', icon: <ToggleRight className="h-4 w-4" /> },
+  { label: 'Audit Logs', href: '/app/admin/audit-logs', icon: <ScrollText className="h-4 w-4" /> },
   { label: 'Settings', href: '/app/admin/settings', icon: <Settings className="h-4 w-4" /> },
 ];
 
