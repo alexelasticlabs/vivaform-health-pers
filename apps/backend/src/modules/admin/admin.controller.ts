@@ -196,4 +196,41 @@ export class AdminController {
   @Patch('settings')
   @ApiOperation({ summary: 'Patch whitelisted settings' })
   patchSettings(@Body() patch: Record<string, unknown>) { return (this.adminService as any).patchSettings(patch); }
+
+  // === Feature Toggles ===
+  @Get('feature-toggles')
+  @ApiOperation({ summary: 'List all feature toggles' })
+  async listFeatureToggles() {
+    return (this.adminService as any).listFeatureToggles();
+  }
+
+  @Get('feature-toggles/:key')
+  @ApiOperation({ summary: 'Get feature toggle by key' })
+  async getFeatureToggle(@Param('key') key: string) {
+    return (this.adminService as any).getFeatureToggle(key);
+  }
+
+  @Patch('feature-toggles/:key')
+  @ApiOperation({ summary: 'Update feature toggle' })
+  async updateFeatureToggle(@Param('key') key: string, @Body() dto: any) {
+    return (this.adminService as any).updateFeatureToggle(key, dto);
+  }
+
+  // === Audit Logs ===
+  @Get('audit-logs')
+  @ApiOperation({ summary: 'Get audit logs with filters' })
+  @ApiQuery({ name: 'action', required: false, type: String })
+  @ApiQuery({ name: 'entity', required: false, type: String })
+  @ApiQuery({ name: 'userId', required: false, type: String })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async getAuditLogs(
+    @Query('action') action?: string,
+    @Query('entity') entity?: string,
+    @Query('userId') userId?: string,
+    @Query('page', new ParseIntPipe({ optional: true })) page?: number,
+    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number
+  ) {
+    return (this.adminService as any).getAuditLogs({ action, entity, userId, page, limit });
+  }
 }
