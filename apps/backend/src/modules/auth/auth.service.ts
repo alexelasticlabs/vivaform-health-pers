@@ -1,4 +1,4 @@
-﻿import { Inject, Injectable, UnauthorizedException, BadRequestException, ConflictException } from "@nestjs/common";
+﻿import { Inject, Injectable, UnauthorizedException, BadRequestException, ConflictException, Logger } from "@nestjs/common";
 import type { ConfigType } from "@nestjs/config";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { JwtService } from "@nestjs/jwt";
@@ -21,6 +21,8 @@ import type { RegisterDto } from "./dto/register.dto";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
@@ -486,4 +488,3 @@ export class AuthService {
     return { message: 'Verification email sent.' };
   }
 }
-
