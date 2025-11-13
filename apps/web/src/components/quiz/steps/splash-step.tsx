@@ -4,6 +4,8 @@ import { Sparkles, Users, Clock, TrendingUp } from 'lucide-react';
 import { QuizCard } from '@/components/quiz';
 import { Button } from '@/components/ui/button';
 
+const MDiv = motion.div as any;
+
 interface SplashStepProps {
   onStart: () => void;
 }
@@ -23,7 +25,7 @@ export function SplashStep({ onStart }: SplashStepProps) {
   const seconds = countdown % 60;
 
   return (
-    <motion.div
+    <MDiv
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
@@ -34,11 +36,10 @@ export function SplashStep({ onStart }: SplashStepProps) {
           title=""
           subtitle=""
           emoji=""
-          className="border-2 border-emerald-200 dark:border-emerald-800 shadow-xl"
         >
           <div className="text-center space-y-8 py-8">
             {/* Main Title */}
-            <motion.div
+            <MDiv
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2 }}
@@ -46,7 +47,7 @@ export function SplashStep({ onStart }: SplashStepProps) {
             >
               <div className="flex justify-center">
                 <div className="relative">
-                  <motion.div
+                  <MDiv
                     animate={{
                       scale: [1, 1.1, 1],
                       rotate: [0, 5, -5, 0],
@@ -58,8 +59,8 @@ export function SplashStep({ onStart }: SplashStepProps) {
                     }}
                   >
                     <Sparkles className="h-16 w-16 text-emerald-600 dark:text-emerald-400" />
-                  </motion.div>
-                  <motion.div
+                  </MDiv>
+                  <MDiv
                     className="absolute -top-2 -right-2"
                     animate={{
                       scale: [1, 1.3, 1],
@@ -71,7 +72,7 @@ export function SplashStep({ onStart }: SplashStepProps) {
                     }}
                   >
                     <TrendingUp className="h-8 w-8 text-blue-500" />
-                  </motion.div>
+                  </MDiv>
                 </div>
               </div>
 
@@ -84,10 +85,10 @@ export function SplashStep({ onStart }: SplashStepProps) {
               <p className="text-xl text-neutral-600 dark:text-neutral-400">
                 In just <span className="font-bold text-emerald-600">{minutes} minutes</span>
               </p>
-            </motion.div>
+            </MDiv>
 
             {/* Timer Display */}
-            <motion.div
+            <MDiv
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.4, type: 'spring' }}
@@ -99,10 +100,10 @@ export function SplashStep({ onStart }: SplashStepProps) {
                   {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
                 </div>
               </div>
-            </motion.div>
+            </MDiv>
 
             {/* Features */}
-            <motion.div
+            <MDiv
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
@@ -113,7 +114,7 @@ export function SplashStep({ onStart }: SplashStepProps) {
                 { icon: '🧬', title: 'Evidence-based', desc: 'Built with dietitian-approved methods' },
                 { icon: '📊', title: 'Real results', desc: 'Track progress and stay motivated' },
               ].map((feature, idx) => (
-                <motion.div
+                <MDiv
                   key={idx}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -125,12 +126,12 @@ export function SplashStep({ onStart }: SplashStepProps) {
                   <p className="text-xs text-neutral-600 dark:text-neutral-400">
                     {feature.desc}
                   </p>
-                </motion.div>
+                </MDiv>
               ))}
-            </motion.div>
+            </MDiv>
 
             {/* Social Proof */}
-            <motion.div
+            <MDiv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1 }}
@@ -140,10 +141,10 @@ export function SplashStep({ onStart }: SplashStepProps) {
               <span>
                 <span className="font-bold text-emerald-600">{usersToday.toLocaleString()}</span> people completed today
               </span>
-            </motion.div>
+            </MDiv>
 
             {/* CTA Button */}
-            <motion.div
+            <MDiv
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 1.2 }}
@@ -159,10 +160,10 @@ export function SplashStep({ onStart }: SplashStepProps) {
               <p className="mt-3 text-xs text-neutral-500">
                 Free • No sign-up • 5 minutes
               </p>
-            </motion.div>
+            </MDiv>
           </div>
         </QuizCard>
       </div>
-    </motion.div>
+    </MDiv>
   );
 }

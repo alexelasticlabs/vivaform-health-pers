@@ -5,6 +5,8 @@ import { PAIN_POINTS } from './enhanced-quiz-constants';
 import { logQuizOptionSelected } from '@/lib/analytics';
 import { Checkbox } from '@/components/ui/checkbox';
 
+const MDiv = motion.div as any;
+
 export function PersonalStoryStep() {
   const { answers, updateAnswers, clientId } = useQuizStore();
   const selectedPoints = answers.painPoints || [];
@@ -32,7 +34,7 @@ export function PersonalStoryStep() {
     >
       <div className="space-y-3">
         {PAIN_POINTS.map((point, index) => (
-          <motion.div
+          <MDiv
             key={point.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -52,12 +54,12 @@ export function PersonalStoryStep() {
               <span className="text-2xl">{point.emoji}</span>
               <span className="flex-1 text-sm font-medium">{point.text}</span>
             </label>
-          </motion.div>
+          </MDiv>
         ))}
       </div>
 
       {selectedPoints.length > 0 && (
-        <motion.div
+        <MDiv
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           className="mt-6 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg"
@@ -67,7 +69,7 @@ export function PersonalStoryStep() {
             <br />
             We’ll factor these into your personalized plan! 💡
           </p>
-        </motion.div>
+        </MDiv>
       )}
     </QuizCard>
   );

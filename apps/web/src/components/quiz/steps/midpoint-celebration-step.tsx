@@ -4,6 +4,8 @@ import { useQuizStore } from '@/store/quiz-store';
 import { QuizCard } from '@/components/quiz';
 import { calculateBMI } from '@/store/quiz-store';
 
+const MDiv = motion.div as any;
+
 export function MidpointCelebrationStep() {
   const { answers } = useQuizStore();
 
@@ -28,7 +30,7 @@ export function MidpointCelebrationStep() {
   ].filter(Boolean);
 
   return (
-    <motion.div
+    <MDiv
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -41,7 +43,7 @@ export function MidpointCelebrationStep() {
       >
         <div className="text-center space-y-6 py-8">
           {/* Confetti Icon */}
-          <motion.div
+          <MDiv
             animate={{
               rotate: [0, 10, -10, 10, 0],
               scale: [1, 1.2, 1, 1.2, 1],
@@ -56,7 +58,7 @@ export function MidpointCelebrationStep() {
               <PartyPopper className="h-20 w-20 text-emerald-600 dark:text-emerald-400" />
               {/* Floating particles */}
               {[...Array(6)].map((_, i) => (
-                <motion.div
+                <MDiv
                   key={i}
                   className="absolute w-2 h-2 bg-emerald-500 rounded-full"
                   initial={{ x: 0, y: 0, opacity: 1 }}
@@ -69,10 +71,10 @@ export function MidpointCelebrationStep() {
                 />
               ))}
             </div>
-          </motion.div>
+          </MDiv>
 
           {/* Main Message */}
-          <motion.div
+          <MDiv
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -83,10 +85,10 @@ export function MidpointCelebrationStep() {
             <p className="text-lg text-neutral-600 dark:text-neutral-400">
               Here’s what we’ve learned so far
             </p>
-          </motion.div>
+          </MDiv>
 
           {/* Progress Bar */}
-          <motion.div
+          <MDiv
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
             transition={{ delay: 0.5, duration: 1 }}
@@ -96,17 +98,17 @@ export function MidpointCelebrationStep() {
             <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-white">
               50%
             </div>
-          </motion.div>
+          </MDiv>
 
           {/* Completed Items */}
-          <motion.div
+          <MDiv
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
             className="space-y-3 max-w-md mx-auto"
           >
             {completedItems.map((item: any, index) => (
-              <motion.div
+              <MDiv
                 key={index}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
@@ -115,12 +117,12 @@ export function MidpointCelebrationStep() {
               >
                 <item.icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
                 <span className="text-sm font-medium text-left">{item.text}</span>
-              </motion.div>
+              </MDiv>
             ))}
-          </motion.div>
+          </MDiv>
 
           {/* Encouragement */}
-          <motion.div
+          <MDiv
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 1.5 }}
@@ -143,9 +145,9 @@ export function MidpointCelebrationStep() {
               <TrendingUp className="h-4 w-4" />
               <span>You’ve got this!</span>
             </div>
-          </motion.div>
+          </MDiv>
         </div>
       </QuizCard>
-    </motion.div>
+    </MDiv>
   );
 }
