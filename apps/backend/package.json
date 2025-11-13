@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "pnpm run start:dev",
+    "dev:free": "kill-port 4000 && pnpm run dev",
+    "dev:nodemon": "kill-port 4000 && nodemon --legacy-watch --watch src --ext ts,js --exec ts-node src/main.ts",
     "start": "node dist/main.js",
     "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
     "start:debug": "ts-node-dev --respawn --transpile-only --inspect=9229 src/main.ts",
@@ -75,6 +77,8 @@
     "dotenv": "^17.2.3",
     "eslint": "^9.12.0",
     "eslint-config-prettier": "^9.1.0",
+    "nodemon": "^3.1.4",
+    "kill-port": "^2.0.1",
     "prettier": "^3.3.3",
     "prisma": "6.18.0",
     "supertest": "^7.0.0",

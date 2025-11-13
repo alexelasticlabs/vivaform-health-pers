@@ -1,7 +1,7 @@
 ﻿import { Injectable, Logger } from '@nestjs/common';
 import { Interval } from '@nestjs/schedule';
-import type { PrismaService } from '../prisma/prisma.service';
-import type { StripeService } from '../../modules/stripe/stripe.service';
+import { PrismaService } from '../prisma/prisma.service'; // eslint-disable-line @typescript-eslint/consistent-type-imports
+import { StripeService } from '../../modules/stripe/stripe.service'; // eslint-disable-line @typescript-eslint/consistent-type-imports
 
 // prom-client уже загружен через metrics interceptor; подхватываем общую registry
 const prom = require('prom-client');

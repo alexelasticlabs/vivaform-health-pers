@@ -67,9 +67,9 @@ export class AuditService {
         data: {
           userId: dto.userId || null,
           action: dto.action,
-          metadata: dto.metadata ? (dto.metadata as unknown as any) : undefined,
-          ipAddress: dto.ipAddress,
-          userAgent: dto.userAgent
+          entity: 'User', // Обязательное поле для Prisma schema
+          entityId: dto.userId || null,
+          metadata: dto.metadata ? (dto.metadata as unknown as any) : undefined
         }
       });
     } catch (error) {
