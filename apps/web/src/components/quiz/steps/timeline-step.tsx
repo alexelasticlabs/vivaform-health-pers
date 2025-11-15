@@ -1,4 +1,4 @@
-﻿import { QuizCard, OptionPill } from '@/components/quiz';
+import { QuizCard, OptionPill } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 
 const PRESETS = [1, 3, 6, 9, 12, 18, 24];

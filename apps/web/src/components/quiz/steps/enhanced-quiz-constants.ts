@@ -1,4 +1,4 @@
-﻿// Enhanced quiz constants for 30-step interactive quiz
+﻿﻿// Enhanced quiz constants for 30-step interactive quiz
 // Phase-based structure for better engagement
 
 // Quiz Phases
@@ -23,8 +23,8 @@ export const STEP_NAMES = [
   'body_metrics',
   'age_gender',
   'health_conditions',
-  'current_diet',
   'meal_timing',
+  'current_diet',
   'food_preferences',
   'cooking_skills',
   'kitchen_equipment',

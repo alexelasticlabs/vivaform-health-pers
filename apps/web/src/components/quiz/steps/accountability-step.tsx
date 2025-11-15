@@ -1,4 +1,4 @@
-﻿import { QuizCard, OptionTile } from '@/components/quiz';
+import { QuizCard, OptionTile } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 import { ACCOUNTABILITY_OPTIONS } from './enhanced-quiz-constants';
 import { Checkbox } from '@/components/ui/checkbox';

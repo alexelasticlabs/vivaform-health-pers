@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Users, Clock, TrendingUp } from 'lucide-react';
 import { QuizCard } from '@/components/quiz';

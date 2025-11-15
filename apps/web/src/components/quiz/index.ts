@@ -1,4 +1,5 @@
-﻿export { QuizCard } from './quiz-card';
+﻿// Core UI components
+export { QuizCard } from './quiz-card';
 export { SliderInput } from './slider-input';
 export { BMIIndicator } from './bmi-indicator';
 export { OptionPill } from './options/option-pill';
@@ -6,6 +7,8 @@ export { OptionTile } from './options/option-tile';
 export { ChoiceToggle } from './options/choice-toggle';
 export { QuizProgress } from './quiz-progress';
 export { OptionButton } from './option-button';
+
+// Legacy steps (for backward compatibility)
 export { IntroStep } from './steps/intro-step';
 export { BodyMetricsStep } from './steps/body-metrics-step';
 export { GoalTimelineStep } from './steps/goal-timeline-step';
@@ -16,6 +19,8 @@ export { PreferencesStep } from './steps/preferences-step';
 export { EmotionalStep } from './steps/emotional-step';
 export { HydrationStep } from './steps/hydration-step';
 export { FinalStep } from './steps/final-step';
+
+// Enhanced quiz steps (25-step funnel)
 export { SplashStep } from './steps/splash-step';
 export { PrimaryGoalStep } from './steps/primary-goal-step';
 export { PersonalStoryStep } from './steps/personal-story-step';
@@ -40,8 +45,12 @@ export { TimelineStep } from './steps/timeline-step';
 export { ResultsPreviewStep } from './steps/results-preview-step';
 export { MealPlanPreviewStep } from './steps/meal-plan-preview-step';
 export { FinalCTAStep } from './steps/final-cta-step';
+
+// Modals & gamification
 export { ExitIntentModal } from './exit-intent-modal';
 export { BadgeUnlock } from './badge-unlock';
-// Реэкспорт общих констант и типов шагов квиза
+
+// Constants & types
 export { COMMON_ALLERGENS, COMMON_AVOIDED_FOODS, type Allergen, type AvoidedFood } from './steps/quiz-constants';
 export { TOTAL_STEPS as ENHANCED_TOTAL_STEPS, STEP_NAMES as ENHANCED_STEP_NAMES } from './steps/enhanced-quiz-constants';
+export { QuizStepRenderer } from './quiz-step-renderer';

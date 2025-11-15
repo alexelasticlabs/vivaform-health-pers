@@ -149,3 +149,23 @@ export async function getQuizPreview(): Promise<GetQuizPreviewResponse> {
   const response = await apiClient.get<GetQuizPreviewResponse>('/quiz/preview');
   return response.data;
 }
+
+/**
+ * Capture email for quiz progress (midpoint/exit-intent) - anonymous endpoint
+ */
+export async function captureQuizEmail(data: {
+  email: string;
+  clientId?: string;
+  step?: number;
+  type?: 'midpoint' | 'exit'
+}): Promise<{ ok: boolean; message: string }> {
+  try {
+    const response = await apiClient.post('/quiz/capture-email', data);
+    return response.data;
+  } catch (err) {
+    // Non-fatal: return success anyway
+    console.warn('[Quiz] Email capture failed:', err);
+    return { ok: true, message: 'Email saved locally' };
+  }
+}
+

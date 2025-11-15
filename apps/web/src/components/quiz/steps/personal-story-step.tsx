@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useQuizStore } from '@/store/quiz-store';
 import { QuizCard } from '@/components/quiz';
 import { PAIN_POINTS } from './enhanced-quiz-constants';
@@ -10,6 +10,7 @@ const MDiv = motion.div as any;
 export function PersonalStoryStep() {
   const { answers, updateAnswers, clientId } = useQuizStore();
   const selectedPoints = answers.painPoints || [];
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const handleToggle = (pointId: string) => {
     const newSelection = selectedPoints.includes(pointId)
@@ -35,8 +36,9 @@ export function PersonalStoryStep() {
       <div className="space-y-3">
         {PAIN_POINTS.map((point, index) => (
           <MDiv
+            data-motion-fallback
             key={point.id}
-            initial={{ opacity: 0, x: -20 }}
+            initial={reduce ? false : { opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.08 }}
           >

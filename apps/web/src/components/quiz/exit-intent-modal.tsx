@@ -1,8 +1,10 @@
-﻿import { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { captureQuizEmail } from '@/api/quiz';
+import { useQuizStore } from '@/store/quiz-store';
 
 interface ExitIntentModalProps {
   currentStep: number;
@@ -16,14 +18,36 @@ const MDiv = motion.div as any;
 export function ExitIntentModal({ currentStep, totalSteps, onSave, onClose }: ExitIntentModalProps) {
   const [email, setEmail] = useState('');
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { clientId } = useQuizStore();
 
   const progress = Math.round((currentStep / totalSteps) * 100);
 
-  const handleSave = () => {
-    if (email && onSave) {
-      onSave(email);
-      setSaved(true);
-      setTimeout(onClose, 2000);
+  const handleSave = async () => {
+    if (email && email.includes('@')) {
+      setIsSaving(true);
+      try {
+        await captureQuizEmail({
+          email,
+          clientId,
+          step: currentStep,
+          type: 'exit'
+        });
+
+        if (onSave) {
+          onSave(email);
+        }
+        setSaved(true);
+        setTimeout(onClose, 2000);
+      } catch {
+        if (onSave) {
+          onSave(email);
+        }
+        setSaved(true);
+        setTimeout(onClose, 2000);
+      } finally {
+        setIsSaving(false);
+      }
     } else {
       onClose();
     }
@@ -83,15 +107,16 @@ export function ExitIntentModal({ currentStep, totalSteps, onSave, onClose }: Ex
             placeholder="your@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+            onKeyDown={(e) => e.key === 'Enter' && !isSaving && handleSave()}
+            disabled={isSaving}
           />
 
           <div className="flex gap-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button variant="outline" onClick={onClose} className="flex-1" disabled={isSaving}>
               Continue quiz
             </Button>
-            <Button onClick={handleSave} className="flex-1">
-              Save & exit
+            <Button onClick={handleSave} className="flex-1" disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save & exit'}
             </Button>
           </div>
         </div>

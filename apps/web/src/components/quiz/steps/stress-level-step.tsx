@@ -1,4 +1,4 @@
-﻿import { QuizCard, OptionPill } from '@/components/quiz';
+import { QuizCard, OptionPill } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 import { STRESS_FACTORS } from './enhanced-quiz-constants';
 import { SliderInput } from '@/components/quiz';

@@ -3,15 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Check } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store';
-import { submitQuiz, saveQuizPreview, getQuizPreview } from '@/api';
+import { submitQuiz, saveQuizPreview, getQuizPreview, captureQuizEmail } from '@/api';
 import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
-import { SplashStep, PrimaryGoalStep, PersonalStoryStep, QuickWinStep, BodyTypeStep, MidpointCelebrationStep, ENHANCED_TOTAL_STEPS, ENHANCED_STEP_NAMES, BodyMetricsExtendedStep, AgeGenderStep, HealthConditionsStep, MealTimingStep, CurrentDietStep, FoodPreferencesDeepStep, CookingSkillsStep, KitchenEquipmentStep, SleepPatternStep, StressLevelStep, SocialEatingStep, BudgetStep, MotivationRankStep, AccountabilityStep, TimelineStep, ResultsPreviewStep, MealPlanPreviewStep, FinalCTAStep, ExitIntentModal, BadgeUnlock, ActivityLevelStep, QuizProgress } from '@/components/quiz';
-import { getUnlockedBadges, QUIZ_BADGES } from '@/components/quiz/steps/enhanced-quiz-constants';
-
-const TOTAL_STEPS = ENHANCED_TOTAL_STEPS;
-
-const STEP_NAMES = ENHANCED_STEP_NAMES as unknown as string[];
+import { QuizStepRenderer, ExitIntentModal, BadgeUnlock, QuizProgress } from '@/components/quiz';
+import { getVisibleQuizSteps, calcProgressPercent } from '@/features/quiz/quiz-config';
+import { QUIZ_BADGES, getUnlockedBadges } from '@/components/quiz/steps/enhanced-quiz-constants';
+import { canProceed } from '../features/quiz/funnel-engine';
 
 export function QuizPage() {
   const navigate = useNavigate();
@@ -34,13 +32,16 @@ export function QuizPage() {
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [showExitIntent, setShowExitIntent] = useState(false);
-  const [newBadge, setNewBadge] = useState<typeof QUIZ_BADGES[number] | null>(null);
+  const [newBadge, setNewBadge] = useState<(typeof QUIZ_BADGES)[number] | null>(null);
   const [lastBadgeStep, setLastBadgeStep] = useState(-1);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loggedStartRef = useRef(false);
   const lastViewedStepRef = useRef<number | null>(null);
   const lastSectionLoggedRef = useRef<number | null>(null);
-  
+
+  const visibleSteps = getVisibleQuizSteps(answers as any);
+  const currentStepConfig = visibleSteps[currentStep] ?? visibleSteps[visibleSteps.length - 1];
+
   // Calculate BMI preview in real-time
   const bmiPreview = calculateBMI(answers);
 
@@ -57,24 +58,26 @@ export function QuizPage() {
   useEffect(() => {
     if (!clientId) return;
 
+    const stepId = currentStepConfig?.id ?? String(currentStep);
+
     // Step viewed
     if (lastViewedStepRef.current !== currentStep) {
-      logQuizStepViewed(clientId, STEP_NAMES[currentStep] ?? String(currentStep));
+      logQuizStepViewed(clientId, stepId);
       lastViewedStepRef.current = currentStep;
     }
 
     // Section completed (for previous step)
     if (currentStep > 0 && lastSectionLoggedRef.current !== currentStep) {
-      const progress = Math.round((currentStep / TOTAL_STEPS) * 100);
-      logQuizSectionCompleted(clientId, STEP_NAMES[currentStep - 1], progress);
+      const progress = calcProgressPercent(currentStep, visibleSteps.length);
+      logQuizSectionCompleted(clientId, stepId, progress);
       lastSectionLoggedRef.current = currentStep;
     }
 
     // Final step viewed
-    if (currentStep === TOTAL_STEPS - 1) {
+    if (currentStep === visibleSteps.length - 1) {
       logQuizFinalStepViewed(clientId);
     }
-  }, [currentStep, clientId]);
+  }, [clientId, currentStep, currentStepConfig, visibleSteps.length]);
 
   // Show saved indicator when lastSaved changes
   useEffect(() => {
@@ -114,13 +117,6 @@ export function QuizPage() {
     };
   }, [answers, isAuthenticated, getDraft, clientId]);
 
-  // Redirect authenticated users to dashboard
-  useEffect(() => {
-    if (isAuthenticated) {
-      toast.info("You're already logged in. Redirecting to dashboard...");
-      navigate("/app");
-    }
-  }, [isAuthenticated, navigate]);
 
   // Restore server preview draft for authenticated users (once)
   useEffect(() => {
@@ -143,7 +139,7 @@ export function QuizPage() {
 
   // Detect exit intent (mouse leaving viewport)
   useEffect(() => {
-    if (currentStep === 0 || currentStep >= TOTAL_STEPS - 1) return;
+    if (currentStep === 0 || currentStep >= visibleSteps.length - 1) return;
 
     const handleMouseLeave = (e: MouseEvent) => {
       if (e.clientY <= 0) {
@@ -153,7 +149,7 @@ export function QuizPage() {
 
     document.addEventListener('mouseleave', handleMouseLeave);
     return () => document.removeEventListener('mouseleave', handleMouseLeave);
-  }, [currentStep]);
+  }, [currentStep, visibleSteps.length]);
 
   // Check for badge unlock
   useEffect(() => {
@@ -165,98 +161,28 @@ export function QuizPage() {
     }
   }, [currentStep, lastBadgeStep]);
 
-  const canGoNext = () => {
-    switch (currentStep) {
-      // Hook
-      case 0: return true; // splash
-      case 1: return !!answers.primaryGoal;
-      case 2: return (answers.painPoints?.length ?? 0) > 0;
-      case 3: return true;
-      case 4: return !!answers.bodyType;
-      // Engage
-      case 5: { // body metrics extended
-        const hasHeight = !!answers.body?.height?.cm;
-        const hasWeight = !!answers.body?.weight?.kg;
-        return hasHeight && hasWeight;
-      }
-      case 6: { // age & gender
-        return !!answers.demographics?.age && !!answers.demographics?.gender;
-      }
-      case 7: return true; // health conditions (optional)
-      case 8: return true; // meal timing (optional)
-      case 9: return true; // current diet (optional)
-      case 10: { // food preferences deep - at least one list
-        const fp = answers.foodPreferences;
-        return !!(fp && (fp.favorites?.length || fp.dislikes?.length || fp.allergens?.length || fp.intolerances?.length || fp.restrictions?.length));
-      }
-      case 11: return !!answers.cooking?.skillLevel; // cooking skills
-      case 12: return true; // kitchen equipment (optional)
-      // Commit
-      case 13: return true; // midpoint celebration
-      case 14: return !!answers.habits?.activityLevel; // activity level (legacy component)
-      case 15: { // sleep
-        const s = answers.sleep;
-        const hoursOk = typeof s?.hoursPerNight === 'number' && s.hoursPerNight >= 2 && s.hoursPerNight <= 14;
-        const timeOk = (s?.bedtime && s?.waketime) ? /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(s.bedtime) && /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(s.waketime) : false;
-        return hoursOk || timeOk;
-      }
-      case 16: { // stress
-        const lvl = answers.stress?.level;
-        return typeof lvl === 'number' && lvl >= 1 && lvl <= 10;
-      }
-      case 17: { // social eating
-        return !!answers.socialEating?.frequency;
-      }
-      case 18: { // budget
-        const rangeOk = !!answers.budget?.range;
-        const num = answers.budget?.weeklyBudget;
-        const numOk = typeof num === 'number' && num >= 10 && num <= 10000;
-        return rangeOk || numOk;
-      }
-      case 19: { // motivation rank
-        return (answers.motivation?.ranking?.length ?? 0) >= 3;
-      }
-      case 20: { // accountability
-        return !!answers.accountability?.type;
-      }
-      case 21: { // timeline
-        const m = answers.goals?.etaMonths;
-        return typeof m === 'number' && m >= 1 && m <= 24;
-      }
-      case 22: return true; // results preview
-      case 23: return true; // meal plan preview
-      case 24: return true; // final CTA
-      default:
-        return true;
-    }
-  };
+  const canGoNext = () => canProceed(currentStep, answers as any);
 
   const handleNext = async () => {
-    // Log CTA and next click
-    if (clientId) {
-      const stepId = STEP_NAMES[currentStep] ?? String(currentStep);
-      logQuizNextClicked(clientId, stepId);
-      // Placement unknown here; specific buttons will also log placement CTA
-    }
+    const stepId = currentStepConfig?.id ?? String(currentStep);
+    if (clientId) logQuizNextClicked(clientId, stepId);
     if (!canGoNext()) {
       toast.error('Please answer the question to continue');
       setValidationMessage('Please answer the question to continue');
       return;
     }
     setValidationMessage(null);
-
-    if (currentStep === TOTAL_STEPS - 1) {
+    if (currentStep >= visibleSteps.length - 1) {
       await handleSubmit();
-    } else {
-      nextStep();
+      return;
     }
+    nextStep();
   };
 
   const handleBack = () => {
-    if (clientId) {
-      const stepId = STEP_NAMES[currentStep] ?? String(currentStep);
-      logQuizBackClicked(clientId, stepId);
-    }
+    const stepId = currentStepConfig?.id ?? String(currentStep);
+    if (clientId) logQuizBackClicked(clientId, stepId);
+    if (currentStep === 0) return;
     prevStep();
   };
 
@@ -266,13 +192,34 @@ export function QuizPage() {
       const draft = getDraft();
       const durationSeconds = quizStartTime ? Math.round((Date.now() - quizStartTime) / 1000) : undefined;
 
-      // Guests: skip submit (requires auth), go to register
+      // Guests: save quiz data to localStorage, then redirect to register
       if (!isAuthenticated) {
-        toast.info('Create a free account to view your full plan.');
-        navigate('/register');
+        // Save complete quiz data
+        const quizData = {
+          ...draft,
+          completedAt: Date.now(),
+          durationSeconds
+        };
+
+        // Save to localStorage for post-registration processing
+        try {
+          localStorage.setItem('vivaform-completed-quiz', JSON.stringify(quizData));
+
+          // Log completion even for guests
+          if (clientId) {
+            logQuizSubmitSuccess(clientId, undefined, durationSeconds);
+          }
+        } catch (e) {
+          console.error('Failed to save quiz data:', e);
+        }
+
+        toast.success('Quiz complete! Sign up to get your personalized plan 🎉');
+        // Redirect with quiz completion flag
+        navigate('/register?quiz_completed=true');
         return;
       }
 
+      // Authenticated users: submit directly
       await submitQuiz(draft);
 
       // Log successful submission
@@ -282,7 +229,7 @@ export function QuizPage() {
 
       toast.success('Your personalized plan is ready! ✨');
 
-      // Redirect to dashboard for authenticated users
+      // Redirect to dashboard
       navigate('/app');
     } catch (error) {
       // Log submission error
@@ -297,45 +244,25 @@ export function QuizPage() {
     }
   };
 
-  const renderStep = () => {
-    switch (currentStep) {
-      case 0: return <SplashStep onStart={nextStep} />;
-      case 1: return <PrimaryGoalStep />;
-      case 2: return <PersonalStoryStep />;
-      case 3: return <QuickWinStep />;
-      case 4: return <BodyTypeStep />;
-      case 5: return <BodyMetricsExtendedStep />;
-      case 6: return <AgeGenderStep />;
-      case 7: return <HealthConditionsStep />;
-      case 8: return <MealTimingStep />;
-      case 9: return <CurrentDietStep />;
-      case 10: return <FoodPreferencesDeepStep />;
-      case 11: return <CookingSkillsStep />;
-      case 12: return <KitchenEquipmentStep />;
-      case 13: return <MidpointCelebrationStep />;
-      case 14: return <ActivityLevelStep />;
-      case 15: return <SleepPatternStep />;
-      case 16: return <StressLevelStep />;
-      case 17: return <SocialEatingStep />;
-      case 18: return <BudgetStep />;
-      case 19: return <MotivationRankStep />;
-      case 20: return <AccountabilityStep />;
-      case 21: return <TimelineStep />;
-      case 22: return <ResultsPreviewStep />;
-      case 23: return <MealPlanPreviewStep />;
-      case 24: return <FinalCTAStep onContinue={handleNext} />;
-      default:
-        return <div>Step {currentStep + 1}</div>;
+  const handleStartOver = () => {
+    if (window.confirm('Are you sure you want to start over? All your progress will be lost.')) {
+      useQuizStore.getState().reset();
+      toast.info('Quiz reset. Starting fresh!');
     }
   };
 
   const handleSaveExit = async (email: string) => {
     try {
-      // TODO: Send email to backend for reminder
-      console.log('Saving progress for:', email);
+      await captureQuizEmail({
+        email,
+        clientId,
+        step: currentStep,
+        type: 'exit'
+      });
       toast.success('Progress saved! Check your email.');
     } catch (error) {
       console.error('Failed to save:', error);
+      toast.success('Progress saved locally!');
     }
   };
 
@@ -343,8 +270,8 @@ export function QuizPage() {
     <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
       <div className="max-w-4xl mx-auto">
         {/* Sticky progress under header */}
-        <div className="sticky top-16 z-40 mb-6 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-md md:static md:top-auto md:border-none md:bg-transparent md:px-0 md:py-0 md:backdrop-blur-0">
-          <QuizProgress currentStep={currentStep + 1} totalSteps={TOTAL_STEPS} />
+        <div className="sticky top-16 z-40 mb-6 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-md">
+          <QuizProgress currentStep={currentStep + 1} totalSteps={visibleSteps.length} onReset={handleStartOver} />
         </div>
         
         {/* Saved indicator */}
@@ -371,7 +298,9 @@ export function QuizPage() {
           </div>
         )}
 
-        <div className="mb-2">{renderStep()}</div>
+        <div className="mb-2">
+          {currentStepConfig && <QuizStepRenderer step={currentStepConfig} />}
+        </div>
         {validationMessage && (
           <div className="mx-auto mb-6 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
             {validationMessage}
@@ -382,27 +311,18 @@ export function QuizPage() {
         <div className="hidden max-w-2xl mx-auto gap-4 md:flex">
           {currentStep > 0 && (
             <button
-              onClick={() => {
-                if (clientId) logQuizCtaClicked(clientId, 'desktop_nav', 'Back', STEP_NAMES[currentStep] ?? String(currentStep));
-                handleBack();
-              }}
+              onClick={handleBack}
               className="px-6 py-3 border-2 border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
             >
               ← Back
             </button>
           )}
           <button
-            onClick={async () => {
-              if (clientId) {
-                const label = currentStep === TOTAL_STEPS - 1 ? 'Complete Quiz' : 'Next';
-                logQuizCtaClicked(clientId, 'desktop_nav', label, STEP_NAMES[currentStep] ?? String(currentStep));
-              }
-              await handleNext();
-            }}
-            disabled={!canGoNext() || isSubmitting}
+            onClick={handleNext}
+            disabled={isSubmitting}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
           >
-            {currentStep === TOTAL_STEPS - 1
+            {currentStep >= visibleSteps.length - 1
               ? isSubmitting
                 ? 'Saving...'
                 : 'Complete Quiz →'
@@ -416,27 +336,18 @@ export function QuizPage() {
             <div className="mx-auto flex max-w-4xl items-center gap-3">
               {currentStep > 0 && (
                 <button
-                  onClick={() => {
-                    if (clientId) logQuizCtaClicked(clientId, 'mobile_sticky', 'Back', STEP_NAMES[currentStep] ?? String(currentStep));
-                    handleBack();
-                  }}
+                  onClick={handleBack}
                   className="shrink-0 rounded-xl border-2 border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
                 >
                   ← Back
                 </button>
               )}
               <button
-                onClick={async () => {
-                  if (clientId) {
-                    const label = currentStep === TOTAL_STEPS - 1 ? 'Complete Quiz' : 'Next';
-                    logQuizCtaClicked(clientId, 'mobile_sticky', label, STEP_NAMES[currentStep] ?? String(currentStep));
-                  }
-                  await handleNext();
-                }}
-                disabled={!canGoNext() || isSubmitting}
-                className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-emerald-500/20 transition-all hover:from-emerald-700 hover:to-teal-700 disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleNext}
+                disabled={isSubmitting}
+                className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white"
               >
-                {currentStep === TOTAL_STEPS - 1
+                {currentStep >= visibleSteps.length - 1
                   ? isSubmitting
                     ? 'Saving...'
                     : 'Complete Quiz →'
@@ -450,7 +361,7 @@ export function QuizPage() {
         {showExitIntent && (
           <ExitIntentModal
             currentStep={currentStep}
-            totalSteps={TOTAL_STEPS}
+            totalSteps={visibleSteps.length}
             onSave={handleSaveExit}
             onClose={() => setShowExitIntent(false)}
           />

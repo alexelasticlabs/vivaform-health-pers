@@ -1,4 +1,4 @@
-﻿import { QuizCard } from '@/components/quiz';
+import { QuizCard } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 import { Input } from '@/components/ui/input';
 

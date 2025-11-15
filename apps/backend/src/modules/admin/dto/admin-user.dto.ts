@@ -1,4 +1,4 @@
-﻿import { IsEmail, IsEnum, IsOptional, IsBoolean, IsString } from 'class-validator';
+﻿﻿import { IsEmail, IsEnum, IsOptional, IsBoolean, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { UserRole } from '@vivaform/shared';
 
@@ -67,7 +67,7 @@ export class AdminUserQueryDto {
 export class ImpersonateUserDto {
   @ApiProperty()
   @IsString()
-  userId: string;
+  userId!: string;
 
   @ApiPropertyOptional()
   @IsOptional()

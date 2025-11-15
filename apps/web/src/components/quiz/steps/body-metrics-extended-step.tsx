@@ -1,4 +1,4 @@
-﻿import { useMemo } from 'react';
+import { useMemo } from 'react';
 import { QuizCard } from '@/components/quiz';
 import { useQuizStore, calculateBMI } from '@/store/quiz-store';
 import { Input } from '@/components/ui/input';

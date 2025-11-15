@@ -4,7 +4,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 export class CreateFeatureToggleDto {
   @ApiProperty({ example: 'new_quiz_flow' })
   @IsString()
-  key: string;
+  key!: string;
 
   @ApiPropertyOptional({ example: 'Enable new quiz flow for users' })
   @IsOptional()
@@ -13,13 +13,13 @@ export class CreateFeatureToggleDto {
 
   @ApiProperty({ example: false, default: false })
   @IsBoolean()
-  enabled: boolean;
+  enabled!: boolean;
 
   @ApiProperty({ example: 0, minimum: 0, maximum: 100, default: 0 })
   @IsInt()
   @Min(0)
   @Max(100)
-  rolloutPercent: number;
+  rolloutPercent!: number;
 
   @ApiPropertyOptional({ example: { targetAudience: 'new_users' } })
   @IsOptional()

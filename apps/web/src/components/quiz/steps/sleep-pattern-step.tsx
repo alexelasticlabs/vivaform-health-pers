@@ -1,4 +1,4 @@
-﻿import { QuizCard, OptionPill } from '@/components/quiz';
+import { QuizCard, OptionPill } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 import { SLEEP_QUALITY } from './enhanced-quiz-constants';
 import { Input } from '@/components/ui/input';

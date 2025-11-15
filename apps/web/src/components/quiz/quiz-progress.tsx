@@ -1,11 +1,13 @@
 import { getCurrentPhase, getUnlockedBadges, QUIZ_PHASES } from './steps/enhanced-quiz-constants';
+import { RotateCcw } from 'lucide-react';
 
 interface QuizProgressProps {
   currentStep: number;
   totalSteps: number;
+  onReset?: () => void;
 }
 
-export function QuizProgress({ currentStep, totalSteps }: QuizProgressProps) {
+export function QuizProgress({ currentStep, totalSteps, onReset }: QuizProgressProps) {
   const percentage = Math.round((currentStep / totalSteps) * 100);
   const phase = getCurrentPhase(currentStep - 1); // currentStep is 1-indexed
   const badges = getUnlockedBadges(currentStep - 1);
@@ -36,10 +38,10 @@ export function QuizProgress({ currentStep, totalSteps }: QuizProgressProps) {
       </div>
 
       <div className="flex justify-between items-center mb-2">
-        <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-          Step {currentStep} of {totalSteps}
-        </span>
         <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+            {phase.emoji} {phase.name} Phase
+          </span>
           {badges.length > 0 && (
             <div className="flex gap-1">
               {badges.slice(-2).map((b) => (
@@ -49,7 +51,18 @@ export function QuizProgress({ currentStep, totalSteps }: QuizProgressProps) {
               ))}
             </div>
           )}
-          <span className="text-lg font-bold text-emerald-600">{percentage}%</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{percentage}%</span>
+          {onReset && currentStep > 1 && (
+            <button
+              onClick={onReset}
+              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              title="Start Over"
+            >
+              <RotateCcw className="w-4 h-4 text-neutral-500" />
+            </button>
+          )}
         </div>
       </div>
 

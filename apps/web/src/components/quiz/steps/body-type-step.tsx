@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useQuizStore } from '@/store/quiz-store';
 import { QuizCard } from '@/components/quiz';
 import { BODY_TYPES } from './enhanced-quiz-constants';

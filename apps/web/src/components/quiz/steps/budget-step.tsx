@@ -1,4 +1,4 @@
-﻿import { QuizCard, OptionTile } from '@/components/quiz';
+import { QuizCard, OptionTile } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 import { BUDGET_RANGES } from './enhanced-quiz-constants';
 import { Input } from '@/components/ui/input';

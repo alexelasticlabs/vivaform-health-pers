@@ -8,6 +8,7 @@ import {createAppRouter} from "@/routes/router";
 import {initSentry} from '@/lib/sentry';
 import "./styles/tailwind.css";
 import "./styles/animations.css";
+import "./styles/quiz-fallback.css";
 
 // Сброс одноразового флага перезагрузки после успешного старта приложения
 try { sessionStorage.removeItem('vivaform:dynamic-import-reloaded'); } catch {}

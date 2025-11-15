@@ -1,18 +1,24 @@
-﻿import { motion } from 'framer-motion';
-import { PartyPopper, CheckCircle, TrendingUp, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { PartyPopper, CheckCircle, TrendingUp, Clock, Mail, Shield } from 'lucide-react';
 import { useQuizStore } from '@/store/quiz-store';
 import { QuizCard } from '@/components/quiz';
 import { calculateBMI } from '@/store/quiz-store';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { captureQuizEmail } from '@/api/quiz';
 
 const MDiv = motion.div as any;
 
 export function MidpointCelebrationStep() {
-  const { answers } = useQuizStore();
+  const { answers, updateAnswers, currentStep, clientId } = useQuizStore();
+  const [email, setEmail] = useState(answers.email || '');
+  const [emailSaved, setEmailSaved] = useState(!!answers.email);
+  const [isSaving, setIsSaving] = useState(false);
 
   const bmi = calculateBMI(answers);
   const goal = answers.primaryGoal;
-  const dietPlan = answers.diet?.plan || 'a personalized diet';
-  const cookingTime = answers.cooking?.timeAvailable || 30;
 
   const goalText = goal === 'lose_weight'
     ? 'Lose weight'
@@ -25,9 +31,36 @@ export function MidpointCelebrationStep() {
   const completedItems = [
     { text: `Your goal: ${goalText}`, icon: CheckCircle },
     bmi ? { text: `Current BMI: ${bmi.bmi}`, icon: CheckCircle } : null,
-    { text: `Preferred: ${dietPlan}`, icon: CheckCircle },
-    { text: `Ready to cook: ${cookingTime} min/day`, icon: CheckCircle },
+    { text: `Food preferences collected`, icon: CheckCircle },
+    { text: `Cooking skills assessed`, icon: CheckCircle },
   ].filter(Boolean);
+
+  const handleSaveEmail = async () => {
+    if (!email || !email.includes('@')) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      await captureQuizEmail({
+        email,
+        clientId,
+        step: currentStep,
+        type: 'midpoint'
+      });
+      
+      updateAnswers({ email });
+      setEmailSaved(true);
+      toast.success('Great! Your progress is saved 🎉');
+    } catch {
+      updateAnswers({ email });
+      setEmailSaved(true);
+      toast.success('Progress saved locally 🎉');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <MDiv
@@ -79,10 +112,10 @@ export function MidpointCelebrationStep() {
             transition={{ delay: 0.3 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
-              Great job! You’re halfway there! 🎉
+              Great job! You're halfway there! 🎉
             </h2>
             <p className="text-lg text-neutral-600 dark:text-neutral-400">
-              Here’s what we’ve learned so far
+              Here's what we've learned so far
             </p>
           </MDiv>
 
@@ -120,16 +153,73 @@ export function MidpointCelebrationStep() {
             ))}
           </MDiv>
 
+          {/* Email Capture Section */}
+          {!emailSaved && (
+            <MDiv
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 1.4 }}
+              className="max-w-md mx-auto p-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950 rounded-2xl border-2 border-blue-200 dark:border-blue-800"
+            >
+              <div className="flex justify-center mb-3">
+                <div className="p-3 bg-blue-500 rounded-full">
+                  <Mail className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-blue-900 dark:text-blue-100">
+                Save your progress!
+              </h3>
+              <p className="text-sm text-blue-700 dark:text-blue-300 mb-4">
+                Enter your email to save your answers and get your personalized plan delivered
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  placeholder="your@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !isSaving && handleSaveEmail()}
+                  className="flex-1"
+                  disabled={isSaving}
+                />
+                <Button
+                  onClick={handleSaveEmail}
+                  disabled={isSaving || !email}
+                  className="px-6"
+                >
+                  {isSaving ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+              <div className="flex items-center justify-center gap-2 mt-3 text-xs text-blue-600 dark:text-blue-400">
+                <Shield className="w-3 w-3" />
+                <span>We protect your privacy. No spam, ever.</span>
+              </div>
+            </MDiv>
+          )}
+
+          {emailSaved && (
+            <MDiv
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="max-w-md mx-auto p-4 bg-emerald-50 dark:bg-emerald-950 rounded-xl border border-emerald-200 dark:border-emerald-800"
+            >
+              <div className="flex items-center justify-center gap-2 text-emerald-700 dark:text-emerald-300">
+                <CheckCircle className="w-5 h-5" />
+                <span className="font-semibold">Progress saved! ✓</span>
+              </div>
+            </MDiv>
+          )}
+
           {/* Encouragement */}
           <MDiv
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 1.5 }}
+            transition={{ delay: emailSaved ? 1.5 : 1.8 }}
             className="space-y-4"
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900 rounded-full">
-              <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-100 dark:bg-amber-900 rounded-full">
+              <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+              <span className="text-sm font-medium text-amber-700 dark:text-amber-300">
                 Just 2–3 more minutes to get your perfect plan!
               </span>
             </div>
@@ -142,7 +232,7 @@ export function MidpointCelebrationStep() {
 
             <div className="flex items-center justify-center gap-2 text-xs text-neutral-500">
               <TrendingUp className="h-4 w-4" />
-              <span>You’ve got this!</span>
+              <span>You've got this! Keep going 💪</span>
             </div>
           </MDiv>
         </div>
@@ -150,3 +240,4 @@ export function MidpointCelebrationStep() {
     </MDiv>
   );
 }
+

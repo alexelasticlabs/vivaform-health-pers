@@ -8,6 +8,7 @@ const MDiv = motion.div as any;
 export function QuickWinStep() {
   const { answers } = useQuizStore();
   const goal = answers.primaryGoal;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const benefits = goal === 'lose_weight'
     ? [
@@ -58,8 +59,9 @@ export function QuickWinStep() {
         <div className="space-y-3 mt-6">
           {benefits.map((benefit, index) => (
             <MDiv
+              data-motion-fallback
               key={index}
-              initial={{ opacity: 0, x: -20 }}
+              initial={reduce ? false : { opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 + index * 0.15 }}
               className="flex items-start gap-3 p-3 bg-gradient-to-r from-emerald-50 to-transparent dark:from-emerald-950 dark:to-transparent rounded-lg"

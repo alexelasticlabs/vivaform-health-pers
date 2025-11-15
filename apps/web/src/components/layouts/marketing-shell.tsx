@@ -7,7 +7,6 @@ import { ThemeToggle } from "../theme-toggle";
 import { SupportWidget } from "../support-widget";
 import { VivaFormLogo } from "../viva-form-logo";
 import { useUserStore } from '@/store/user-store';
-import { useQuizStore } from '@/store/quiz-store';
 import { UserMenu } from "../user-menu";
 
 const marketingNav = [
@@ -62,7 +61,6 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { profile, isAuthenticated, logout } = useUserStore();
-  const { reset } = useQuizStore();
   const hasPremium = (profile?.tier ?? "FREE") === "PREMIUM";
   
 
@@ -85,9 +83,7 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
   }, [location.pathname]);
 
   const handleMobileNavigate = (path: string) => {
-    if (path === "/quiz") {
-      reset();
-    }
+    // Don't auto-reset quiz progress - let user continue where they left off
     navigate(path);
     setMobileNavOpen(false);
   };
@@ -152,7 +148,7 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
                     }}
                     plan={hasPremium ? 'premium' : 'free'}
                     onNavigate={(path: string) => {
-                      if (path === '/quiz') reset();
+                      // Don't reset quiz progress
                       navigate(path);
                     }}
                     onLogout={() => { logout(); navigate('/'); }}
@@ -210,7 +206,7 @@ export const MarketingShell = ({ children }: PropsWithChildren) => {
                       }}
                       plan={hasPremium ? 'premium' : 'free'}
                       onNavigate={(path: string) => {
-                        if (path === '/quiz') reset();
+                        // Don't reset quiz progress
                         navigate(path);
                       }}
                       onLogout={() => { logout(); navigate('/'); }}

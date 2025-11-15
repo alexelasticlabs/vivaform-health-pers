@@ -1,4 +1,4 @@
-﻿import { QuizCard } from '@/components/quiz';
+import { QuizCard } from '@/components/quiz';
 import { useQuizStore } from '@/store/quiz-store';
 import { HEALTH_CONDITIONS } from './enhanced-quiz-constants';
 import { Checkbox } from '@/components/ui/checkbox';

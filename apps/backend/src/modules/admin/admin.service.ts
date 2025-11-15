@@ -602,6 +602,8 @@ export class AdminService {
   }
 
   // === Feature Toggles ===
+  // TODO: Add FeatureToggle model to Prisma schema before enabling
+  /*
   async listFeatureToggles() {
     const toggles = await this.prisma.featureToggle.findMany({
       orderBy: { createdAt: 'desc' }
@@ -679,6 +681,7 @@ export class AdminService {
       updatedAt: updated.updatedAt.toISOString(),
     };
   }
+  */
 
   // === Audit Logs ===
   async getAuditLogs(filters: { action?: string; entity?: string; userId?: string; page?: number; limit?: number }) {

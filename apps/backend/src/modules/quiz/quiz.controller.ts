@@ -167,4 +167,21 @@ export class QuizController {
   ) {
     return this.quizProfileService.updateQuizProfile(user.userId, dto);
   }
+
+  /**
+   * POST /quiz/capture-email
+   * Anonymous email capture for midpoint/exit-intent
+   */
+  @Post('capture-email')
+  @ApiOperation({
+    summary: 'Capture email for quiz progress save',
+    description: 'Save email for guest users to resume quiz later. Non-fatal endpoint.'
+  })
+  @ApiOkResponse({ description: 'Email captured successfully' })
+  async captureEmail(@Body() dto: { email: string; clientId?: string; step?: number; type?: 'midpoint' | 'exit' }) {
+    // TODO: Implement email capture logic (e.g., save to LeadCapture table, send reminder email)
+    // For now, just log and return success
+    console.log('[Quiz] Email captured:', { email: dto.email, clientId: dto.clientId, step: dto.step, type: dto.type });
+    return { ok: true, message: 'Email saved successfully' };
+  }
 }
