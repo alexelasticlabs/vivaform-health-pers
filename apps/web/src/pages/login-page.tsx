@@ -99,16 +99,6 @@ export const LoginPage = () => {
     mutate({ email, password });
   };
 
-  const hasHydrated = (useUserStore as any).persist?.hasHydrated?.() ?? false;
-  // Если стейт ещё не гидрирован – показываем минимальный скелетон вместо переходов
-  if (!hasHydrated) {
-    return (
-      <AuthLayout maxWidthClassName="max-w-[560px]">
-        <div className="animate-pulse rounded-3xl h-[480px] w-full bg-neutral-100 dark:bg-neutral-800" />
-      </AuthLayout>
-    );
-  }
-
   return (
     <AuthLayout maxWidthClassName="max-w-[560px]">
       {/* Login Card */}

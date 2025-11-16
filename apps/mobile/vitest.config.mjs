@@ -13,8 +13,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'react-native': 'react-native-web',
-      'expo-router': path.resolve('./src/test/stubs/expo-router.ts')
+      'react-native': path.resolve('./src/test/stubs/react-native.ts'),
+      'expo-router': path.resolve('./src/test/stubs/expo-router.ts'),
+      'expo-constants': path.resolve('./src/test/stubs/expo-constants.ts'),
+      '@tanstack/react-query': path.resolve('./src/test/stubs/react-query.ts')
     }
   },
   server: {
