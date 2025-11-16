@@ -1,4 +1,4 @@
-﻿﻿import { IsEmail, IsEnum, IsOptional, IsBoolean, IsString } from 'class-validator';
+﻿﻿import { IsEnum, IsOptional, IsBoolean, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { UserRole } from '@vivaform/shared';
 
@@ -73,5 +73,38 @@ export class ImpersonateUserDto {
   @IsOptional()
   @IsString()
   reason?: string;
+}
+
+export class UpdateTicketDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  priority?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  assignedTo?: string;
+}
+
+export class ReplyTicketDto {
+  @ApiProperty()
+  @IsString()
+  body!: string;
+}
+
+export class UpdateFoodItemDto {
+  @ApiProperty()
+  @IsBoolean()
+  verified!: boolean;
+}
+
+export class PatchSettingsDto {
+  [key: string]: unknown;
 }
 

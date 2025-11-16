@@ -2,24 +2,15 @@
 import type { ExecutionContext } from '@nestjs/common';
 import { ForbiddenException } from '@nestjs/common';
 import { StripeSubscriptionGuard } from '../../common/middleware/stripe-subscription.guard';
-import type { PrismaService } from '../../common/prisma/prisma.service';
 import type { Reflector } from '@nestjs/core';
-
-class PrismaMock {
-  user = {
-    findUnique: vi.fn()
-  };
-}
 
 describe('StripeSubscriptionGuard', () => {
   let guard: StripeSubscriptionGuard;
-  let prisma: PrismaMock;
   let reflector: { get: (metaKey: string, target: any) => any };
 
   beforeEach(async () => {
-    prisma = new PrismaMock();
     reflector = { get: vi.fn() as any } as any;
-    guard = new StripeSubscriptionGuard(prisma as unknown as PrismaService, reflector as unknown as Reflector);
+    guard = new StripeSubscriptionGuard(reflector as unknown as Reflector);
   });
 
   const makeContext = (user: any) => ({
@@ -29,7 +20,7 @@ describe('StripeSubscriptionGuard', () => {
 
   it('пропускает маршрут если не отмечен как премиум', async () => {
     (reflector.get as any).mockReturnValue(false);
-    const can = await guard.canActivate(makeContext({ userId: 'u1' }));
+    const can = await guard.canActivate(makeContext({ userId: 'u1', tier: 'FREE' }));
     expect(can).toBe(true);
   });
 
@@ -40,14 +31,12 @@ describe('StripeSubscriptionGuard', () => {
 
   it('блокирует если пользователь не премиум', async () => {
     (reflector.get as any).mockReturnValue(true);
-    (prisma.user.findUnique as any).mockResolvedValue({ tier: 'FREE' });
-    await expect(guard.canActivate(makeContext({ userId: 'u1' }))).rejects.toBeInstanceOf(ForbiddenException);
+    await expect(guard.canActivate(makeContext({ userId: 'u1', tier: 'FREE' }))).rejects.toBeInstanceOf(ForbiddenException);
   });
 
   it('пропускает если пользователь премиум', async () => {
     (reflector.get as any).mockReturnValue(true);
-    (prisma.user.findUnique as any).mockResolvedValue({ tier: 'PREMIUM' });
-    const can = await guard.canActivate(makeContext({ userId: 'u1' }));
+    const can = await guard.canActivate(makeContext({ userId: 'u1', tier: 'PREMIUM' }));
     expect(can).toBe(true);
   });
 });
