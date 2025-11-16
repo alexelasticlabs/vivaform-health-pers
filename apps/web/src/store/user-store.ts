@@ -81,9 +81,12 @@ export const useUserStore = create<UserStore>()(
       name: "vivaform-auth",
       storage: createJSONStorage(() => getSafeSessionStorage()),
       partialize: (state) => ({ profile: state.profile }) as Pick<UserStore, "profile">,
-      onRehydrateStorage: () => () => {
+      onRehydrateStorage: () => (state) => {
         // Всегда сбрасываем accessToken после перезагрузки, чтобы не хранить его в web storage
-        set({ accessToken: null, isAuthenticated: false });
+        if (state) {
+          state.accessToken = null;
+          state.isAuthenticated = false;
+        }
       }
     }
   )

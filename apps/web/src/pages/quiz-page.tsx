@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Check, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store';
 import { submitQuiz, saveQuizPreview, getQuizPreview, captureQuizEmail } from '@/api';
 import { useUserStore } from '@/store/user-store';
@@ -53,13 +53,11 @@ export function QuizPage() {
     nextStep,
     prevStep,
     getDraft,
-    lastSaved,
     clientId,
     mergeServerAnswers,
   } = useQuizStore();
   
   const { debouncedSave } = useQuizAutosave();
-  const [showSavedIndicator, setShowSavedIndicator] = useState(false);
   const [quizStartTime, setQuizStartTime] = useState<number | null>(null);
   const [validationMessage, setValidationMessage] = useState<string | null>(null);
   const [showExitIntent, setShowExitIntent] = useState(false);
@@ -113,15 +111,6 @@ export function QuizPage() {
       logQuizFinalStepViewed(clientId);
     }
   }, [clientId, currentStep, currentStepConfig, visibleSteps.length]);
-
-  // Show saved indicator when lastSaved changes
-  useEffect(() => {
-    if (lastSaved) {
-      setShowSavedIndicator(true);
-      const timer = setTimeout(() => setShowSavedIndicator(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [lastSaved]);
 
   // Trigger autosave when answers change
   useEffect(() => {
@@ -344,9 +333,8 @@ export function QuizPage() {
 
   return (
     <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Sticky progress under header */}
-        <div className="sticky top-4 z-40 mb-6 px-1 md:px-0">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-6 px-1 md:px-0">
           <QuizProgress currentIndex={currentStep} visibleSteps={visibleSteps} participantName={participantName} />
         </div>
 
@@ -356,14 +344,6 @@ export function QuizPage() {
               <Sparkles size={16} className="text-amber-500" />
               <span>{momentumCue}</span>
             </div>
-          </div>
-        )}
-        
-        {/* Saved indicator */}
-        {showSavedIndicator && (
-          <div className="fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-xl shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-            <Check size={16} />
-            <span className="text-sm font-medium">Saved ✓</span>
           </div>
         )}
         
