@@ -61,7 +61,7 @@ export class EmailService {
 
     this.logger.log(`📧 Initializing SMTP with host: ${smtpHost}:${smtpPort}`);
     this.logger.log(`👤 SMTP User: ${smtpUser ? smtpUser.substring(0, 6) + '...' : 'NOT SET'}`);
-    this.logger.log(`🔑 SMTP Password: ${smtpPass ? '****' + smtpPass.substring(smtpPass.length - 4) : 'NOT SET'}`);
+    this.logger.log(`🔑 SMTP Password: ${smtpPass ? '[REDACTED]' : 'NOT SET'}`);
 
     if (!smtpUser || !smtpPass) {
       this.logger.warn('⚠️ SMTP credentials not configured. Emails will be logged only.');
