@@ -29,7 +29,8 @@ function lazyWithRetry<T extends React.ComponentType<any>>(loader: () => Promise
 
 const MarketingLayout = lazyWithRetry(() => import("./slices/marketing-layout").then(m => ({ default: m.MarketingLayout })) as any);
 const RequireAuthOutlet = lazyWithRetry(() => import("./require-auth").then(m => ({ default: m.RequireAuthOutlet })) as any);
-const DashboardPage = lazyWithRetry(() => import("@/pages/dashboard/dashboard-page").then(m => ({ default: m.DashboardPage })) as any);
+// Using new Dashboard V2
+const DashboardPage = lazyWithRetry(() => import("@/pages/dashboard/dashboard-page-v2").then(m => ({ default: m.default })) as any);
 const LandingPage = lazyWithRetry(() => import("@/pages/landing-page").then(m => ({ default: m.LandingPage })) as any);
 const LoginPage = lazyWithRetry(() => import("@/pages/login-page").then(m => ({ default: m.LoginPage })) as any);
 const NotFoundPage = lazyWithRetry(() => import("@/pages/not-found-page").then(m => ({ default: m.NotFoundPage })) as any);
@@ -61,6 +62,9 @@ const ArticleDetailPage = lazyWithRetry(() => import("@/pages/article-detail-pag
 const PrivacyPage = lazyWithRetry(() => import("@/pages/privacy-page").then(m => ({ default: m.PrivacyPage })) as any);
 const TermsPage = lazyWithRetry(() => import("@/pages/terms-page").then(m => ({ default: m.TermsPage })) as any);
 const MyPlanPage = lazyWithRetry(() => import("@/pages/my-plan-page").then(m => ({ default: m.MyPlanPage })) as any);
+const RecipesPage = lazyWithRetry(() => import("@/pages/recipes-page").then(m => ({ default: m.RecipesPage })) as any);
+const ShoppingListPage = lazyWithRetry(() => import("@/pages/shopping-list-page").then(m => ({ default: m.ShoppingListPage })) as any);
+const FoodDatabasePage = lazyWithRetry(() => import("@/pages/food-database-page").then(m => ({ default: m.FoodDatabasePage })) as any);
 const AppLayout = lazyWithRetry(() => import("./slices/app-layout").then(m => ({ default: m.AppLayout })) as any);
 
 // Обёртка Suspense со скелетоном
@@ -105,6 +109,9 @@ export const createAppRouter = () =>
             { path: "progress", element: suspense(<ProgressPage />) },
             { path: "recommendations", element: suspense(<RecommendationsPage />) },
             { path: "meal-planner", element: suspense(<MealPlannerPage />) },
+            { path: "recipes", element: suspense(<RecipesPage />) },
+            { path: "shopping-list", element: suspense(<ShoppingListPage />) },
+            { path: "foods", element: suspense(<FoodDatabasePage />) },
             { path: "settings", element: suspense(<SettingsPage />) },
             { path: "my-plan", element: suspense(<MyPlanPage />) },
             { path: "premium/history", element: suspense(<PremiumHistoryPage />) }
