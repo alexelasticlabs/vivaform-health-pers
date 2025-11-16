@@ -1,11 +1,12 @@
-﻿import { Body, Controller, Get, Post, Query, UseGuards, Res, Req, HttpCode } from "@nestjs/common";
+﻿import { Body, Controller, Get, Post, Query, UseGuards, Res, Req, HttpCode, ForbiddenException } from "@nestjs/common";
 import { ApiOkResponse, ApiTags, ApiCreatedResponse } from "@nestjs/swagger";
 import type { Response, Request } from "express";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
-import type { AuthService } from "./auth.service";
+import { AdminGuard } from "../../common/guards/admin.guard";
+import { AuthService } from "./auth.service";
 import type { LoginDto } from "./dto/login.dto";
 import type { ForgotPasswordDto, ResetPasswordDto, RequestTempPasswordDto, ForceChangePasswordDto } from "./dto/forgot-password.dto";
 import type { RegisterDto } from "./dto/register.dto";
@@ -16,6 +17,13 @@ import type { ResendVerificationDto } from './dto/resend-verification.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  private getCookiePath() {
+    const prefix = process.env.API_PREFIX || '';
+    // Гарантируем ведущий слэш если prefix указан без него
+    const norm = prefix ? (prefix.startsWith('/') ? prefix : `/${prefix}`) : '';
+    return `${norm}/auth/refresh`.replace(/\/+/g, '/');
+  }
+
   @Post("register")
   @ApiCreatedResponse({ description: "Регистрация пользователя и выдача токенов" })
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
@@ -24,7 +32,7 @@ export class AuthController {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === 'production',
-      path: '/auth/refresh',
+      path: this.getCookiePath(),
       maxAge: 1000 * 60 * 60 * 24 * 30
     });
     return {
@@ -41,7 +49,7 @@ export class AuthController {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === 'production',
-        path: '/auth/refresh',
+        path: this.getCookiePath(),
         maxAge: 1000 * 60 * 60 * 24 * 30
       });
       return { user, tokens };
@@ -57,7 +65,7 @@ export class AuthController {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === 'production',
-      path: '/auth/refresh',
+      path: this.getCookiePath(),
       maxAge: 1000 * 60 * 60 * 24 * 30
     });
     // Возвращаем вместе с user для клиентов, ожидающих user + tokens
@@ -103,11 +111,14 @@ export class AuthController {
     return (this.authService as any).forceChangePassword(user.userId, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AdminGuard)
   @Post("test-email")
   @HttpCode(202)
   @ApiOkResponse({ description: "Тестовая отправка email (только для dev)" })
   testEmail(@Body() dto: { email: string }) {
+    if (process.env.NODE_ENV !== 'development' && process.env.ALLOW_TEST_EMAIL !== 'true') {
+      throw new ForbiddenException('Route disabled outside development');
+    }
     return (this.authService as any).testEmail(dto.email);
   }
 

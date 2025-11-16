@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+﻿﻿import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from './common/prisma/prisma.module';
@@ -14,7 +14,7 @@ import { AuditModule } from './modules/audit/audit.module';
 import { JwtStrategy } from './modules/auth/strategies/jwt.strategy';
 import { LocalStrategy } from './modules/auth/strategies/local.strategy';
 import { EmailModule } from './modules/email/email.module';
-import { AuthModule } from './modules/auth/auth.module';
+import { AuthModule as _AuthModule } from './modules/auth/auth.module';
 
 // Облегчённый модуль для e2e: без Cron/Schedule, Notifications, Articles, Stripe webhooks и пр.
 @Module({

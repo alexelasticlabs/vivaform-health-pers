@@ -1,28 +1,81 @@
+import { getCurrentPhase, getUnlockedBadges, QUIZ_PHASES } from './steps/enhanced-quiz-constants';
+import { RotateCcw } from 'lucide-react';
+
 interface QuizProgressProps {
   currentStep: number;
   totalSteps: number;
+  onReset?: () => void;
 }
 
-export function QuizProgress({ currentStep, totalSteps }: QuizProgressProps) {
+export function QuizProgress({ currentStep, totalSteps, onReset }: QuizProgressProps) {
   const percentage = Math.round((currentStep / totalSteps) * 100);
+  const phase = getCurrentPhase(currentStep - 1); // currentStep is 1-indexed
+  const badges = getUnlockedBadges(currentStep - 1);
 
   return (
-    <div className="w-full mb-8">
-      <div className="flex justify-between items-center mb-3">
-        <span className="text-sm font-medium text-gray-600">
-          Step {currentStep} of {totalSteps}
-        </span>
-        <span className="text-lg font-bold text-blue-600">{percentage}%</span>
+    <div className="w-full">
+      {/* Phase indicators */}
+      <div className="flex items-center justify-between mb-3 gap-2">
+        {Object.values(QUIZ_PHASES).map((p) => {
+          const isActive = p.id === phase.id;
+          const isCompleted = currentStep - 1 > p.steps[p.steps.length - 1];
+          return (
+            <div
+              key={p.id}
+              className={`flex-1 text-center py-1 px-2 rounded-lg text-xs font-medium transition-all ${
+                isActive
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 scale-105'
+                  : isCompleted
+                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400'
+                  : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400'
+              }`}
+            >
+              <span className="mr-1">{p.emoji}</span>
+              <span className="hidden sm:inline">{p.name}</span>
+            </div>
+          );
+        })}
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden shadow-inner">
+
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+            {phase.emoji} {phase.name} Phase
+          </span>
+          {badges.length > 0 && (
+            <div className="flex gap-1">
+              {badges.slice(-2).map((b) => (
+                <span key={b.id} title={b.description} className="text-lg">
+                  {b.emoji}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-xl font-bold text-emerald-600 dark:text-emerald-400">{percentage}%</span>
+          {onReset && currentStep > 1 && (
+            <button
+              onClick={onReset}
+              className="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              title="Start Over"
+            >
+              <RotateCcw className="w-4 h-4 text-neutral-500" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="w-full bg-gray-200 dark:bg-neutral-800 rounded-full h-3 overflow-hidden shadow-inner">
         <div
-          className="bg-gradient-to-r from-blue-500 via-blue-600 to-green-500 h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden"
+          className="bg-gradient-to-r from-emerald-500 via-blue-500 to-emerald-600 h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden"
           style={{ width: `${percentage}%` }}
         >
           {/* Animated shimmer effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer" />
         </div>
       </div>
+
       <style>{`
         @keyframes shimmer {
           0% { transform: translateX(-100%); }

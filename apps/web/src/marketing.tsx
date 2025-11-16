@@ -4,6 +4,7 @@ import { AppProviders } from '@/providers/app-providers';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import './styles/marketing.css';
 import { initSentry } from '@/lib/sentry';
+import { PageSkeleton } from '@/components/ui/skeleton';
 
 const MarketingLayout = React.lazy(() => import('./routes/slices/marketing-layout').then(m => ({ default: m.MarketingLayout })));
 const LandingPage = React.lazy(() => import('@/pages/landing-page').then(m => ({ default: m.LandingPage })));
@@ -12,7 +13,7 @@ const TermsPage = React.lazy(() => import('@/pages/terms-page').then(m => ({ def
 const ArticlesPage = React.lazy(() => import('@/pages/articles-page').then(m => ({ default: m.ArticlesPage })));
 const ArticleDetailPage = React.lazy(() => import('@/pages/article-detail-page').then(m => ({ default: m.ArticleDetailPage })));
 
-const suspense = (el: React.ReactElement) => <React.Suspense fallback={<div className="p-4">Loading...</div>}>{el}</React.Suspense>;
+const suspense = (el: React.ReactElement) => <React.Suspense fallback={<PageSkeleton />}>{el}</React.Suspense>;
 
 const router = createBrowserRouter([
   {
@@ -30,7 +31,23 @@ const router = createBrowserRouter([
 
 initSentry();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
+function getOrCreateRoot(container: HTMLElement) {
+  const key = '__vivaform_marketing_root__';
+  const w = window as any;
+  if (!w[key]) {
+    w[key] = ReactDOM.createRoot(container);
+    if (import.meta.hot) {
+      import.meta.hot.dispose(() => {
+        try { w[key]?.unmount?.(); } catch {}
+        w[key] = undefined;
+      });
+    }
+  }
+  return w[key] as ReturnType<typeof ReactDOM.createRoot>;
+}
+
+const root = getOrCreateRoot(document.getElementById('root')!);
+root.render(
   <React.StrictMode>
     <AppProviders>
       <RouterProvider router={router} />

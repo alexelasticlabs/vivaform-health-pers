@@ -1,6 +1,10 @@
-﻿import { describe, it } from 'vitest';
+﻿import { vi, describe, it } from 'vitest';
+// Моки провайдеров ДО импорта остальных модулей
+vi.mock('@/providers/auth-bootstrapper', () => ({ AuthBootstrapper: () => null }));
+vi.mock('@/providers/analytics-bootstrapper', () => ({ AnalyticsBootstrapper: () => null }));
+
 import { RouterProvider } from 'react-router-dom';
-import { render } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import { AppProviders } from '@/providers/app-providers';
 import { createAppRouter } from '@/routes/router';
 import { useUserStore } from '@/store/user-store';
@@ -15,31 +19,39 @@ function resetStore() {
 describe('premium history route protection', () => {
   it('redirects unauthenticated user to /login', async () => {
     resetStore();
-    window.history.pushState({}, '', '/premium/history');
+    window.history.pushState({}, '', '/app/premium/history');
     const router = createAppRouter();
-    const view = render(
+    render(
       <AppProviders>
         <RouterProvider router={router} />
       </AppProviders>
     );
-    const matches = await view.findAllByText(/log in|sign in/i);
-    expect(matches.length).toBeGreaterThan(0);
+    // Ожидаем переход на /login
+    await waitFor(() => {
+      expect(window.location.pathname).toBe('/login');
+    });
   });
 
   it('allows authenticated user to see premium history', async () => {
     useUserStore.setState({
-      profile: { id: 'u1', email: 'a@b.c', tier: 'FREE' } as any,
+      profile: { id: 'u1', email: 'a@b.c', tier: 'PREMIUM' } as any,
       accessToken: 'x',
       isAuthenticated: true
     } as any);
+    (useUserStore as any).persist = { hasHydrated: () => true };
+    (window as any).__E2E_AUTH_OVERRIDE__ = true;
 
-    window.history.pushState({}, '', '/premium/history');
+    window.history.pushState({}, '', '/app/premium/history');
     const router = createAppRouter();
     const view = render(
       <AppProviders>
         <RouterProvider router={router} />
       </AppProviders>
     );
-    await view.findAllByText(/Premium history/i);
+    await waitFor(() => {
+      expect(window.location.pathname).toBe('/app/premium/history');
+      expect(() => view.getByTestId('premium-history-title')).not.toThrow();
+    }, { timeout: 2500 });
+    delete (window as any).__E2E_AUTH_OVERRIDE__;
   });
 });

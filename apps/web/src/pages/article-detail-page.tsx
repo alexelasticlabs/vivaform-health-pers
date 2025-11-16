@@ -1,17 +1,36 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Eye, Tag, User } from "lucide-react";
+import { useEffect, useState } from 'react';
+import DOMPurify from 'dompurify';
 
 import { getArticleBySlug } from "../api";
 
 export const ArticleDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
-
   const { data: article, isLoading } = useQuery({
     queryKey: ["article", slug],
     queryFn: () => getArticleBySlug(slug!),
     enabled: !!slug
   });
+
+  const [sanitized, setSanitized] = useState<string>('');
+
+  useEffect(() => {
+    if (!article) { setSanitized(''); return; }
+    try {
+      const clean = DOMPurify.sanitize(article.content.replace(/\n/g, '<br />'), { USE_PROFILES: { html: true } as any });
+      setSanitized(clean);
+    } catch {
+      const esc = article.content
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;')
+        .replace(/"/g,'&quot;')
+        .replace(/\n/g,'<br />');
+      setSanitized(esc);
+    }
+  }, [article]);
 
   if (isLoading) {
     return (
@@ -97,9 +116,7 @@ export const ArticleDetailPage = () => {
         {/* Content */}
         <div
           className="prose prose-lg dark:prose-invert max-w-none mb-8"
-          dangerouslySetInnerHTML={{
-            __html: article.content.replace(/\n/g, "<br />")
-          }}
+          dangerouslySetInnerHTML={{ __html: sanitized }}
         />
 
         {/* Tags */}

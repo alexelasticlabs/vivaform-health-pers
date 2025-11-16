@@ -18,6 +18,8 @@ vi.mock('../../api', async () => {
   };
 });
 
+vi.setSystemTime(new Date('2025-11-12T10:00:00Z'));
+
 describe('MealPlannerPage', () => {
   it('renders and switches days', async () => {
     initUserPremium();

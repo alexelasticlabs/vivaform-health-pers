@@ -441,6 +441,17 @@ async function main() {
     console.log("✅ Created test user:", user.email);
   }
 
+  // Seed E2E user
+  const e2eEmail = process.env.E2E_USER_EMAIL || 'seed-user@example.com';
+  const e2ePassword = process.env.E2E_USER_PASSWORD || 'SeedPass123!';
+  const e2ePasswordHash = await argon2.hash(e2ePassword);
+  const e2eUser = await prisma.user.upsert({
+    where: { email: e2eEmail },
+    update: { passwordHash: e2ePasswordHash, tier: 'FREE' },
+    create: { email: e2eEmail, passwordHash: e2ePasswordHash, role: 'USER', tier: 'FREE', emailVerified: true, emailVerifiedAt: new Date() }
+  });
+  console.log(`✅ Seeded e2e user: ${e2eUser.email}`);
+
   // Clear existing meal templates
   await prisma.mealTemplate.deleteMany();
   console.log("🗑️  Cleared existing meal templates");

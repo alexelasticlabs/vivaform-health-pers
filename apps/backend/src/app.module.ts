@@ -3,7 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ScheduleModule } from "@nestjs/schedule";
 import { APP_GUARD } from "@nestjs/core";
-import { Controller, Get, Res } from '@nestjs/common';
+import { Controller, Get, Res, Req } from '@nestjs/common';
 
 import { PrismaModule } from "./common/prisma/prisma.module";
 import { appConfig, jwtConfig, stripeConfig } from "./config";
@@ -23,6 +23,7 @@ import { StripeModule } from "./modules/stripe/stripe.module";
 import { SubscriptionsModule } from "./modules/subscriptions/subscriptions.module";
 import { QuizModule } from "./modules/quiz/quiz.module";
 import { WebhooksModule } from "./modules/webhooks/webhooks.module";
+import { BusinessMetricsService } from './common/metrics/business-metrics.service';
 
 @Controller('health')
 class HealthController {
@@ -37,13 +38,21 @@ class MetricsController {
   private readonly prom: any;
   constructor() {
     // Lazy require to avoid TS type issues
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     this.prom = require('prom-client');
     try { this.prom.collectDefaultMetrics(); } catch {}
   }
 
   @Get()
-  async get(@Res() res: any) {
+  async get(@Res() res: any, @Req() req: any) {
+    // Защита internal endpoint через секретный заголовок
+    const secret = process.env.METRICS_SECRET || 'dev-metrics-secret';
+    const provided = req.headers['x-internal-key'];
+
+    if (process.env.NODE_ENV === 'production' && provided !== secret) {
+      res.status(403).send('Forbidden');
+      return;
+    }
+
     res.setHeader('Content-Type', this.prom.register.contentType);
     res.send(await this.prom.register.metrics());
   }
@@ -100,7 +109,8 @@ class MetricsController {
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard
-    }
+    },
+    BusinessMetricsService
   ]
 })
 export class AppModule {}

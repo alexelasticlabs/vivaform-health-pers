@@ -1,0 +1,31 @@
+﻿apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "vivaform.fullname" . }}-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  tls:
+    - hosts:
+        - {{ .Values.ingress.host | default "vivaform.example.com" }}
+      secretName: {{ include "vivaform.fullname" . }}-tls
+  rules:
+    - host: {{ .Values.ingress.host | default "vivaform.example.com" }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vivaform.fullname" . }}-web
+                port:
+                  number: {{ .Values.web.service.port }}
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "vivaform.fullname" . }}-backend
+                port:
+                  number: {{ .Values.backend.service.port }}
+

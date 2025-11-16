@@ -42,6 +42,6 @@ export async function forceChangePassword(data: ForceChangePasswordRequest): Pro
 }
 
 export async function verifyEmail(token: string): Promise<MessageResponse> {
-  const response = await apiClient.get(`/auth/verify-email?token=${token}`);
+  const response = await apiClient.get(`/auth/verify-email?token=${encodeURIComponent(token)}`);
   return response.data;
 }

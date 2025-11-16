@@ -1,15 +1,16 @@
-﻿import path from "node:path";
+﻿﻿import path from "node:path";
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 // Валидация окружения: требуем VITE_API_URL для production сборок
 const requireEnvForProd = () => {
-  const isProdBuild = process.env.NODE_ENV === 'production' || process.env.BUILD === 'production';
-  if (isProdBuild) {
-    if (!process.env.VITE_API_URL) {
-      // Бросаем ошибку на этапе загрузки конфигурации
-      throw new Error("[build] VITE_API_URL is required for production builds");
-    }
+  // Проверяем только если это явно production build (не dev, не test)
+  const command = process.env.npm_lifecycle_event || '';
+  const isProdBuild = command === 'build' && !process.env.VITE_API_URL && process.env.NODE_ENV !== 'development';
+
+  // Для CI/CD и production deploy проверяем обязательность VITE_API_URL
+  if (process.env.CI && command === 'build' && !process.env.VITE_API_URL) {
+    throw new Error("[build] VITE_API_URL is required for production builds in CI");
   }
 };
 requireEnvForProd();

@@ -126,7 +126,8 @@ export class EmailService {
   /** @public Verification email triggered during signup */
   async sendVerificationEmail(email: string, token: string) {
     if (this.testMode) { this.logger.log(`🔐 [TEST MODE] Verification email suppressed for ${email}`); return; }
-    const verificationUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/verify-email?token=${token}`;
+    const encoded = encodeURIComponent(token);
+    const verificationUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/verify-email?token=${encoded}`;
     const subject = 'Подтвердите ваш email - VivaForm';
     const html = this.getVerificationTemplate(verificationUrl);
 
@@ -135,7 +136,8 @@ export class EmailService {
 
   async sendPasswordResetEmail(email: string, token: string) {
     if (this.testMode) { this.logger.log(`🔄 [TEST MODE] Password reset email suppressed for ${email}`); return; }
-    const resetUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/reset-password?token=${token}`;
+    const encoded = encodeURIComponent(token);
+    const resetUrl = `${this.configService?.get('FRONTEND_URL') || 'http://localhost:5173'}/reset-password?token=${encoded}`;
     const subject = 'Reset your VivaForm password';
     const html = this.getPasswordResetTemplate(resetUrl);
 

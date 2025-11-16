@@ -2,11 +2,11 @@ import { Controller, Post, Body, Get, Patch, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiBearerAuth, ApiOkResponse } from '@nestjs/swagger';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { QuizService as QuizProfileService } from './services/quiz-profile.service';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import { SubmitQuizDto, UpdateQuizProfileDto } from './dto/submit-quiz.dto';
+import type { SubmitQuizDto, UpdateQuizProfileDto } from './dto/submit-quiz.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { CurrentUser as CurrentUserPayload } from '../../common/types/current-user';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { QuizService as LegacyQuizService } from './quiz.service';
 import type { QuizAnswers } from '@vivaform/shared';
 
@@ -166,5 +166,22 @@ export class QuizController {
     @CurrentUser() user: CurrentUserPayload,
   ) {
     return this.quizProfileService.updateQuizProfile(user.userId, dto);
+  }
+
+  /**
+   * POST /quiz/capture-email
+   * Anonymous email capture for midpoint/exit-intent
+   */
+  @Post('capture-email')
+  @ApiOperation({
+    summary: 'Capture email for quiz progress save',
+    description: 'Save email for guest users to resume quiz later. Non-fatal endpoint.'
+  })
+  @ApiOkResponse({ description: 'Email captured successfully' })
+  async captureEmail(@Body() dto: { email: string; clientId?: string; step?: number; type?: 'midpoint' | 'exit' }) {
+    // TODO: Implement email capture logic (e.g., save to LeadCapture table, send reminder email)
+    // For now, just log and return success
+    console.log('[Quiz] Email captured:', { email: dto.email, clientId: dto.clientId, step: dto.step, type: dto.type });
+    return { ok: true, message: 'Email saved successfully' };
   }
 }

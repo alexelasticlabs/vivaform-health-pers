@@ -1,23 +1,29 @@
 import { Controller, Post, Headers, Req, BadRequestException, Logger } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
-import { SkipThrottle } from '@nestjs/throttler';
+import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { StripeService } from '../stripe/stripe.service';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { PrismaService } from '../../common/prisma/prisma.service';
 import type Stripe from 'stripe';
+import { getRedis } from '../../common/utils/redis';
 
-@SkipThrottle()
 @Controller('webhooks')
 export class WebhooksController {
   private readonly logger = new Logger(WebhooksController.name);
+  private readonly redis = getRedis();
+  private processedIds = new Set<string>(); // fallback на память, если нет Redis и Prisma
 
   constructor(
     private readonly stripeService: StripeService,
-    private readonly subscriptionsService: SubscriptionsService
+    private readonly subscriptionsService: SubscriptionsService,
+    private readonly prisma: PrismaService,
   ) {}
 
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('stripe')
   async handleStripeWebhook(
     @Headers('stripe-signature') signature: string,
@@ -27,8 +33,6 @@ export class WebhooksController {
       throw new BadRequestException('Missing stripe-signature header');
     }
 
-    // Support both Nest rawBody (when app created with { rawBody: true }) and
-    // express raw() middleware (where body is already a Buffer)
     const rawBody = (request as any).rawBody ?? (request as any).body;
     if (!rawBody) {
       this.logger.error('❗ Missing raw body on webhook request');
@@ -44,7 +48,15 @@ export class WebhooksController {
       throw new BadRequestException('Invalid signature');
     }
 
-    this.logger.log(`🔔 Received webhook: ${event.type}`);
+    // Idempotency: проверяем через Prisma → Redis → memory
+    const evtId = event.id;
+    const isDuplicate = await this.checkIdempotency(evtId, event.type);
+    if (isDuplicate) {
+      this.logger.log(`🔁 Duplicate webhook ignored: ${evtId} (${event.type})`);
+      return { received: true, duplicate: true };
+    }
+
+    this.logger.log(`🔔 Received webhook: ${event.type} (id: ${evtId})`);
 
     try {
       switch (event.type) {
@@ -73,6 +85,50 @@ export class WebhooksController {
       this.logger.error(`Error processing webhook ${event.type}`, error);
       throw new BadRequestException('Webhook processing failed');
     }
+  }
+
+  private async checkIdempotency(eventId: string, eventType: string): Promise<boolean> {
+    // 1. Проверка Prisma (персистентная)
+    try {
+      const existing = await this.prisma.processedWebhookEvent.findUnique({ where: { id: eventId } });
+      if (existing) return true;
+
+      // Записываем в Prisma для будущих запусков
+      await this.prisma.processedWebhookEvent.create({
+        data: { id: eventId, eventType }
+      });
+
+      // Периодическая очистка старых (>7 дней) - можно вынести в cron
+      if (Math.random() < 0.01) { // 1% вероятность
+        const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+        await this.prisma.processedWebhookEvent.deleteMany({
+          where: { processedAt: { lt: cutoff } }
+        }).catch(() => {});
+      }
+
+      return false;
+    } catch (prismaErr) {
+      this.logger.warn(`Prisma idempotency check failed: ${(prismaErr as Error)?.message}`);
+    }
+
+    // 2. Fallback на Redis
+    if (this.redis) {
+      try {
+        const key = `stripe:webhook:${eventId}`;
+        const res = await (this.redis as any).set(key, '1', 'EX', 7 * 24 * 60 * 60, 'NX');
+        return res !== 'OK';
+      } catch (redisErr) {
+        this.logger.warn(`Redis idempotency check failed: ${(redisErr as Error)?.message}`);
+      }
+    }
+
+    // 3. Fallback на in-memory
+    if (this.processedIds.has(eventId)) return true;
+    this.processedIds.add(eventId);
+    if (this.processedIds.size > 5000) {
+      this.processedIds.clear();
+    }
+    return false;
   }
 
   private async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {

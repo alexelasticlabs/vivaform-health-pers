@@ -3,12 +3,18 @@ import { saveConsent, loadConsent } from '@/lib/consent';
 
 export const ConsentBanner = () => {
   const [visible, setVisible] = useState(false);
-  const [marketing, setMarketing] = useState(true);
-  const [analytics, setAnalytics] = useState(true);
+  const [marketing, setMarketing] = useState(false);
+  const [analytics, setAnalytics] = useState(false);
 
   useEffect(() => {
     const prefs = loadConsent();
-    setVisible(!prefs);
+    if (prefs) {
+      setMarketing(prefs.marketing);
+      setAnalytics(prefs.analytics);
+      setVisible(false);
+    } else {
+      setVisible(true);
+    }
   }, []);
 
   if (!visible) return null;

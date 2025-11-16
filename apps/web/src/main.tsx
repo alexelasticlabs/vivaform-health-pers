@@ -8,14 +8,35 @@ import {createAppRouter} from "@/routes/router";
 import {initSentry} from '@/lib/sentry';
 import "./styles/tailwind.css";
 import "./styles/animations.css";
+import "./styles/quiz-fallback.css";
+
+// Сброс одноразового флага перезагрузки после успешного старта приложения
+try { sessionStorage.removeItem('vivaform:dynamic-import-reloaded'); } catch {}
 
 const router = createAppRouter();
+
+// Безопасно создаём/переиспользуем root, чтобы не было "createRoot() called twice" при HMR
+function getOrCreateRoot(container: HTMLElement) {
+  const key = '__vivaform_app_root__';
+  const w = window as any;
+  if (!w[key]) {
+    w[key] = ReactDOM.createRoot(container);
+    if (import.meta.hot) {
+      import.meta.hot.dispose(() => {
+        try { w[key]?.unmount?.(); } catch {}
+        w[key] = undefined;
+      });
+    }
+  }
+  return w[key] as ReturnType<typeof ReactDOM.createRoot>;
+}
 
 initSentry();
 
 const enableDevToolbox = import.meta.env.DEV && import.meta.env.VITE_DEV_TOOLBOX === '1';
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+const root = getOrCreateRoot(document.getElementById("root") as HTMLElement);
+root.render(
     <React.StrictMode>
         <AppProviders>
             {enableDevToolbox ? <DevToolbox router={router}/> : <RouterProvider router={router}/>}

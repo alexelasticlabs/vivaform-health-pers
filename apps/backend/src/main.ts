@@ -4,20 +4,40 @@ import { NestFactory } from "@nestjs/core";
 import { raw } from "body-parser";
 import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const cookieParser = require('cookie-parser');
 import * as Sentry from '@sentry/node';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
+import { PrismaService } from './common/prisma/prisma.service';
+import * as argon2 from 'argon2';
 
 import { AppModule } from "./app.module";
+import { validateEnvironment } from "./config/env.validator";
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { MetricsInterceptor } from './common/interceptors/metrics.interceptor';
+import { requestIdMiddleware } from './common/middleware/request-id.middleware';
+import { CsrfCheckMiddleware } from './common/middleware/csrf-check.middleware';
+
+// Validate environment variables before initializing anything
+validateEnvironment();
 
 const initSentryBackend = () => {
   const dsn = process.env.SENTRY_DSN;
   if (!dsn) return;
+  // Безопасно подключаем профайлинг только если бинарник доступен
+  let integrations: any[] = [];
+  try {
+    if (process.env.SENTRY_PROFILING === '1') {
+      const mod = require('@sentry/profiling-node');
+      if (mod?.nodeProfilingIntegration) {
+        integrations.push(mod.nodeProfilingIntegration());
+      }
+    }
+  } catch (e) {
+    console.warn('[sentry] profiling disabled:', (e as Error)?.message);
+  }
   Sentry.init({
     dsn,
     environment: process.env.NODE_ENV,
-    integrations: [nodeProfilingIntegration()],
+    integrations,
     tracesSampleRate: 0.2,
     release: process.env.GIT_COMMIT || process.env.VERCEL_GIT_COMMIT_SHA || undefined
   });
@@ -42,6 +62,45 @@ function assertEmailConfigOrFail(config: ConfigService, logger: Logger) {
         throw new Error('Email provider not configured');
       }
     }
+  }
+}
+
+async function seedAdminUser(app: any) {
+  try {
+    if (process.env.ADMIN_SEED_ENABLE !== '1') return; // выключено по умолчанию
+    const email = process.env.ADMIN_SEED_EMAIL?.trim();
+    const password = process.env.ADMIN_SEED_PASSWORD;
+    if (!email || !password) {
+      const logger = new Logger('AdminSeed');
+      logger.warn('ADMIN_SEED_ENABLE=1, но ADMIN_SEED_EMAIL или ADMIN_SEED_PASSWORD не заданы');
+      return;
+    }
+    const prisma: PrismaService = app.get(PrismaService);
+    const existing = await prisma.user.findUnique({ where: { email } });
+    const logger = new Logger('AdminSeed');
+    if (existing) {
+      if (existing.role !== 'ADMIN') {
+        await prisma.user.update({ where: { id: existing.id }, data: { role: 'ADMIN' } });
+        logger.log(`Существующий пользователь ${email} повышен до ADMIN`);
+      } else {
+        logger.log(`Администратор ${email} уже существует — пропускаем сид`);
+      }
+      return;
+    }
+    const passwordHash = await argon2.hash(password);
+    await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        role: 'ADMIN',
+        name: process.env.ADMIN_SEED_NAME || 'Admin',
+        emailVerified: true
+      }
+    });
+    logger.log(`Создан аккаунт администратора email=${email}`);
+  } catch (e) {
+    const logger = new Logger('AdminSeed');
+    logger.error(`Не удалось выполнить сид админа: ${(e as Error)?.message}`);
   }
 }
 
@@ -70,6 +129,13 @@ async function bootstrap() {
 
   app.use("/webhooks/stripe", raw({ type: "application/json" }));
 
+  // request id for tracing
+  app.use(requestIdMiddleware);
+
+  // CSRF protection для state-changing запросов
+  const csrfCheck = new CsrfCheckMiddleware();
+  app.use((req: any, res: any, next: any) => csrfCheck.use(req, res, next));
+
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -78,12 +144,17 @@ async function bootstrap() {
           styleSrc: ["'self'", "'unsafe-inline'"],
           scriptSrc: ["'self'"],
           imgSrc: ["'self'", "data:", "https:"],
-          connectSrc: ["'self'"].concat(corsOrigins)
+          connectSrc: ["'self'"].concat(corsOrigins).concat(['https://www.googletagmanager.com','https://www.google-analytics.com']),
+          frameAncestors: ["'self'"]
         }
       },
       crossOriginEmbedderPolicy: false
     })
   );
+
+  // Дополнительные заголовки безопасности
+  app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
+  app.use(helmet.hsts({ maxAge: 15552000 })); // 180 дней
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -92,6 +163,10 @@ async function bootstrap() {
       transformOptions: { enableImplicitConversion: true }
     })
   );
+
+  // global error filter and metrics interceptor
+  app.useGlobalFilters(new AllExceptionsFilter());
+  app.useGlobalInterceptors(new MetricsInterceptor());
 
   app.use(cookieParser());
 

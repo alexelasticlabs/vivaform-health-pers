@@ -1,4 +1,4 @@
-﻿import { Inject, Injectable, UnauthorizedException, BadRequestException, ConflictException } from "@nestjs/common";
+﻿import { Inject, Injectable, UnauthorizedException, BadRequestException, ConflictException, Logger } from "@nestjs/common";
 import type { ConfigType } from "@nestjs/config";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { JwtService } from "@nestjs/jwt";
@@ -21,6 +21,8 @@ import type { RegisterDto } from "./dto/register.dto";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly usersService: UsersService,
@@ -99,18 +101,22 @@ export class AuthService {
   async validateUser(email: string, password: string) {
     const user = await this.usersService.findByEmail(email);
     if (!user || !user.passwordHash) {
+      this.logger.debug(`validateUser: user not found or no password hash for email=${email}`);
       return null;
     }
 
     const isValid = await argon2.verify(user.passwordHash, password);
     if (!isValid) {
+      this.logger.debug(`validateUser: password verification failed for email=${email}`);
       return null;
     }
 
+    this.logger.debug(`validateUser: success for email=${email}, role=${user.role}`);
     return user;
   }
 
   async login(dto: LoginDto) {
+    this.logger.debug(`login attempt: email=${dto.email}`);
     // Try temp password first, then regular password
     const { user, isTempPassword } = await this.validateTempPassword(dto.email, dto.password);
     
@@ -118,9 +124,11 @@ export class AuthService {
       // Fallback to regular validation
       const regularUser = await this.validateUser(dto.email, dto.password);
       if (!regularUser) {
+        this.logger.warn(`login failed: invalid credentials for email=${dto.email}`);
         throw new UnauthorizedException("Invalid email or password");
       }
       
+      this.logger.log(`login success: userId=${regularUser.id}, email=${regularUser.email}, role=${regularUser.role}`);
       // Audit log
       await this.auditService.logLogin(regularUser.id);
 
@@ -163,7 +171,7 @@ export class AuthService {
         token,
         { secret: this.jwtSettings.refreshSecret }
       );
-    } catch (_e) {
+    } catch {
       throw new UnauthorizedException('Invalid refresh token');
     }
     if (!payload || payload.type !== "refresh") {

@@ -2,6 +2,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 
 import { MarketingShell } from "@/components/layouts/marketing-shell";
+import { PageSkeleton } from "@/components/ui/skeleton";
 
 export const MarketingLayout = () => {
   const location = useLocation();
@@ -20,7 +21,7 @@ export const MarketingLayout = () => {
   if (isAuthPage) {
     // Render auth pages without the marketing header/footer; AuthLayout handles background/staging
     return (
-      <Suspense fallback={<div className="p-6">Loading VivaForm…</div>}>
+      <Suspense fallback={<PageSkeleton />}>
         <Outlet />
       </Suspense>
     );
@@ -28,7 +29,7 @@ export const MarketingLayout = () => {
 
   return (
     <MarketingShell>
-      <Suspense fallback={<div className="p-6">Loading VivaForm…</div>}>
+      <Suspense fallback={<PageSkeleton />}>
         <Outlet />
       </Suspense>
     </MarketingShell>

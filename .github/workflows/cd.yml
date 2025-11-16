@@ -1,0 +1,118 @@
+﻿name: CD
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/cd.yml'
+
+jobs:
+  docker-build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: ${{ secrets.DOCKER_REGISTRY }}
+      COMMIT_SHA: ${{ github.sha }}
+      IMAGE_BACKEND: ${{ secrets.DOCKER_REGISTRY }}/vivaform-backend
+      IMAGE_WEB: ${{ secrets.DOCKER_REGISTRY }}/vivaform-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Build backend image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./apps/backend
+          file: ./apps/backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_BACKEND }}:latest
+            ${{ env.IMAGE_BACKEND }}:${{ env.COMMIT_SHA }}
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        with:
+          context: ./apps/web
+          file: ./apps/web/Dockerfile
+          push: true
+          tags: |
+            ${{ env.IMAGE_WEB }}:latest
+            ${{ env.IMAGE_WEB }}:${{ env.COMMIT_SHA }}
+      - name: Deploy via SSH with docker compose
+        if: ${{ secrets.SSH_HOST && secrets.SSH_USER && secrets.SSH_KEY }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            mkdir -p ~/vivaform
+            cd ~/vivaform
+            # write docker-compose
+            cat > docker-compose.yml <<'YAML'
+            version: '3.8'
+            services:
+              db:
+                image: postgres:16-alpine
+                restart: unless-stopped
+                environment:
+                  POSTGRES_USER: vivaform
+                  POSTGRES_PASSWORD: vivaform
+                  POSTGRES_DB: vivaform
+                volumes:
+                  - db_data:/var/lib/postgresql/data
+                ports:
+                  - "5432:5432"
+              redis:
+                image: redis:7-alpine
+                restart: unless-stopped
+                ports:
+                  - "6379:6379"
+              backend:
+                image: ${{ env.IMAGE_BACKEND }}:${{ env.COMMIT_SHA }}
+                restart: unless-stopped
+                depends_on:
+                  - db
+                  - redis
+                environment:
+                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+                  NODE_ENV: production
+                  STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+                  STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+                  STRIPE_PRICE_MONTHLY: ${{ secrets.STRIPE_PRICE_MONTHLY }}
+                  STRIPE_PRICE_QUARTERLY: ${{ secrets.STRIPE_PRICE_QUARTERLY }}
+                  STRIPE_PRICE_ANNUAL: ${{ secrets.STRIPE_PRICE_ANNUAL }}
+                  EMAIL_SERVICE: smtp
+                  SMTP_USER: ${{ secrets.SMTP_USER }}
+                  SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+                  APP_PORT: 4000
+                  REDIS_URL: redis://redis:6379
+                ports:
+                  - "4000:4000"
+              web:
+                image: ${{ env.IMAGE_WEB }}:${{ env.COMMIT_SHA }}
+                restart: unless-stopped
+                environment:
+                  NODE_ENV: production
+                ports:
+                  - "80:80"
+                depends_on:
+                  - backend
+            volumes:
+              db_data:
+            YAML
+            docker compose pull
+            docker compose up -d
+            # run migrations
+            docker compose exec -T backend pnpm prisma migrate deploy
+            # health-check
+            for i in {1..30}; do curl -fsS http://localhost:4000/health && break || sleep 2; done

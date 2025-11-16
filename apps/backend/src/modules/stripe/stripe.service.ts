@@ -4,6 +4,7 @@ import type { OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import type { ConfigType } from "@nestjs/config";
 import Stripe from "stripe";
+import Redis from 'ioredis';
 
 import { stripeConfig } from "../../config";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -13,6 +14,11 @@ import { PrismaService } from "../../common/prisma/prisma.service";
 export class StripeService implements OnModuleInit {
   private readonly stripe: Stripe;
   private readonly logger = new Logger(StripeService.name);
+
+  // Simple in-memory cache for prices to reduce Stripe calls
+  private priceCache = new Map<string, { monthlyAmount: number; currency: string }>();
+  private redis: Redis | null = null;
+  private readonly REDIS_TTL_SECONDS = 3600;
 
   constructor(
     private readonly configService: ConfigService,
@@ -54,6 +60,17 @@ export class StripeService implements OnModuleInit {
       });
       this.logger.log('Stripe client initialized');
     }
+
+    const redisUrl = process.env.REDIS_URL;
+    if (redisUrl) {
+      try {
+        this.redis = new Redis(redisUrl, { lazyConnect: true, maxRetriesPerRequest: 2 });
+        void this.redis.connect().catch(err => this.logger.warn(`Redis connect failed: ${err.message}`));
+      } catch (e:any) {
+        this.logger.warn(`Redis init error: ${e.message}`);
+        this.redis = null;
+      }
+    }
   }
 
   async onModuleInit() {
@@ -83,6 +100,55 @@ export class StripeService implements OnModuleInit {
 
   priceForPlan(plan: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL') {
     return this.stripeSettings.prices[plan];
+  }
+
+  private normalizeToMonthly(unitAmount: number, interval?: string | null, intervalCount?: number | null) {
+    if (!interval || interval === 'month') {
+      const c = intervalCount && intervalCount > 0 ? intervalCount : 1;
+      return unitAmount / c;
+    }
+    if (interval === 'year') {
+      const c = intervalCount && intervalCount > 0 ? intervalCount : 1;
+      return unitAmount / (12 * c);
+    }
+    if (interval === 'week') {
+      const c = intervalCount && intervalCount > 0 ? intervalCount : 1;
+      return (unitAmount / (4.34524 * c)); // approx weeks per month
+    }
+    if (interval === 'day') {
+      const c = intervalCount && intervalCount > 0 ? intervalCount : 1;
+      return unitAmount * (30 / c);
+    }
+    return unitAmount; // fallback
+  }
+
+  async getMonthlyAmountForPrice(priceId: string): Promise<{ monthlyAmount: number; currency: string }> {
+    // Redis first
+    if (this.redis) {
+      try {
+        const cachedRaw = await this.redis.get(`stripe:price:${priceId}`);
+        if (cachedRaw) return JSON.parse(cachedRaw);
+      } catch (e:any) { this.logger.debug(`Redis get fail ${e.message}`); }
+    }
+    const cached = this.priceCache.get(priceId);
+    if (cached) return cached;
+    const price = await this.stripe.prices.retrieve(priceId);
+    const unitAmount = (price.unit_amount ?? 0) / 100;
+    const currency = (price.currency || 'usd').toUpperCase();
+    const recurring = price.recurring;
+    const monthlyAmount = this.normalizeToMonthly(unitAmount, recurring?.interval, recurring?.interval_count ?? null);
+    const entry = { monthlyAmount, currency };
+    this.priceCache.set(priceId, entry);
+    if (this.redis) {
+      try { await this.redis.set(`stripe:price:${priceId}`, JSON.stringify(entry), 'EX', this.REDIS_TTL_SECONDS); } catch {}
+    }
+    return entry;
+  }
+
+  async getMonthlyAmountForPlan(plan: 'MONTHLY'|'QUARTERLY'|'ANNUAL'): Promise<{ monthlyAmount: number; currency: string }> {
+    const priceId = this.priceForPlan(plan);
+    if (!priceId) throw new Error(`Stripe price is not configured for plan ${plan}`);
+    return this.getMonthlyAmountForPrice(priceId);
   }
 
   async constructWebhookEvent(rawBody: Buffer, signature: string): Promise<Stripe.Event> {
@@ -161,7 +227,9 @@ export class StripeService implements OnModuleInit {
 
   async handlePaymentSucceeded(subscriptionId: string) {
     try {
-      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId);
+      const subscription = await this.stripe.subscriptions.retrieve(subscriptionId, {
+        expand: ['items.data.price']
+      } as any);
       const currentPeriodStart = new Date(subscription.current_period_start * 1000);
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
       const stripePriceId = subscription.items.data[0]?.price?.id || 'unknown';
@@ -177,45 +245,8 @@ export class StripeService implements OnModuleInit {
       } as const;
       const status = statusMap[subscription.status] || 'INCOMPLETE';
 
-      await this.prisma.subscription.update({
+      await this.prisma.subscription.updateMany({
         where: { stripeSubscriptionId: subscriptionId },
-        data: {
-          currentPeriodStart,
-          currentPeriodEnd,
-          stripePriceId,
-          status: status as any
-        }
-      });
-
-      this.logger.log(`✅ Subscription ${subscriptionId} extended`);
-    } catch (error) {
-      this.logger.error(`Failed to handle payment success`, error);
-      throw error;
-    }
-  }
-
-  async syncSubscriptionStatus(userId: string, subscription: Stripe.Subscription) {
-    try {
-      const currentPeriodStart = new Date(subscription.current_period_start * 1000);
-      const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
-      const stripePriceId = subscription.items.data[0]?.price?.id || 'unknown';
-      const statusMap: Record<Stripe.Subscription.Status, 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'> = {
-        active: 'ACTIVE',
-        trialing: 'TRIALING',
-        canceled: 'CANCELED',
-        past_due: 'PAST_DUE',
-        incomplete: 'INCOMPLETE',
-        incomplete_expired: 'INCOMPLETE_EXPIRED',
-        unpaid: 'UNPAID',
-        paused: 'CANCELED'
-      } as const;
-      const status = statusMap[subscription.status] || 'INCOMPLETE';
-      const tier = status === 'ACTIVE' || status === 'TRIALING' ? 'PREMIUM' : 'FREE';
-
-      await this.prisma.user.update({ where: { id: userId }, data: { tier } });
-
-      await this.prisma.subscription.update({
-        where: { stripeSubscriptionId: subscription.id },
         data: {
           status: status as any,
           currentPeriodStart,
@@ -224,29 +255,9 @@ export class StripeService implements OnModuleInit {
         }
       });
 
-      this.logger.log(`✅ Subscription ${subscription.id} synced: ${userId}, tier: ${tier}, status: ${subscription.status}, price: ${stripePriceId}`);
+      this.logger.log(`✅ Payment succeeded for subscription ${subscriptionId} (status: ${subscription.status})`);
     } catch (error) {
-      this.logger.error(`Failed to sync subscription ${subscription.id} for user ${userId}`, error);
-      throw error;
-    }
-  }
-
-  async handleSubscriptionCanceled(userId: string) {
-    try {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { tier: 'FREE' }
-      });
-
-      // Mark subscription as canceled
-      await this.prisma.subscription.updateMany({
-        where: { userId },
-        data: { status: 'CANCELED' }
-      });
-
-      this.logger.log(`✅ User ${userId} downgraded to FREE`);
-    } catch (error) {
-      this.logger.error(`Failed to handle subscription cancellation`, error);
+      this.logger.error(`Failed to handle payment success for subscription ${subscriptionId}`, error);
       throw error;
     }
   }
