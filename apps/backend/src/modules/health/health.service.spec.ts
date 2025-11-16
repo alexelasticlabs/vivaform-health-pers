@@ -29,6 +29,25 @@ describe("HealthService", () => {
     expect(status.database.latencyMs).toBeGreaterThanOrEqual(0);
   });
 
+  it("возвращает статус ok при явном пропуске проверки БД", async () => {
+    const previous = process.env.HEALTH_SKIP_DB_CHECK;
+    process.env.HEALTH_SKIP_DB_CHECK = "true";
+    prismaService.$queryRaw = vi.fn();
+
+    try {
+      const status = await service.getStatus();
+      expect(status.status).toBe("ok");
+      expect(status.database.status).toBe("skipped");
+      expect(prismaService.$queryRaw).not.toHaveBeenCalled();
+    } finally {
+      if (previous === undefined) {
+        delete process.env.HEALTH_SKIP_DB_CHECK;
+      } else {
+        process.env.HEALTH_SKIP_DB_CHECK = previous;
+      }
+    }
+  });
+
   it("возвращает статус degraded когда БД недоступна", async () => {
     prismaService.$queryRaw = vi.fn().mockRejectedValue(new Error("Connection failed"));
     

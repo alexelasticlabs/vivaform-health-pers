@@ -15,122 +15,31 @@ const safeStorage = {
   }
 };
 
-// Quiz answer structure matching backend DTO - Extended for 30-step quiz
+// Quiz answer structure aligned with the lean 12-step funnel
 export interface QuizAnswers extends QuizAnswersModel {
-  // backward compatibility for legacy fields
   answersVersion?: number;
-
-  // Contact info (collected mid-quiz for save progress)
-  email?: string;
-
-  // Phase 1: Hook
-  primaryGoal?: string; // lose_weight, gain_muscle, stay_healthy, more_energy
-  painPoints?: string[]; // Multiple selection
-  bodyType?: string; // ectomorph, mesomorph, endomorph
-
-  // Phase 2: Engage
-  diet?: {
-    plan?: string;
-  };
-  body?: {
-    height?: {
-      cm?: number;
-      ft?: number;
-      in?: number;
-    };
-    weight?: {
-      kg?: number;
-      lb?: number;
-    };
-    waist?: number; // cm
-    hips?: number; // cm
-    clothingSize?: string;
-    targetClothingSize?: string;
-  };
-  demographics?: {
-    age?: number;
-    gender?: 'male' | 'female' | 'other';
-  };
-  health?: {
-    conditions?: string[]; // diabetes, hypertension, pcos, hypothyroid, none
-    takingMedication?: boolean;
-  };
-  currentDiet?: {
-    breakfast?: string;
-    lunch?: string;
-    dinner?: string;
-    typicalDay?: string;
-  };
-  mealTiming?: {
-    breakfast?: string; // "08:00"
-    lunch?: string;
-    dinner?: string;
-    snacks?: string[];
-  };
-  foodPreferences?: {
-    favorites?: string[];
-    dislikes?: string[];
-    allergens?: string[];
-    intolerances?: string[];
-    restrictions?: string[]; // religious, ethical
-  };
-  cooking?: {
-    skillLevel?: 'beginner' | 'intermediate' | 'advanced';
-    timeAvailable?: number; // minutes per day
-    equipment?: string[];
-  };
-  activity?: {
-    level?: string;
-    workType?: 'sedentary' | 'light' | 'moderate' | 'active';
-    dailySteps?: number;
-    currentExercise?: string[];
-    plannedExercise?: string[];
-  };
-
-  // Phase 3: Commit
-  sleep?: {
-    bedtime?: string;
-    waketime?: string;
-    hoursPerNight?: number;
-    quality?: 'excellent' | 'good' | 'fair' | 'poor';
-  };
-  stress?: {
-    level?: number; // 1-10
-    factors?: string[];
-  };
-  socialEating?: {
-    frequency?: string; // daily, few_per_week, weekly, rarely
-    occasions?: string[];
-  };
-  budget?: {
-    weeklyBudget?: number; // rubles
-    range?: string; // low, medium, high, premium
-  };
-  motivation?: {
-    ranking?: string[]; // ordered list of motivation factors
-    primaryFactor?: string;
-  };
-  accountability?: {
-    type?: string; // friend, community, coach, solo
-    referFriend?: boolean;
-  };
-  goals?: {
-    type?: 'lose' | 'maintain' | 'gain';
-    deltaKg?: number;
-    etaMonths?: number;
-  };
-
-  // Legacy/compatibility
-  habits?: {
-    mealsPerDay?: number;
-    snacks?: boolean;
-    cookingTimeMinutes?: number;
-    exerciseRegularly?: boolean;
-    [key: string]: any;
-  };
-
-  [key: string]: any; // Allow additional sections
 }
+
+const NON_SENSITIVE_ANSWER_FIELDS: (keyof QuizAnswers)[] = [
+  'primary_goal',
+  'activity_level',
+  'food_likes',
+  'cooking_style',
+  'budget_level',
+  'final_plan_type',
+  'answersVersion'
+];
+
+const extractSafeAnswers = (answers: QuizAnswers | undefined): Partial<QuizAnswers> => {
+  if (!answers) return {};
+  return NON_SENSITIVE_ANSWER_FIELDS.reduce<Partial<QuizAnswers>>((acc, field) => {
+    const value = answers[field];
+    if (value !== undefined) {
+      (acc as any)[field] = value;
+    }
+    return acc;
+  }, {});
+};
 
 interface QuizStore {
   // Client ID for tracking (generated once)
@@ -263,7 +172,13 @@ export const useQuizStore = create<QuizStore>()(
             const lbs = updates.raw_weight_lbs ?? state.answers.raw_weight_lbs ?? 0;
             nextAnswers.weight_kg = Math.round((lbs * 0.453592) * 10) / 10;
           }
-          if (updates.preferred_plan_type || updates.carnivore_safety_choice || updates.health_conditions || updates.food_likes || updates.food_avoids) {
+          const planAffinityFields: (keyof QuizAnswers)[] = [
+            'primary_goal',
+            'food_likes',
+            'health_conditions',
+            'cooking_style',
+          ];
+          if (planAffinityFields.some((field) => field in updates)) {
             nextAnswers.final_plan_type = derivePlanType(nextAnswers);
           }
           return {
@@ -281,15 +196,6 @@ export const useQuizStore = create<QuizStore>()(
         const merged: QuizAnswers = {
           ...server,
           ...local,
-          diet: { ...(server.diet ?? {}), ...(local.diet ?? {}) },
-          body: {
-            ...(server.body ?? {}),
-            ...(local.body ?? {}),
-            height: { ...(server.body?.height ?? {}), ...(local.body?.height ?? {}) },
-            weight: { ...(server.body?.weight ?? {}), ...(local.body?.weight ?? {}) },
-          },
-          goals: { ...(server.goals ?? {}), ...(local.goals ?? {}) },
-          habits: { ...(server.habits ?? {}), ...(local.habits ?? {}) },
         };
         set({ answers: merged });
       },
@@ -299,7 +205,7 @@ export const useQuizStore = create<QuizStore>()(
         const draft = {
           clientId: state.clientId,
           version: 1,
-          answers: state.answers,
+          answers: extractSafeAnswers(state.answers),
           currentStep: state.currentStep,
           savedAt: Date.now(),
         };
@@ -384,7 +290,7 @@ export const useQuizStore = create<QuizStore>()(
       partialize: (state) => ({
         clientId: state.clientId,
         currentStep: state.currentStep,
-        answers: state.answers,
+        answers: extractSafeAnswers(state.answers),
         lastSaved: state.lastSaved,
       }),
     },

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type {
@@ -11,6 +11,8 @@ import { ACTIVITY_LEVELS } from '@vivaform/shared';
 
 @Injectable()
 export class QuizService {
+  private readonly logger = new Logger(QuizService.name);
+
   constructor(private prisma: PrismaService) {}
 
   /**
@@ -253,7 +255,8 @@ export class QuizService {
       else if (result.goal === 'gain') goalEnum = 'GAIN_WEIGHT';
       else goalEnum = 'MAINTAIN_WEIGHT';
 
-      await this.prisma.profile.upsert({
+      try {
+        await this.prisma.profile.upsert({
         where: { userId },
         create: {
           userId,
@@ -339,6 +342,13 @@ export class QuizService {
           recommendedCalories: result.recommendedCalories,
         },
       });
+      } catch (error) {
+        this.logger.error(
+          `Failed to persist quiz result for userId=${userId}`,
+          error instanceof Error ? error.stack : undefined
+        );
+        throw new InternalServerErrorException('Не удалось сохранить результаты квиза');
+      }
     }
 
     return result;

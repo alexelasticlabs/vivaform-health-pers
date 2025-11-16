@@ -1,9 +1,11 @@
-﻿import { Injectable, Logger } from "@nestjs/common";
+﻿import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { UserRole } from "@prisma/client";
 import * as argon2 from "argon2";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 import type { CreateUserDto } from "./dto/create-user.dto";
+import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
 
 @Injectable()
 export class UsersService {
@@ -102,5 +104,23 @@ export class UsersService {
         createdAt: true
       }
     });
+  }
+
+  async getProfileVisibleTo(requester: CurrentUserPayload | undefined, requestedUserId: string) {
+    if (!requester) {
+      throw new ForbiddenException("Требуется авторизация");
+    }
+
+    const isAdmin = requester.role === UserRole.ADMIN;
+    if (!isAdmin && requester.userId !== requestedUserId) {
+      throw new ForbiddenException("Можно просматривать только собственный профиль");
+    }
+
+    const user = await this.findById(requestedUserId);
+    if (!user) {
+      throw new NotFoundException("Пользователь не найден");
+    }
+
+    return user;
   }
 }

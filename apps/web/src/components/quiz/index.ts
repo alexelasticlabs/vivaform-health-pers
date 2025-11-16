@@ -8,7 +8,7 @@ export { ChoiceToggle } from './options/choice-toggle';
 export { QuizProgress } from './quiz-progress';
 export { OptionButton } from './option-button';
 
-// Legacy steps (for backward compatibility)
+// Legacy steps (for backward compatibility in tests and storybooks)
 export { IntroStep } from './steps/intro-step';
 export { BodyMetricsStep } from './steps/body-metrics-step';
 export { GoalTimelineStep } from './steps/goal-timeline-step';
@@ -20,7 +20,7 @@ export { EmotionalStep } from './steps/emotional-step';
 export { HydrationStep } from './steps/hydration-step';
 export { FinalStep } from './steps/final-step';
 
-// Enhanced quiz steps (25-step funnel)
+// Enhanced funnel steps (25-step experience)
 export { SplashStep } from './steps/splash-step';
 export { PrimaryGoalStep } from './steps/primary-goal-step';
 export { PersonalStoryStep } from './steps/personal-story-step';

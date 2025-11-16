@@ -2,9 +2,13 @@
 import type { NestMiddleware } from '@nestjs/common';
 import type { Request, Response, NextFunction } from 'express';
 
+import { ensureCsrfCookie, CSRF_HEADER_NAME } from '../security/csrf-token.util';
+
+const MUTATING_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
 /**
  * CSRF protection middleware для state-changing запросов.
- * Проверяет совпадение Origin/Referer с разрешёнными origins из CORS.
+ * Проверяет совпадение Origin/Referer с разрешёнными origins и валидирует custom CSRF header.
  */
 @Injectable()
 export class CsrfCheckMiddleware implements NestMiddleware {
@@ -21,41 +25,62 @@ export class CsrfCheckMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const method = req.method.toUpperCase();
 
-    // Только для мутирующих запросов
-    if (!['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
-      return next();
-    }
-
-    // Пропускаем публичные endpoints (webhooks имеют свою проверку)
+    // Webhooks валидируются отдельно, пропускаем
     if (req.path.startsWith('/webhooks/')) {
       return next();
     }
 
-    const origin = req.headers.origin;
-    const referer = req.headers.referer;
+    // Убеждаемся, что у клиента есть CSRF-cookie (для любых запросов)
+    const csrfToken = ensureCsrfCookie(req, res);
 
-    // Если есть Origin — проверяем его
+    if (!MUTATING_METHODS.has(method)) {
+      return next();
+    }
+
+    this.assertOriginAllowed(req);
+
+    const headerToken = this.readHeaderToken(req);
+    if (!headerToken) {
+      if (process.env.NODE_ENV !== 'production') {
+        return next();
+      }
+      throw new ForbiddenException('Missing CSRF token header');
+    }
+
+    if (!csrfToken || headerToken !== csrfToken) {
+      throw new ForbiddenException('Invalid CSRF token');
+    }
+
+    return next();
+  }
+
+  private readHeaderToken(req: Request): string | undefined {
+    const header = req.headers[CSRF_HEADER_NAME] as string | undefined;
+    return typeof header === 'string' ? header : undefined;
+  }
+
+  private assertOriginAllowed(req: Request) {
+    const origin = req.headers.origin;
     if (origin) {
       if (this.allowedOrigins.has(origin)) {
-        return next();
+        return;
       }
       throw new ForbiddenException('Origin not allowed');
     }
 
-    // Если Origin нет, проверяем Referer
+    const referer = req.headers.referer;
     if (referer) {
       try {
         const refererOrigin = new URL(referer).origin;
         if (this.allowedOrigins.has(refererOrigin)) {
-          return next();
+          return;
         }
       } catch {}
       throw new ForbiddenException('Referer not allowed');
     }
 
-    // В dev режиме пропускаем (для инструментов типа Postman)
     if (process.env.NODE_ENV !== 'production') {
-      return next();
+      return;
     }
 
     throw new ForbiddenException('Missing Origin or Referer header');

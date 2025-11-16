@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from "@nestjs/common";
 import sanitizeHtml from 'sanitize-html';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
@@ -191,10 +191,14 @@ export class ArticleService {
   /**
    * Обновить статью (только admin)
    */
-  async updateArticle(articleId: string, data: UpdateArticleDto) {
+  async updateArticle(requesterId: string, articleId: string, data: UpdateArticleDto) {
     const article = await this.prisma.article.findUnique({ where: { id: articleId } });
 
     if (!article) { throw new NotFoundException("Article not found"); }
+
+    if (article.authorId !== requesterId) {
+      throw new ForbiddenException("You can only update articles you created");
+    }
 
     const updateData: any = { ...data };
 
@@ -224,13 +228,17 @@ export class ArticleService {
   /**
    * Удалить статью (только admin)
    */
-  async deleteArticle(articleId: string) {
+  async deleteArticle(requesterId: string, articleId: string) {
     const article = await this.prisma.article.findUnique({
       where: { id: articleId }
     });
 
     if (!article) {
       throw new NotFoundException("Article not found");
+    }
+
+    if (article.authorId !== requesterId) {
+      throw new ForbiddenException("You can only delete articles you created");
     }
 
     return this.prisma.article.delete({

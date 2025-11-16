@@ -25,7 +25,7 @@ export function OptionButton({
     <button
       type="button"
       onClick={onClick}
-      className={`w-full p-4 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] ${
+      className={`w-full px-4 py-3 sm:py-4 rounded-xl border-2 text-left transition-all duration-200 hover:scale-[1.02] min-h-[56px] ${
         selected
           ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-md'
           : 'border-border bg-card hover:bg-card-hover'

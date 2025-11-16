@@ -63,16 +63,16 @@ export const LoginPage = () => {
     },
     onError: (error) => {
       const message = extractErrorMessage(error);
-      // Friendly error messages
-      if (message.toLowerCase().includes("password")) {
-        setPasswordError("Incorrect password — try again or reset it");
-        toast.error("Incorrect password — try again or reset it 🔑");
-      } else if (message.toLowerCase().includes("email") || message.toLowerCase().includes("not found")) {
-        setEmailError("That email doesn't seem right");
-        toast.error("That email doesn't seem right 🤔");
-      } else {
-        toast.error(message);
+      const normalized = message.toLowerCase();
+      const credentialHints = ["password", "email", "not found", "credential", "unauthorized"];
+      if (credentialHints.some((hint) => normalized.includes(hint))) {
+        const generic = "We couldn't sign you in. Double-check your email and password.";
+        setEmailError(generic);
+        setPasswordError(generic);
+        toast.error(generic);
+        return;
       }
+      toast.error(message);
     }
   });
 

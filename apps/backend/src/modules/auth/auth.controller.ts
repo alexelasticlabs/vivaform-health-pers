@@ -1,6 +1,7 @@
 ﻿import { Body, Controller, Get, Post, Query, UseGuards, Res, Req, HttpCode, ForbiddenException } from "@nestjs/common";
 import { ApiOkResponse, ApiTags, ApiCreatedResponse } from "@nestjs/swagger";
 import type { Response, Request } from "express";
+import { Throttle } from "@nestjs/throttler";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
@@ -11,6 +12,17 @@ import type { LoginDto } from "./dto/login.dto";
 import type { ForgotPasswordDto, ResetPasswordDto, RequestTempPasswordDto, ForceChangePasswordDto } from "./dto/forgot-password.dto";
 import type { RegisterDto } from "./dto/register.dto";
 import type { ResendVerificationDto } from './dto/resend-verification.dto';
+import { ensureCsrfCookie } from '../../common/security/csrf-token.util';
+
+const AUTH_RATE_LIMITS = {
+  register: { limit: 5, ttl: 60 },
+  login: { limit: 10, ttl: 60 },
+  forgotPassword: { limit: 5, ttl: 60 },
+  resetPassword: { limit: 5, ttl: 60 },
+  verifyEmail: { limit: 5, ttl: 60 },
+  requestTempPassword: { limit: 3, ttl: 60 },
+  resendVerification: { limit: 3, ttl: 60 }
+} as const;
 
 @ApiTags("auth")
 @Controller("auth")
@@ -24,6 +36,7 @@ export class AuthController {
     return `${norm}/auth/refresh`.replace(/\/+/g, '/');
   }
 
+  @Throttle(AUTH_RATE_LIMITS.register.limit, AUTH_RATE_LIMITS.register.ttl)
   @Post("register")
   @ApiCreatedResponse({ description: "Регистрация пользователя и выдача токенов" })
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
@@ -41,6 +54,7 @@ export class AuthController {
     };
   }
 
+  @Throttle(AUTH_RATE_LIMITS.login.limit, AUTH_RATE_LIMITS.login.ttl)
   @Post("login")
   @ApiOkResponse({ description: "Авторизация пользователя" })
   login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
@@ -54,6 +68,13 @@ export class AuthController {
       });
       return { user, tokens };
     });
+  }
+
+  @Get("csrf-token")
+  @ApiOkResponse({ description: "Выдаёт CSRF cookie для SPA клиентов" })
+  csrfToken(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const token = ensureCsrfCookie(req, res);
+    return { token };
   }
 
   @Post("refresh")
@@ -80,24 +101,28 @@ export class AuthController {
     return (this.authService as any).getProfile(user.userId);
   }
 
+  @Throttle(AUTH_RATE_LIMITS.forgotPassword.limit, AUTH_RATE_LIMITS.forgotPassword.ttl)
   @Post("forgot-password")
   @ApiOkResponse({ description: "Запрос на сброс пароля" })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return (this.authService as any).forgotPassword(dto);
   }
 
+  @Throttle(AUTH_RATE_LIMITS.resetPassword.limit, AUTH_RATE_LIMITS.resetPassword.ttl)
   @Post("reset-password")
   @ApiOkResponse({ description: "Сброс пароля по токену" })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return (this.authService as any).resetPassword(dto);
   }
 
+  @Throttle(AUTH_RATE_LIMITS.verifyEmail.limit, AUTH_RATE_LIMITS.verifyEmail.ttl)
   @Get("verify-email")
   @ApiOkResponse({ description: "Верификация email" })
   verifyEmail(@Query("token") token: string) {
     return (this.authService as any).verifyEmail(token);
   }
 
+  @Throttle(AUTH_RATE_LIMITS.requestTempPassword.limit, AUTH_RATE_LIMITS.requestTempPassword.ttl)
   @Post("request-temp-password")
   @ApiOkResponse({ description: "Запрос временного пароля" })
   requestTempPassword(@Body() dto: RequestTempPasswordDto) {
@@ -122,6 +147,7 @@ export class AuthController {
     return (this.authService as any).testEmail(dto.email);
   }
 
+  @Throttle(AUTH_RATE_LIMITS.resendVerification.limit, AUTH_RATE_LIMITS.resendVerification.ttl)
   @Post("resend-verification")
   @ApiOkResponse({ description: "Повторная отправка письма для верификации email" })
   resendVerification(@Body() dto: ResendVerificationDto) {

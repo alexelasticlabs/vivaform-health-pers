@@ -6,9 +6,8 @@ This is the main documentation index for developers and product owners. It conta
 
 - docs/admin.md — Admin panel technical overview and implementation notes (EN).
 - docs/quiz-funnel.md — Quiz funnel design, tracking events, and implementation checklist (EN).
-- QUICK_START.md — Repository quick start (keep existing top-level file).
-- DEPLOYMENT.md — Deployment notes (keep existing top-level file).
-- docs/archived/ — Deprecated or merged docs (moved here when cleaned up).
+- QUICK_START.md — Repository quick start.
+- DEPLOYMENT.md — Deployment notes.
 
 ## How to use
 
@@ -17,7 +16,6 @@ This is the main documentation index for developers and product owners. It conta
 
 ## Next steps
 
-- Start consolidating outdated .md files: move deprecated docs to `docs/archived/` and add a short note at the top of moved files explaining why.
 - Keep user-facing strings and product copy in English.
 
 

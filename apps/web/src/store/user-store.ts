@@ -21,27 +21,24 @@ const initialState = {
   isAuthenticated: false
 };
 
-// Dynamic storage: переключается на лету по флагу rememberMe в localStorage
-const getEffectiveStorage = (): Storage => {
-  if (typeof window === 'undefined') {
-    return {
-      getItem: () => null,
-      setItem: () => {},
-      removeItem: () => {}
-    } as unknown as Storage;
-  }
-  try {
-    const remember = localStorage.getItem('rememberMe');
-    return remember === 'true' ? localStorage : sessionStorage;
-  } catch {
-    return sessionStorage;
-  }
+const memoryStorage: Storage = {
+  length: 0,
+  clear: () => {},
+  getItem: () => null,
+  key: () => null,
+  removeItem: () => {},
+  setItem: () => {}
 };
 
-const dynamicStorage = {
-  getItem: (name: string) => getEffectiveStorage().getItem(name),
-  setItem: (name: string, value: string) => getEffectiveStorage().setItem(name, value),
-  removeItem: (name: string) => getEffectiveStorage().removeItem(name)
+const getSafeSessionStorage = (): Storage => {
+  if (typeof window === "undefined") {
+    return memoryStorage;
+  }
+  try {
+    return window.sessionStorage;
+  } catch {
+    return memoryStorage;
+  }
 };
 
 export const useUserStore = create<UserStore>()(
@@ -82,8 +79,12 @@ export const useUserStore = create<UserStore>()(
     }),
     {
       name: "vivaform-auth",
-      storage: createJSONStorage(() => dynamicStorage),
-      partialize: (state) => ({ accessToken: state.accessToken, profile: state.profile, isAuthenticated: state.isAuthenticated }) as Pick<UserStore, 'accessToken' | 'profile' | 'isAuthenticated'>
+      storage: createJSONStorage(() => getSafeSessionStorage()),
+      partialize: (state) => ({ profile: state.profile }) as Pick<UserStore, "profile">,
+      onRehydrateStorage: () => () => {
+        // Всегда сбрасываем accessToken после перезагрузки, чтобы не хранить его в web storage
+        set({ accessToken: null, isAuthenticated: false });
+      }
     }
   )
 );

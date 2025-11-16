@@ -16,10 +16,13 @@ export const MarketingLayout = () => {
     "/verify-email",
   ]);
 
-  const isAuthPage = authPaths.has(pathname);
+  const immersivePaths = ["/quiz"];
 
-  if (isAuthPage) {
-    // Render auth pages without the marketing header/footer; AuthLayout handles background/staging
+  const isAuthPage = authPaths.has(pathname);
+  const isImmersivePage = immersivePaths.some((path) => pathname.startsWith(path));
+
+  if (isAuthPage || isImmersivePage) {
+    // Render auth + immersive funnel pages without the marketing chrome
     return (
       <Suspense fallback={<PageSkeleton />}>
         <Outlet />

@@ -167,13 +167,12 @@
   - Admin navigation and access control tests
 
 #### Documentation Cleanup
-- ✅ Consolidated 9 duplicate .md files to `docs/archived/`
+- ✅ Removed 9 duplicate .md files (legacy admin/quiz/testing guides)
   - ADMIN_PANEL_GUIDE.md → merged into docs/admin.md
   - ENHANCED_QUIZ_IMPLEMENTATION.md → merged into docs/quiz-funnel.md
   - E2E_TESTING_GUIDE.md → merged into docs/testing.md
-  - And 6 more duplicates archived
-- ✅ Created DOCS_CONSOLIDATION_PLAN.md with clear structure
-- ✅ Single source of truth for each topic
+  - And 6 more duplicates removed after consolidation
+- ✅ Single source of truth for each topic lives under docs/
 
 #### Production Migrations
 - ✅ Created PRODUCTION_MIGRATION_GUIDE.md
@@ -241,8 +240,7 @@ await adminService.createAuditLog(
 - ✅ Full test coverage for feature toggles and audit logs
 
 **Documentation**:
-- ✅ Cleaned up and archived 9 duplicate .md files
-- ✅ Created consolidation plan with clear structure
+- ✅ Cleaned up outdated duplicate .md files
 - ✅ Single source of truth for each topic
 - ✅ Production migration guide with rollback procedures
 
@@ -257,7 +255,7 @@ await adminService.createAuditLog(
 ## 📊 Final Statistics
 
 - **Files Created**: 12 (configs, tests, guides, docs)
-- **Files Archived**: 9 (duplicates moved to docs/archived/)
+- **Files Removed**: 9 duplicate legacy docs
 - **Tests Added**: 30+ (unit + E2E)
 - **Lines of Code**: ~2,000+ (features + tests + docs)
 - **Commits**: 6 (clean, conventional format)

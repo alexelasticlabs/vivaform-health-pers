@@ -1,8 +1,8 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Eye, Tag, User } from "lucide-react";
-import { useEffect, useState } from 'react';
-import DOMPurify from 'dompurify';
+import { useMemo } from "react";
+import DOMPurify from "dompurify";
 
 import { getArticleBySlug } from "../api";
 
@@ -14,23 +14,31 @@ export const ArticleDetailPage = () => {
     enabled: !!slug
   });
 
-  const [sanitized, setSanitized] = useState<string>('');
-
-  useEffect(() => {
-    if (!article) { setSanitized(''); return; }
-    try {
-      const clean = DOMPurify.sanitize(article.content.replace(/\n/g, '<br />'), { USE_PROFILES: { html: true } as any });
-      setSanitized(clean);
-    } catch {
-      const esc = article.content
-        .replace(/&/g,'&amp;')
-        .replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;')
-        .replace(/\n/g,'<br />');
-      setSanitized(esc);
+  const sanitized = useMemo(() => {
+    if (!article?.content) {
+      return "";
     }
-  }, [article]);
+
+    try {
+      const normalized = article.content.replace(/\r?\n/g, "<br />");
+      return DOMPurify.sanitize(normalized, {
+        USE_PROFILES: { html: true },
+        ALLOWED_TAGS: ["p", "br", "strong", "em", "ul", "ol", "li", "h2", "h3", "blockquote", "code", "pre", "span", "img", "a"],
+        ALLOWED_ATTR: {
+          a: ["href", "target", "rel"],
+          img: ["src", "alt", "title", "loading"],
+          '*': ["style"]
+        }
+      } as DOMPurify.Config);
+    } catch {
+      return article.content
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/\r?\n/g, "<br />");
+    }
+  }, [article?.content]);
 
   if (isLoading) {
     return (

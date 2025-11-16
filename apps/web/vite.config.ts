@@ -15,10 +15,57 @@ const requireEnvForProd = () => {
 };
 requireEnvForProd();
 
+const PROD_CSP = [
+  "default-src 'self'",
+  "script-src 'self'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: https:",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "connect-src 'self' https://api.vivaform.app https://api.vivaform.health https://www.google-analytics.com https://stats.g.doubleclick.net",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "upgrade-insecure-requests"
+].join("; ");
+
+const DEV_CSP = [
+  "default-src 'self' blob: data:",
+  "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: https:",
+  "font-src 'self' https://fonts.gstatic.com data:",
+  "connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 http://localhost:5173 http://127.0.0.1:5173 ws://localhost:5173 ws://127.0.0.1:5173 https://api.vivaform.app https://api.vivaform.health",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'"
+].join("; ");
+
+const createSecurityHeaders = (isDev: boolean) => {
+  const headers: Record<string, string> = {
+    "Content-Security-Policy": isDev ? DEV_CSP : PROD_CSP,
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Cross-Origin-Resource-Policy": "same-origin"
+  };
+  if (!isDev) {
+    headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload";
+  }
+  return headers;
+};
+
+const devHeaders = createSecurityHeaders(true);
+const prodHeaders = createSecurityHeaders(false);
+const enableSourceMaps = process.env.VITE_ENABLE_SOURCEMAP === 'true';
+
 export default defineConfig({
   plugins: [react()],
   build: {
-    sourcemap: true,
+    sourcemap: enableSourceMaps,
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
@@ -44,6 +91,7 @@ export default defineConfig({
     port: 5173,
     strictPort: false,
     open: true,
+    headers: devHeaders,
     proxy: {
       "/api": {
         target: process.env.VITE_API_PROXY_TARGET || "http://localhost:4000",
@@ -52,6 +100,9 @@ export default defineConfig({
         ws: true
       }
     }
+  },
+  preview: {
+    headers: prodHeaders
   },
   // Vitest picks up this block; TypeScript does not include it in Vite's config type yet.
   test: {
