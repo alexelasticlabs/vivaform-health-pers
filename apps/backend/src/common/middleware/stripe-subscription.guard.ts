@@ -2,15 +2,13 @@
 import type { CanActivate, ExecutionContext } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { Reflector } from '@nestjs/core';
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-import { PrismaService } from '../prisma/prisma.service';
 
 // Ключ метаданных для пометки премиум-эндпоинтов
 export const PREMIUM_ONLY_KEY = 'premium_only';
 
 @Injectable()
 export class StripeSubscriptionGuard implements CanActivate {
-  constructor(private readonly prisma: PrismaService, private readonly reflector: Reflector) {}
+  constructor(private readonly reflector: Reflector) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPremiumRequired = this.reflector.get<boolean>(PREMIUM_ONLY_KEY, context.getHandler());
@@ -20,8 +18,8 @@ export class StripeSubscriptionGuard implements CanActivate {
     const user = req?.user;
     if (!user?.userId) throw new ForbiddenException('Authentication required');
 
-    const dbUser = await this.prisma.user.findUnique({ where: { id: user.userId }, select: { tier: true } });
-    if (!dbUser || dbUser.tier !== 'PREMIUM') {
+    // Use tier from JWT payload to avoid N+1 DB queries
+    if (user.tier !== 'PREMIUM') {
       throw new ForbiddenException('Premium subscription required');
     }
 

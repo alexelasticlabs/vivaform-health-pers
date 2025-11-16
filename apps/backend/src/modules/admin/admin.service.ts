@@ -346,12 +346,27 @@ export class AdminService {
     return { users, pagination: { page, limit: safeLimit, total, totalPages: Math.ceil(total / safeLimit) } };
   }
 
+  /**
+   * Sanitize CSV cell value to prevent formula injection
+   * Prepend with single quote if starts with =, +, -, @, tab, or carriage return
+   */
+  private sanitizeCsvCell(value: string): string {
+    const dangerous = /^[=+\-@\t\r]/;
+    if (dangerous.test(value)) {
+      return `'${value}`;
+    }
+    return value;
+  }
+
   async exportUsersCsv(params: { q?: string; role?: string; tier?: string; regFrom?: string; regTo?: string; sortBy?: string; sortDir?: string; }) {
     const result = await this.getAllUsersFiltered({ ...params, page: 1, limit: 1000 });
     const header = ['id','email','name','role','tier','createdAt'];
     const lines = [header.join(',')];
     for (const u of result.users) {
-      lines.push([u.id, u.email, (u.name||''), u.role, u.tier, u.createdAt.toISOString()].map(v => `"${String(v).replaceAll('"','""')}"`).join(','));
+      lines.push([u.id, u.email, (u.name||''), u.role, u.tier, u.createdAt.toISOString()]
+        .map(v => this.sanitizeCsvCell(String(v)))
+        .map(v => `"${v.replaceAll('"','""')}"`)
+        .join(','));
     }
     return { filename: `users-${Date.now()}.csv`, mime: 'text/csv', body: lines.join('\n') };
   }

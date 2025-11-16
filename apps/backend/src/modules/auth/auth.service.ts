@@ -3,7 +3,7 @@ import type { ConfigType } from "@nestjs/config";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
-import { randomBytes } from "crypto";
+import { randomBytes, createHash } from "crypto";
 
 import { jwtConfig } from "../../config";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -195,7 +195,7 @@ export class AuthService {
 
   async forgotPassword(dto: ForgotPasswordDto) {
     const user = await this.usersService.findByEmail(dto.email);
-    
+
     // Don't reveal whether email exists for security
     if (!user) {
       return {
@@ -205,7 +205,8 @@ export class AuthService {
 
     // Generate cryptographically secure token
     const resetToken = randomBytes(32).toString('hex');
-    const tokenHash = await argon2.hash(resetToken);
+    // Use SHA-256 for token hashing (faster lookup, prevents timing attacks)
+    const tokenHash = createHash('sha256').update(resetToken).digest('hex');
 
     // Store token in database with 60 minute expiry
     await this.prisma.passwordResetToken.create({
@@ -228,26 +229,19 @@ export class AuthService {
   }
 
   async resetPassword(dto: ResetPasswordDto) {
-    // Find valid token
-    const tokens = await this.prisma.passwordResetToken.findMany({
+    // Hash the provided token using SHA-256 (constant time lookup)
+    const tokenHash = createHash('sha256').update(dto.token).digest('hex');
+
+    // Find token by hash directly (prevents timing attacks)
+    const validToken = await this.prisma.passwordResetToken.findUnique({
       where: {
-        expiresAt: { gte: new Date() },
-        usedAt: null
+        tokenHash
       },
       include: { user: true }
     });
 
-    // Verify token hash
-    let validToken = null;
-    for (const token of tokens) {
-      const isValid = await argon2.verify(token.tokenHash, dto.token);
-      if (isValid) {
-        validToken = token;
-        break;
-      }
-    }
-
-    if (!validToken) {
+    // Validate token exists, not used, and not expired
+    if (!validToken || validToken.usedAt || validToken.expiresAt < new Date()) {
       throw new BadRequestException("Invalid or expired reset token");
     }
 

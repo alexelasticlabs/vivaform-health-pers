@@ -75,3 +75,38 @@ export class ImpersonateUserDto {
   reason?: string;
 }
 
+export class UpdateTicketDto {
+  @ApiPropertyOptional({ enum: ['OPEN', 'IN_PROGRESS', 'WAITING_FOR_USER', 'RESOLVED', 'CLOSED'] })
+  @IsOptional()
+  @IsEnum(['OPEN', 'IN_PROGRESS', 'WAITING_FOR_USER', 'RESOLVED', 'CLOSED'])
+  status?: string;
+
+  @ApiPropertyOptional({ enum: ['LOW', 'MEDIUM', 'HIGH', 'URGENT'] })
+  @IsOptional()
+  @IsEnum(['LOW', 'MEDIUM', 'HIGH', 'URGENT'])
+  priority?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  assignedTo?: string;
+}
+
+export class ReplyTicketDto {
+  @ApiProperty()
+  @IsString()
+  body!: string;
+}
+
+export class UpdateFoodItemDto {
+  @ApiProperty()
+  @IsBoolean()
+  verified!: boolean;
+}
+
+export class PatchSettingsDto {
+  // Settings can be arbitrary key-value pairs
+  // Add specific validation per setting key if needed
+  [key: string]: unknown;
+}
+

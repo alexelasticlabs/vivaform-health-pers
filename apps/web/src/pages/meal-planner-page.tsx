@@ -208,8 +208,8 @@ export function MealPlannerPage() {
               <h2 className="text-xl font-bold text-gray-900 mb-4">
                 Menu for {new Date(selectedDay.date).toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "long" })}
               </h2>
-              {selectedDay.meals.map((meal, index) => (
-                <MealCard key={index} meal={meal} />
+              {selectedDay.meals.map((meal) => (
+                <MealCard key={`${meal.mealType}-${meal.name}`} meal={meal} />
               ))}
             </div>
 

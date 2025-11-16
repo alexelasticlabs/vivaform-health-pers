@@ -48,16 +48,19 @@ export function BodyMetricsStep() {
 
   useEffect(() => {
     updateAnswers({ body: { height: { cm: heightCm } } });
-  }, [heightCm, updateAnswers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heightCm]);
 
   useEffect(() => {
     updateAnswers({ body: { weight: { kg: weightKg } } });
-  }, [weightKg, updateAnswers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [weightKg]);
 
   useEffect(() => {
     const deltaKg = weightKg - targetWeightKg;
     updateAnswers({ goals: { deltaKg, type: deltaKg > 0 ? 'lose' : deltaKg < 0 ? 'gain' : 'maintain' } });
-  }, [targetWeightKg, weightKg, updateAnswers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetWeightKg, weightKg]);
 
   return (
     <QuizCard

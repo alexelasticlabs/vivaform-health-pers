@@ -16,6 +16,7 @@ import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { AdminGuard } from "../../common/guards/admin.guard";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { AdminService } from "./admin.service";
+import { UpdateUserRoleDto, UpdateTicketDto, ReplyTicketDto, UpdateFoodItemDto, PatchSettingsDto } from "./dto/admin-user.dto";
 
 @ApiTags("admin")
 @ApiBearerAuth()
@@ -121,8 +122,8 @@ export class AdminController {
 
   @Patch("users/:id/role")
   @ApiOperation({ summary: "Update user role (admin only)" })
-  async updateUserRole(@Param("id") userId: string, @Body("role") role: "USER" | "ADMIN") {
-    return this.adminService.updateUserRole(userId, role);
+  async updateUserRole(@Param("id") userId: string, @Body() dto: UpdateUserRoleDto) {
+    return this.adminService.updateUserRole(userId, dto.role!);
   }
 
   @Get("food-items")
@@ -140,8 +141,8 @@ export class AdminController {
 
   @Patch("food-items/:id/verify")
   @ApiOperation({ summary: "Verify food item (admin only)" })
-  async verifyFoodItem(@Param("id") foodId: string, @Body("verified") verified: boolean) {
-    return this.adminService.verifyFoodItem(foodId, verified);
+  async verifyFoodItem(@Param("id") foodId: string, @Body() dto: UpdateFoodItemDto) {
+    return this.adminService.verifyFoodItem(foodId, dto.verified);
   }
 
   @Delete("food-items/:id")
@@ -182,20 +183,20 @@ export class AdminController {
   // === Support (mutations) ===
   @Patch('tickets/:id')
   @ApiOperation({ summary: 'Update ticket fields' })
-  updateTicket(@Param('id') id: string, @Body() patch: { status?: string; priority?: string; assignedTo?: string }) {
-    return (this.adminService as any).updateTicket(id, patch);
+  updateTicket(@Param('id') id: string, @Body() dto: UpdateTicketDto) {
+    return (this.adminService as any).updateTicket(id, dto);
   }
 
   @Patch('tickets/:id/reply')
   @ApiOperation({ summary: 'Reply to a ticket' })
-  replyTicket(@Param('id') id: string, @Body('body') body: string) {
-    return (this.adminService as any).replyTicket(id, body);
+  replyTicket(@Param('id') id: string, @Body() dto: ReplyTicketDto) {
+    return (this.adminService as any).replyTicket(id, dto.body);
   }
 
   // === Settings (mutation) ===
   @Patch('settings')
   @ApiOperation({ summary: 'Patch whitelisted settings' })
-  patchSettings(@Body() patch: Record<string, unknown>) { return (this.adminService as any).patchSettings(patch); }
+  patchSettings(@Body() dto: PatchSettingsDto) { return (this.adminService as any).patchSettings(dto); }
 
   // === Feature Toggles ===
   @Get('feature-toggles')
@@ -212,7 +213,7 @@ export class AdminController {
 
   @Patch('feature-toggles/:key')
   @ApiOperation({ summary: 'Update feature toggle' })
-  async updateFeatureToggle(@Param('key') key: string, @Body() dto: any) {
+  async updateFeatureToggle(@Param('key') key: string, @Body() dto: { enabled?: boolean; metadata?: Record<string, unknown> }) {
     return (this.adminService as any).updateFeatureToggle(key, dto);
   }
 

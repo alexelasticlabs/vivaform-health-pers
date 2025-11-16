@@ -1,5 +1,6 @@
 ﻿import { Body, Controller, Get, Post, Query, UseGuards, Res, Req, HttpCode, ForbiddenException } from "@nestjs/common";
 import { ApiOkResponse, ApiTags, ApiCreatedResponse } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
 import type { Response, Request } from "express";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -81,6 +82,7 @@ export class AuthController {
   }
 
   @Post("forgot-password")
+  @Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 requests per hour
   @ApiOkResponse({ description: "Запрос на сброс пароля" })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return (this.authService as any).forgotPassword(dto);
@@ -123,6 +125,7 @@ export class AuthController {
   }
 
   @Post("resend-verification")
+  @Throttle({ default: { limit: 3, ttl: 3600000 } }) // 3 requests per hour
   @ApiOkResponse({ description: "Повторная отправка письма для верификации email" })
   resendVerification(@Body() dto: ResendVerificationDto) {
     return (this.authService as any).resendVerification(dto.email);
