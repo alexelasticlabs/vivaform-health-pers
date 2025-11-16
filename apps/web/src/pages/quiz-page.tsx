@@ -71,6 +71,7 @@ export function QuizPage() {
   const loggedStartRef = useRef(false);
   const lastViewedStepRef = useRef<number | null>(null);
   const lastSectionLoggedRef = useRef<number | null>(null);
+  const capturedEmailRef = useRef<string | null>(null);
 
   const visibleSteps = getVisibleQuizSteps(answers as any);
   const currentStepConfig = visibleSteps[currentStep] ?? visibleSteps[visibleSteps.length - 1];
@@ -128,6 +129,22 @@ export function QuizPage() {
       debouncedSave();
     }
   }, [answers, debouncedSave]);
+
+  useEffect(() => {
+    const rawEmail = (answers.email ?? '').trim().toLowerCase();
+    if (!rawEmail) return;
+    if (capturedEmailRef.current === rawEmail) return;
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(rawEmail)) return;
+    capturedEmailRef.current = rawEmail;
+    void (async () => {
+      try {
+        await captureQuizEmail({ email: rawEmail, clientId, step: currentStep, type: 'mid_quiz' });
+      } catch {
+        // fail silently
+      }
+    })();
+  }, [answers.email, clientId, currentStep]);
 
   // Debounced server-side preview autosave for authenticated users
   useEffect(() => {

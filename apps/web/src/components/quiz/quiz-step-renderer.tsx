@@ -1,6 +1,8 @@
 ﻿import type { QuizStep, QuizOption } from '@/features/quiz/quiz-config';
+import { derivePlanType } from '@/features/quiz/quiz-config';
 import { QuizCard, type QuizCardVariant, OptionButton, OptionTile, SliderInput, BMIIndicator } from '@/components/quiz';
 import { useQuizStore, calculateBMI } from '@/store/quiz-store';
+import type { QuizAnswers } from '@/store/quiz-store';
 
 interface QuizStepRendererProps {
   step: QuizStep;
@@ -13,6 +15,8 @@ const GROUP_VARIANT_MAP: Record<string, QuizCardVariant> = {
   eating: 'nutrition',
   plan_choice: 'plan',
   summary: 'plan',
+  milestone: 'plan',
+  offer: 'plan',
 };
 
 const GROUP_EYEBROW_MAP: Record<string, string> = {
@@ -25,6 +29,8 @@ const GROUP_EYEBROW_MAP: Record<string, string> = {
   behavior: 'Mindset pulse',
   plan_choice: 'Plan builder',
   summary: 'Launch checklist',
+  milestone: 'Momentum checkpoint',
+  offer: 'Plan activation',
 };
 
 function getCardVariant(step: QuizStep): QuizCardVariant {
@@ -44,21 +50,21 @@ function isSelectedMulti(valueList: string[] | undefined, value: string): boolea
 export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProps) {
   const { answers, updateAnswers } = useQuizStore();
 
-  const handleSingleSelect = (field: string, value: string) => {
-    updateAnswers({ [field]: value } as any);
+  const handleSingleSelect = <K extends keyof QuizAnswers>(field: K, value: QuizAnswers[K]) => {
+    updateAnswers({ [field]: value } as Pick<QuizAnswers, K>);
   };
 
-  const handleMultiToggle = (field: string, value: string) => {
-    const current = ((answers as any)[field] as string[] | undefined) ?? [];
+  const handleMultiToggle = <K extends keyof QuizAnswers>(field: K, value: string) => {
+    const current = (answers[field] as string[] | undefined) ?? [];
     const exists = current.includes(value);
     const next = exists ? current.filter((v) => v !== value) : [...current, value];
-    updateAnswers({ [field]: next } as any);
+    updateAnswers({ [field]: next as QuizAnswers[K] } as Pick<QuizAnswers, K>);
   };
 
   const renderOptions = (options: QuizOption[] = []) => {
     if (step.uiType === 'single_choice') {
-      const field = step.fields[0];
-      const current = (answers as any)[field] as string | undefined;
+      const field = step.fields[0] as keyof QuizAnswers;
+      const current = answers[field] as string | undefined;
       if (step.uiPattern === 'cards_grid' || step.uiPattern === 'cards_list' || step.uiPattern === 'two_cards_split' || step.uiPattern === 'two_cards_split_warning') {
         return (
           <div className="space-y-3">
@@ -69,7 +75,7 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
                 description={opt.subtitle ?? opt.description}
                 emoji={opt.emoji}
                 selected={current === opt.value}
-                onClick={() => handleSingleSelect(field, opt.value)}
+                onClick={() => handleSingleSelect(field, opt.value as QuizAnswers[typeof field])}
               />
             ))}
           </div>
@@ -85,7 +91,7 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
               description={opt.subtitle}
               emoji={opt.emoji}
               selected={current === opt.value}
-              onClick={() => handleSingleSelect(field, opt.value)}
+              onClick={() => handleSingleSelect(field, opt.value as QuizAnswers[typeof field])}
               className="!px-3 !py-2 text-sm"
             />
           ))}
@@ -94,8 +100,8 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
     }
 
     if (step.uiType === 'multi_choice') {
-      const field = step.fields[0];
-      const current = ((answers as any)[field] as string[] | undefined) ?? [];
+      const field = step.fields[0] as keyof QuizAnswers;
+      const current = (answers[field] as string[] | undefined) ?? [];
       return (
         <div className="flex flex-wrap gap-2">
           {options.map((opt) => (
@@ -196,6 +202,147 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
             </div>
           </div>
           <p className="text-center text-[11px] text-muted-foreground">Educational guidance only · Please consult your physician for medical care.</p>
+        </div>
+      );
+    }
+
+    if (step.id === 'momentum_social_proof') {
+      const testimonial = step.microcopy ?? 'Members see change within the first 3 weeks when they finish this quiz.';
+      const urgency = typeof step.meta?.urgencyCopy === 'string' ? (step.meta.urgencyCopy as string) : 'Premium seats refresh nightly.';
+      const firstName = (answers.name ?? '').split(' ')[0] || undefined;
+      return (
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-emerald-100/80 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-6 shadow-inner">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Momentum unlocked</p>
+            <h3 className="mt-2 text-[clamp(1.4rem,2vw,1.8rem)] font-bold text-emerald-900">{firstName ? `${firstName}, ` : ''}your calorie range is dialed in.</h3>
+            <p className="mt-3 text-sm text-emerald-900/80">Next we personalize macros, meal timing, and reminders so you don’t lose steam.</p>
+            <div className="mt-4 rounded-2xl bg-white/90 p-4 text-sm text-emerald-900 shadow-sm">
+              <p className="font-semibold">Member story</p>
+              <p className="mt-1 text-emerald-800/80">{testimonial}</p>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm font-medium text-amber-900">
+            <span className="mr-2 text-base">⏳</span>
+            {urgency}
+          </div>
+        </div>
+      );
+    }
+
+    if (step.uiType === 'text_input') {
+      const field = step.fields[0] as keyof QuizAnswers;
+      const value = (answers[field] as string | undefined) ?? '';
+      const placeholder = typeof step.meta?.placeholder === 'string' ? (step.meta.placeholder as string) : '';
+      const helper = typeof step.meta?.helper === 'string' ? (step.meta.helper as string) : undefined;
+      return (
+        <div className="space-y-3">
+          <input
+            type="email"
+            autoComplete="email"
+            inputMode="email"
+            value={value}
+            placeholder={placeholder || 'you@example.com'}
+            onChange={(e) => handleSingleSelect(field, e.target.value as QuizAnswers[typeof field])}
+            className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-base text-foreground shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+          />
+          {helper && <p className="text-sm text-muted-foreground">{helper}</p>}
+        </div>
+      );
+    }
+
+    if (step.id === 'plan_summary') {
+      const planType = answers.final_plan_type ?? derivePlanType(answers);
+      const goalMap: Record<string, string> = {
+        weight_loss: 'Steady fat loss with metabolic guardrails',
+        muscle_gain: 'Lean muscle gain with adequate recovery calories',
+        maintenance: 'Maintenance with habit accountability',
+        energy_health: 'Energy-first routine with balanced macros',
+        food_relationship: 'Gentle nutrition reset with mindful cues',
+      };
+      const activityMap: Record<string, string> = {
+        sedentary: 'Desk-heavy weeks · low stress start',
+        light: 'Light movement · flexible fueling blocks',
+        moderate: 'Moderate training · split macros',
+        high: 'High output · higher protein cadence',
+      };
+      const cookingMap: Record<string, string> = {
+        speed: '5–15 min builds',
+        balanced: '20–30 min balanced prep',
+        chef: 'Full-flavor chef style',
+        no_cook: 'Assembly + ready-to-eat focus',
+      };
+      const budgetMap: Record<string, string> = {
+        lean: 'Budget-friendly grocery list',
+        balanced: 'Balanced grocery basket',
+        premium: 'Premium produce + specialty swaps',
+      };
+      const flavorSummary = (answers.food_likes ?? []).length
+        ? `${answers.food_likes?.length} flavor cues locked`
+        : 'Flexible flavor profile';
+      const summaryItems = [
+        { label: 'Goal focus', value: goalMap[answers.primary_goal ?? ''] ?? 'Balanced progress' },
+        { label: 'Lifestyle', value: activityMap[answers.activity_level ?? ''] ?? 'Adaptive cadence' },
+        { label: 'Flavor guardrails', value: flavorSummary },
+        { label: 'Cooking style', value: cookingMap[answers.cooking_style ?? ''] ?? 'Adjustable prep' },
+        { label: 'Budget vibe', value: budgetMap[answers.budget_level ?? ''] ?? 'Flexible spending plan' },
+      ];
+      const planCopy: Record<string, { title: string; description: string }> = {
+        mediterranean: {
+          title: 'Mediterranean metabolic reset',
+          description: 'Whole-food focus with smart carbs + healthy fats.',
+        },
+        carnivore: {
+          title: 'Protein-forward performance plan',
+          description: 'Higher protein, low inflammatory triggers, fast satiety.',
+        },
+        anti_inflammatory: {
+          title: 'Anti-inflammatory harmony plan',
+          description: 'Fiber-rich plates, calm digestion, hormone support.',
+        },
+      };
+      const planSummary = planCopy[planType ?? 'mediterranean'];
+      return (
+        <div className="space-y-4">
+          <div className="rounded-3xl border border-emerald-100 bg-white/80 p-5 shadow-sm">
+            <h3 className="text-lg font-semibold text-emerald-900">Personalized insights</h3>
+            <ul className="mt-4 space-y-3">
+              {summaryItems.map((item) => (
+                <li key={item.label} className="flex items-start gap-3 text-sm text-neutral-800">
+                  <span className="mt-0.5 text-emerald-500">•</span>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">{item.label}</p>
+                    <p className="text-sm font-medium text-neutral-900">{item.value}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-3xl bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 p-5 text-white">
+            <p className="text-xs uppercase tracking-[0.3em] text-white/70">Recommended plan</p>
+            <h3 className="mt-2 text-xl font-semibold">{planSummary.title}</h3>
+            <p className="mt-1 text-sm text-white/90">{planSummary.description}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (step.id === 'final_offer') {
+      const seatsMessage = step.microcopy ?? 'Premium seats refresh nightly — lock one now or keep the free path.';
+      const email = answers.email;
+      return (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900">
+            <p className="font-semibold">Fast-track benefits</p>
+            <ul className="mt-2 space-y-1 text-emerald-900/80">
+              <li>• Adaptive meal builder & grocery lists</li>
+              <li>• Smart reminders + accountability nudges</li>
+              <li>• Save progress to {email ?? 'your inbox'} instantly</li>
+            </ul>
+          </div>
+          <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-sm font-medium text-amber-900">
+            {seatsMessage}
+          </div>
+          {renderOptions(step.options)}
         </div>
       );
     }

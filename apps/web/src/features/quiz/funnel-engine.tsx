@@ -19,7 +19,7 @@ export function canProceed(stepIndex: number, answers: QuizAnswers): boolean {
   if (!step) return true;
   // Строгая валидация для базового шага профиля: имя не обязательно,
   // но возраст и базовые антропометрические данные должны быть указаны.
-  if (step.id === 'basic_profile') {
+  if (step.id === 'body_metrics') {
     const age = (answers as any).age_years;
     const heightCm = (answers as any).height_cm;
     const weightKg = (answers as any).weight_kg;
@@ -35,6 +35,12 @@ export function canProceed(stepIndex: number, answers: QuizAnswers): boolean {
       typeof rawWeightLbs === 'number' && rawWeightLbs >= 70 && rawWeightLbs <= 600;
 
     return hasValidAge && (hasMetricHeightWeight || hasImperialHeightWeight);
+  }
+  if (step.id === 'email_capture') {
+    const email = (answers as any).email as string | undefined;
+    if (!email) return false;
+    const pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return pattern.test(email.trim());
   }
   return step.fields.every((field) => {
     const value = (answers as any)[field];

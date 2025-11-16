@@ -3,18 +3,18 @@
 exports[`EmotionalStep > renders and matches snapshot 1`] = `
 <div>
   <div
-    class="w-full max-w-2xl mx-auto p-6 md:p-8 rounded-2xl shadow-lg border border-border bg-card"
+    class="w-full max-w-2xl mx-auto rounded-2xl border p-6 shadow-lg md:p-8 border-border bg-card"
   >
     <div
       class="mb-6"
     >
       <h2
-        class="font-bold text-foreground mb-2 [font-size:clamp(1.5rem,2.5vw,1.875rem)]"
+        class="mb-2 font-bold [font-size:clamp(1.5rem,2.5vw,1.875rem)] text-foreground"
       >
         Emotional Wellbeing
       </h2>
       <p
-        class="text-muted-foreground text-sm md:text-base"
+        class="text-sm md:text-base text-muted-foreground"
       >
         Understanding your relationship with food helps create a better plan
       </p>
@@ -69,7 +69,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Motivation: 💪 Health and energy"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -90,7 +90,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Motivation: ✨ Appearance"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -111,7 +111,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Motivation: 🏃 Athletic performance"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -132,7 +132,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Motivation: 😊 Overall wellbeing"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -153,7 +153,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Motivation: 🏥 Medical reasons"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -192,7 +192,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
               </label>
             </div>
             <input
-              class="h-2 w-full appearance-none cursor-pointer rounded-lg bg-muted accent-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2"
+              class="h-3 w-full appearance-none cursor-pointer rounded-lg bg-muted accent-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
               max="10"
               min="1"
               step="1"
@@ -225,7 +225,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Comfort source: 🏃 Physical activity"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -246,7 +246,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Comfort source: 🍕 Tasty food"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -267,7 +267,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Comfort source: 👥 Socializing"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -288,7 +288,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Comfort source: 😴 Rest and sleep"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -309,7 +309,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
             <button
               aria-label="Comfort source: 🎨 Hobbies"
               aria-pressed="false"
-              class="w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
+              class="w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 border-border bg-card hover:bg-card-hover"
               role="button"
               type="button"
             >
@@ -348,7 +348,7 @@ exports[`EmotionalStep > renders and matches snapshot 1`] = `
               </label>
             </div>
             <input
-              class="h-2 w-full appearance-none cursor-pointer rounded-lg bg-muted accent-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2"
+              class="h-3 w-full appearance-none cursor-pointer rounded-lg bg-muted accent-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow [&::-moz-range-thumb]:h-6 [&::-moz-range-thumb]:w-6 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-white"
               max="10"
               min="1"
               step="1"

@@ -18,7 +18,7 @@ export function OptionTile({ title, description, emoji, selected, onClick, class
       aria-pressed={!!selected}
       onClick={onClick}
       className={clsx(
-        'w-full text-left rounded-2xl border-2 p-4 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2',
+        'w-full text-left rounded-2xl border-2 px-4 py-3 sm:py-4 min-h-[64px] transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/70 focus-visible:ring-offset-2',
         selected
           ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 shadow-md'
           : 'border-border bg-card hover:bg-card-hover',

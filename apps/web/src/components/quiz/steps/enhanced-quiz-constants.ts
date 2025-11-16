@@ -231,9 +231,9 @@ export const ACCOUNTABILITY_OPTIONS = [
 // Gamification: Badges
 export const QUIZ_BADGES = [
   { id: 'starter', name: 'Starter', emoji: '🏁', step: 0, description: 'Started the quiz' },
-  { id: 'focused', name: 'Focused', emoji: '🎯', step: 4, description: 'Completed Phase 1' },
-  { id: 'committed', name: 'Committed', emoji: '💪', step: 14, description: 'Completed Phase 2' },
-  { id: 'champion', name: 'Champion', emoji: '🏆', step: 24, description: 'Finished the quiz!' }
+  { id: 'focused', name: 'Focused', emoji: '🎯', step: 3, description: 'Locked your core metrics' },
+  { id: 'momentum', name: 'Momentum', emoji: '⚡', step: 7, description: 'Cleared the lifestyle checkpoint' },
+  { id: 'champion', name: 'Champion', emoji: '🏆', step: 11, description: 'Finished the quiz!' }
 ] as const;
 
 // Helper function to get current phase

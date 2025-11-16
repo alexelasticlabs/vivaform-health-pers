@@ -57,12 +57,13 @@ const groupStageMap: Record<string, StageId> = {
   body_metrics: 'basics',
   activity: 'basics',
   eating: 'basics',
-  preferences: 'goals',
+  preferences: 'plan',
   health: 'goals',
   behavior: 'goals',
   plan_choice: 'goals',
   summary: 'plan',
   offer: 'plan',
+  milestone: 'plan',
 };
 
 function getStageForStep(step: QuizStep | undefined): StageId {
@@ -101,7 +102,7 @@ export function QuizProgress({ currentIndex, visibleSteps, participantName }: Qu
           Stage {Math.min(currentStageIndex + 1, STAGES.length)} · {STAGES[currentStageIndex]?.label ?? 'Start'}
         </div>
         <div className="text-right text-sm font-semibold text-neutral-900 dark:text-white">
-          {percentage}% complete
+          Step {Math.min(currentIndex + 1, totalSteps)} of {totalSteps} · {percentage}% complete
         </div>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800">
