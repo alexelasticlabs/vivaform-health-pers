@@ -20,6 +20,7 @@ export class RequestTempPasswordDto {
 }
 
 export class ForceChangePasswordDto {
+  @IsString()
   @MinLength(8)
   newPassword!: string;
 }
