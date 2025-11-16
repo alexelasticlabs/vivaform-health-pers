@@ -91,10 +91,14 @@ if (import.meta.env.DEV) {
 }
 
 // PRODUCT
-const PROVIDER = (import.meta.env.VITE_PRODUCT_ANALYTICS_PROVIDER || 'beacon') as 'beacon' | 'fetch' | 'amplitude' | 'posthog';
-const AMPLITUDE_API_KEY = import.meta.env.VITE_AMPLITUDE_API_KEY as string | undefined;
-const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY as string | undefined;
-const POSTHOG_HOST = (import.meta.env.VITE_POSTHOG_HOST as string | undefined) || 'https://us.posthog.com';
+const RAW_PROVIDER = (import.meta.env.VITE_PRODUCT_ANALYTICS_PROVIDER || 'beacon').toLowerCase();
+const CLIENT_SAFE_PROVIDERS = new Set(['beacon', 'fetch']);
+const providerIsClientSafe = CLIENT_SAFE_PROVIDERS.has(RAW_PROVIDER);
+const PROVIDER = (providerIsClientSafe ? RAW_PROVIDER : 'fetch') as 'beacon' | 'fetch';
+const thirdPartyProviderRequested = RAW_PROVIDER === 'amplitude' || RAW_PROVIDER === 'posthog';
+if (thirdPartyProviderRequested && !SILENCE && typeof console !== 'undefined') {
+  console.warn('[analytics] Direct Amplitude/PostHog usage in the browser is disabled. Configure PRODUCT_ANALYTICS_ENDPOINT to proxy events server-side.');
+}
 
 function safeRandomUUID(): string | null {
   try {
@@ -140,21 +144,6 @@ function providerTrack(event: string, payload?: Record<string, unknown>) {
   }
   if (PROVIDER === 'fetch' && PRODUCT_ENDPOINT) {
     try { void fetch(PRODUCT_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), keepalive: true }); return; } catch {}
-  }
-  if (PROVIDER === 'amplitude' && AMPLITUDE_API_KEY) {
-    try {
-      const ampBody = { api_key: AMPLITUDE_API_KEY, events: [{ event_type: event, user_id: getAnonId(), event_properties: payload ?? {}, time: Date.now() }] };
-      void fetch('https://api2.amplitude.com/2/httpapi', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(ampBody), keepalive: true });
-      return;
-    } catch {}
-  }
-  if (PROVIDER === 'posthog' && POSTHOG_KEY) {
-    try {
-      const phBody = { api_key: POSTHOG_KEY, event: event, properties: { distinct_id: getAnonId(), ...(payload ?? {}) }, timestamp: new Date().toISOString() } as any;
-      // PostHog expects { api_key, event, properties } or batch; we use capture endpoint
-      void fetch(`${POSTHOG_HOST.replace(/\/$/, '')}/capture/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(phBody), keepalive: true });
-      return;
-    } catch {}
   }
   if (!SILENCE && import.meta.env.DEV) {
     console.debug(`[product:${PROVIDER}] ${event}`, payload);

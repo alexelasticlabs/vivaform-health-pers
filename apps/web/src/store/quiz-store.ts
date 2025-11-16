@@ -20,6 +20,27 @@ export interface QuizAnswers extends QuizAnswersModel {
   answersVersion?: number;
 }
 
+const NON_SENSITIVE_ANSWER_FIELDS: (keyof QuizAnswers)[] = [
+  'primary_goal',
+  'activity_level',
+  'food_likes',
+  'cooking_style',
+  'budget_level',
+  'final_plan_type',
+  'answersVersion'
+];
+
+const extractSafeAnswers = (answers: QuizAnswers | undefined): Partial<QuizAnswers> => {
+  if (!answers) return {};
+  return NON_SENSITIVE_ANSWER_FIELDS.reduce<Partial<QuizAnswers>>((acc, field) => {
+    const value = answers[field];
+    if (value !== undefined) {
+      (acc as any)[field] = value;
+    }
+    return acc;
+  }, {});
+};
+
 interface QuizStore {
   // Client ID for tracking (generated once)
   clientId: string;
@@ -184,7 +205,7 @@ export const useQuizStore = create<QuizStore>()(
         const draft = {
           clientId: state.clientId,
           version: 1,
-          answers: state.answers,
+          answers: extractSafeAnswers(state.answers),
           currentStep: state.currentStep,
           savedAt: Date.now(),
         };
@@ -269,7 +290,7 @@ export const useQuizStore = create<QuizStore>()(
       partialize: (state) => ({
         clientId: state.clientId,
         currentStep: state.currentStep,
-        answers: state.answers,
+        answers: extractSafeAnswers(state.answers),
         lastSaved: state.lastSaved,
       }),
     },

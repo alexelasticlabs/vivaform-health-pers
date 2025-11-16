@@ -36,7 +36,7 @@ export class SubscriptionsService {
   }
 
   async createCheckoutSession(userId: string, dto: CreateCheckoutSessionDto) {
-    console.log('[SubscriptionsService] Creating checkout session', { userId, plan: dto.plan });
+    this.logger.debug(`Creating checkout session (plan=${dto.plan})`);
     
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -47,13 +47,15 @@ export class SubscriptionsService {
       throw new NotFoundException("User not found");
     }
 
-    console.log('[SubscriptionsService] User found', { userId, hasSubscription: !!user.subscription });
+    this.logger.debug(`User subscription status resolved (hasSubscription=${!!user.subscription})`);
 
     const priceId = this.priceIdForPlan(dto.plan);
-    console.log('[SubscriptionsService] Price ID for plan', { plan: dto.plan, priceId });
+    this.logger.debug(`Resolved Stripe price for plan ${dto.plan}`);
     
     const existingCustomerId = user.subscription?.stripeCustomerId ?? undefined;
-    console.log('[SubscriptionsService] Existing customer ID', { existingCustomerId });
+    if (existingCustomerId) {
+      this.logger.debug('Reusing existing Stripe customer for checkout');
+    }
 
     // Ensure we append session_id correctly whether successUrl already contains query params or not
     const successUrlHasQuery = dto.successUrl.includes("?");

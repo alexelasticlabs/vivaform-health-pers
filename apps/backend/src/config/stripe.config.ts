@@ -1,21 +1,29 @@
 ﻿﻿import { registerAs } from "@nestjs/config";
 
-export const stripeConfig = registerAs("stripe", () => {
-  const apiKey = process.env.STRIPE_API_KEY;
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+const MIN_SECRET_LENGTH = 32;
 
-  if (!apiKey || !webhookSecret) {
-    const nodeEnv = process.env.NODE_ENV || 'development';
-    throw new Error(`Stripe credentials missing for NODE_ENV=${nodeEnv}. Set STRIPE_API_KEY and STRIPE_WEBHOOK_SECRET.`);
+function requireEnv(key: string, minLength = 1) {
+  const value = process.env[key];
+  if (!value || value.length < minLength) {
+    const env = process.env.NODE_ENV || "development";
+    throw new Error(`${key} is missing or too short in ${env} environment`);
   }
+  return value;
+}
+
+export const stripeConfig = registerAs("stripe", () => {
+  const apiKey = requireEnv("STRIPE_API_KEY", MIN_SECRET_LENGTH);
+  const webhookSecret = requireEnv("STRIPE_WEBHOOK_SECRET", MIN_SECRET_LENGTH);
+
+  const prices = {
+    MONTHLY: requireEnv("STRIPE_PRICE_MONTHLY"),
+    QUARTERLY: requireEnv("STRIPE_PRICE_QUARTERLY"),
+    ANNUAL: requireEnv("STRIPE_PRICE_ANNUAL")
+  } as const;
 
   return {
     apiKey,
     webhookSecret,
-    prices: {
-      MONTHLY: process.env.STRIPE_PRICE_MONTHLY ?? "",
-      QUARTERLY: process.env.STRIPE_PRICE_QUARTERLY ?? "",
-      ANNUAL: process.env.STRIPE_PRICE_ANNUAL ?? ""
-    }
+    prices
   };
 });

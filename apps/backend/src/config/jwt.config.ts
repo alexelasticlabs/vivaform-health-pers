@@ -1,13 +1,24 @@
 ﻿﻿import { registerAs } from "@nestjs/config";
 
-export const jwtConfig = registerAs("jwt", () => {
-  const secret = process.env.JWT_SECRET;
-  const refreshSecret = process.env.JWT_REFRESH_SECRET;
+const MIN_SECRET_LENGTH = 32;
 
-  if (!secret || !refreshSecret) {
-    const nodeEnv = process.env.NODE_ENV || 'development';
-    throw new Error(`JWT secrets are missing for NODE_ENV=${nodeEnv}. Set JWT_SECRET and JWT_REFRESH_SECRET.`);
+function requireSecret(envKey: "JWT_SECRET" | "JWT_REFRESH_SECRET") {
+  const value = process.env[envKey];
+  if (!value) {
+    const nodeEnv = process.env.NODE_ENV || "development";
+    throw new Error(`Missing ${envKey} in ${nodeEnv} environment`);
   }
+
+  if (value.length < MIN_SECRET_LENGTH) {
+    throw new Error(`${envKey} must be at least ${MIN_SECRET_LENGTH} characters`);
+  }
+
+  return value;
+}
+
+export const jwtConfig = registerAs("jwt", () => {
+  const secret = requireSecret("JWT_SECRET");
+  const refreshSecret = requireSecret("JWT_REFRESH_SECRET");
 
   return {
     secret,

@@ -10,18 +10,66 @@ if (!import.meta.env.DEV && !baseURL) {
   throw new Error("VITE_API_URL is required in production build");
 }
 
+const CSRF_COOKIE_NAME = "csrfToken";
+const METHODS_REQUIRING_CSRF = new Set(["post", "put", "patch", "delete"]);
+let csrfInitPromise: Promise<void> | null = null;
+
+function readCsrfCookie(): string | null {
+  if (typeof document === "undefined") {
+    return null;
+  }
+  const match = document.cookie.match(new RegExp(`(?:^|; )${CSRF_COOKIE_NAME}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+async function ensureCsrfTokenCookie() {
+  if (typeof document === "undefined") {
+    return;
+  }
+  if (readCsrfCookie()) {
+    return;
+  }
+  if (!csrfInitPromise) {
+    csrfInitPromise = axios
+      .get(`${baseURL}/auth/csrf-token`, { withCredentials: true })
+      .then(() => undefined)
+      .finally(() => {
+        csrfInitPromise = null;
+      });
+  }
+  await csrfInitPromise;
+}
+
+function needsCsrfProtection(method?: string) {
+  if (!method) return false;
+  return METHODS_REQUIRING_CSRF.has(method.toLowerCase());
+}
+
 export const apiClient = axios.create({
   baseURL,
   withCredentials: true
 });
 
-apiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use(async (config) => {
+  const nextConfig = config;
+  nextConfig.headers = nextConfig.headers ?? {};
+
   const token = useUserStore.getState().accessToken;
   if (token) {
-    config.headers = config.headers ?? {};
-    (config.headers as any).Authorization = `Bearer ${token}`;
+    (nextConfig.headers as any).Authorization = `Bearer ${token}`;
   }
-  return config;
+
+  (nextConfig.headers as any)["X-Requested-With"] = "XMLHttpRequest";
+
+  if (needsCsrfProtection(nextConfig.method)) {
+    await ensureCsrfTokenCookie();
+    const csrfToken = readCsrfCookie();
+    if (csrfToken) {
+      (nextConfig.headers as any)["X-CSRF-Token"] = csrfToken;
+    }
+  }
+
+  return nextConfig;
 });
 
 // Допускаем, что refresh может вернуть только токены без user

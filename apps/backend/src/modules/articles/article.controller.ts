@@ -75,15 +75,15 @@ export class ArticleController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiOperation({ summary: "Update article (admin only)" })
-  async updateArticle(@Param("id") id: string, @Body() updateArticleDto: UpdateArticleDto) {
-    return this.articleService.updateArticle(id, updateArticleDto);
+  async updateArticle(@Request() req: any, @Param("id") id: string, @Body() updateArticleDto: UpdateArticleDto) {
+    return this.articleService.updateArticle(req.user.userId, id, updateArticleDto);
   }
 
   @Delete(":id")
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, AdminGuard)
   @ApiOperation({ summary: "Delete article (admin only)" })
-  async deleteArticle(@Param("id") id: string) {
-    return this.articleService.deleteArticle(id);
+  async deleteArticle(@Request() req: any, @Param("id") id: string) {
+    return this.articleService.deleteArticle(req.user.userId, id);
   }
 }

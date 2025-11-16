@@ -1,4 +1,4 @@
-﻿import { Body, Controller, ForbiddenException, Get, Param, Post, UseGuards } from "@nestjs/common";
+﻿import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags, ApiBearerAuth } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 
@@ -26,16 +26,7 @@ export class UsersController {
   @ApiBearerAuth()
   @ApiOkResponse({ description: "Получить профиль пользователя" })
   findOne(@Param("id") id: string, @CurrentUser() requester: CurrentUserPayload) {
-    if (!requester) {
-      throw new ForbiddenException("Требуется авторизация");
-    }
-
-    const isAdmin = requester.role === UserRole.ADMIN;
-    if (!isAdmin && requester.userId !== id) {
-      throw new ForbiddenException("Можно просматривать только собственный профиль");
-    }
-
-    return this.usersService.findById(id);
+    return this.usersService.getProfileVisibleTo(requester, id);
   }
 
   @UseGuards(JwtAuthGuard)

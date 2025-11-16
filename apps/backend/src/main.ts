@@ -132,6 +132,8 @@ async function bootstrap() {
   // request id for tracing
   app.use(requestIdMiddleware);
 
+  app.use(cookieParser());
+
   // CSRF protection для state-changing запросов
   const csrfCheck = new CsrfCheckMiddleware();
   app.use((req: any, res: any, next: any) => csrfCheck.use(req, res, next));
@@ -168,9 +170,13 @@ async function bootstrap() {
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new MetricsInterceptor());
 
-  app.use(cookieParser());
+  const enableSwaggerSetting = configService.get<boolean>("app.enableSwagger");
+  const enableSwagger =
+    typeof enableSwaggerSetting === "boolean"
+      ? enableSwaggerSetting
+      : process.env.NODE_ENV !== "production";
 
-  if (configService.get<boolean>("app.enableSwagger", true)) {
+  if (enableSwagger) {
     const swaggerConfig = new DocumentBuilder()
       .setTitle("VivaForm API")
       .setDescription("REST API VivaForm для питания и здоровья")
