@@ -81,7 +81,12 @@ export class AuthService {
     // Отправляем письмо
     await this.emailService.sendVerificationEmail(user.email, emailToken);
     // Welcome письмо можно отложить до подтверждения email, но e2e не проверяют — оставим включённым мягко
-    try { await this.emailService.sendWelcomeEmail(user.email, user.name || "there"); } catch {}
+    try {
+      await this.emailService.sendWelcomeEmail(user.email, user.name || "there");
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "unknown error";
+      this.logger.warn(`sendWelcomeEmail failed for user=${user.email}: ${reason}`);
+    }
 
     // Выдаём токены сразу (как ожидают e2e)
     const tokens = await this.signTokens(user.id, user.email, user.role, user.tier);
@@ -484,7 +489,12 @@ export class AuthService {
     );
     await this.emailService.sendVerificationEmail((user as any).email, token);
     // аудит не обязателен, но можно логировать отдельное действие
-    try { await this.auditService.logRegistration((user as any).id, (user as any).email); } catch {}
+    try {
+      await this.auditService.logRegistration((user as any).id, (user as any).email);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "unknown error";
+      this.logger.warn(`audit log registration failed for user=${(user as any).id}: ${reason}`);
+    }
     return { message: 'Verification email sent.' };
   }
 }

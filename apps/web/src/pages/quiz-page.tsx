@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Check } from 'lucide-react';
+import { Check, Sparkles } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store';
 import { submitQuiz, saveQuizPreview, getQuizPreview, captureQuizEmail } from '@/api';
 import { useUserStore } from '@/store/user-store';
@@ -10,6 +10,37 @@ import { QuizStepRenderer, ExitIntentModal, BadgeUnlock, QuizProgress } from '@/
 import { getVisibleQuizSteps, calcProgressPercent } from '@/features/quiz/quiz-config';
 import { QUIZ_BADGES, getUnlockedBadges } from '@/components/quiz/steps/enhanced-quiz-constants';
 import { canProceed } from '../features/quiz/funnel-engine';
+
+type CueBuilder = (ctx: { percent: number; name?: string }) => string;
+
+const MOMENTUM_CUES: Record<string, CueBuilder[]> = {
+  default: [
+    ({ percent, name }) => `${name ?? 'Nice'} pace — ${percent}% of your plan is already mapped.`,
+    ({ percent }) => `Momentum unlocked. ${percent}% complete and climbing.`,
+  ],
+  goals: [
+    ({ percent, name }) => `${name ?? 'Goal-setter'}, intention locked. ${percent}% dialed in.`,
+    ({ percent }) => `Goal locked ✅ ${percent}% of your roadmap ready.`,
+  ],
+  eating: [
+    ({ percent }) => `Flavor profile saved — ${percent}% closer to craving-friendly meals.`,
+    ({ percent }) => `Diet vibe noted. ${percent}% of personalization complete.`,
+  ],
+  preferences: [
+    ({ percent }) => `Taste guardrails set. ${percent}% complete.`,
+    ({ percent, name }) => `${name ?? 'Chef'}, your menu cues are in. ${percent}% done.`,
+  ],
+  activity: [
+    ({ percent }) => `Energy rhythm mapped. ${percent}% of insights secured.`,
+  ],
+  behavior: [
+    ({ percent }) => `Mindset cues pinned — ${percent}% of the story captured.`,
+  ],
+  plan_choice: [
+    ({ percent }) => `Plan shell is forming. ${percent}% locked in.`,
+    ({ percent, name }) => `${name ?? 'Plan architect'}, only ${100 - percent}% until reveal.`,
+  ],
+};
 
 export function QuizPage() {
   const navigate = useNavigate();
@@ -34,13 +65,16 @@ export function QuizPage() {
   const [showExitIntent, setShowExitIntent] = useState(false);
   const [newBadge, setNewBadge] = useState<(typeof QUIZ_BADGES)[number] | null>(null);
   const [lastBadgeStep, setLastBadgeStep] = useState(-1);
+  const [momentumCue, setMomentumCue] = useState<string | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loggedStartRef = useRef(false);
   const lastViewedStepRef = useRef<number | null>(null);
   const lastSectionLoggedRef = useRef<number | null>(null);
 
   const visibleSteps = getVisibleQuizSteps(answers as any);
   const currentStepConfig = visibleSteps[currentStep] ?? visibleSteps[visibleSteps.length - 1];
+  const participantName = ((answers as any)?.name as string | undefined)?.split(' ')[0];
 
   // Calculate BMI preview in real-time
   const bmiPreview = calculateBMI(answers);
@@ -161,14 +195,36 @@ export function QuizPage() {
     }
   }, [currentStep, lastBadgeStep]);
 
+  useEffect(() => {
+    return () => {
+      if (cueTimerRef.current) clearTimeout(cueTimerRef.current);
+    };
+  }, []);
+
   const canGoNext = () => canProceed(currentStep, answers as any);
+
+  const triggerMomentumCue = (group?: string, percentOverride?: number) => {
+    const cueGroup = MOMENTUM_CUES[group ?? 'default'] ?? MOMENTUM_CUES.default;
+    if (!cueGroup?.length) return;
+    const percent = percentOverride ?? calcProgressPercent(currentStep, visibleSteps.length);
+    const template = cueGroup[Math.floor(Math.random() * cueGroup.length)];
+    if (!template) return;
+    setMomentumCue(template({ percent, name: participantName }));
+    if (cueTimerRef.current) clearTimeout(cueTimerRef.current);
+    cueTimerRef.current = setTimeout(() => setMomentumCue(null), 2600);
+  };
 
   const handleNext = async () => {
     const stepId = currentStepConfig?.id ?? String(currentStep);
     if (clientId) logQuizNextClicked(clientId, stepId);
     if (!canGoNext()) {
-      toast.error('Please answer the question to continue');
-      setValidationMessage('Please answer the question to continue');
+      if (currentStepConfig?.id === 'basic_profile') {
+        toast.error('Please enter your age and basic body measurements to continue.');
+        setValidationMessage('Please enter your age and basic body measurements (height and weight) so we can calculate your plan safely.');
+      } else {
+        toast.error('Please answer the question to continue');
+        setValidationMessage('Please answer the question to continue');
+      }
       return;
     }
     setValidationMessage(null);
@@ -176,6 +232,8 @@ export function QuizPage() {
       await handleSubmit();
       return;
     }
+    const nextPercent = calcProgressPercent(currentStep + 1, visibleSteps.length);
+    triggerMomentumCue(currentStepConfig?.group, nextPercent);
     nextStep();
   };
 
@@ -183,6 +241,7 @@ export function QuizPage() {
     const stepId = currentStepConfig?.id ?? String(currentStep);
     if (clientId) logQuizBackClicked(clientId, stepId);
     if (currentStep === 0) return;
+    setMomentumCue(null);
     prevStep();
   };
 
@@ -270,9 +329,18 @@ export function QuizPage() {
     <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
       <div className="max-w-4xl mx-auto">
         {/* Sticky progress under header */}
-        <div className="sticky top-16 z-40 mb-6 border-b border-border/40 bg-background/80 px-4 py-3 backdrop-blur-md">
-          <QuizProgress currentStep={currentStep + 1} totalSteps={visibleSteps.length} onReset={handleStartOver} />
+        <div className="sticky top-4 z-40 mb-6 px-1 md:px-0">
+          <QuizProgress currentIndex={currentStep} visibleSteps={visibleSteps} participantName={participantName} />
         </div>
+
+        {momentumCue && (
+          <div className="mb-4 flex justify-center">
+            <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-white/95 px-4 py-2 text-sm font-semibold text-emerald-900 shadow-sm">
+              <Sparkles size={16} className="text-amber-500" />
+              <span>{momentumCue}</span>
+            </div>
+          </div>
+        )}
         
         {/* Saved indicator */}
         {showSavedIndicator && (
@@ -284,7 +352,7 @@ export function QuizPage() {
         
         {/* BMI Preview */}
         {bmiPreview && currentStep > 0 && (
-          <div className="max-w-2xl mx-auto mb-6 p-4 bg-white/80 dark:bg-neutral-900/70 backdrop-blur-sm rounded-2xl shadow-lg border border-emerald-200 dark:border-emerald-900/40">
+          <div className="max-w-2xl mx-auto mb-6 p-4 bg-white/85 dark:bg-neutral-900/70 backdrop-blur-sm rounded-2xl shadow-lg border border-emerald-200 dark:border-emerald-900/40">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-300">Your BMI</p>
@@ -295,67 +363,77 @@ export function QuizPage() {
                 <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{bmiPreview.category}</p>
               </div>
             </div>
+            <p className="mt-3 text-xs text-gray-500">We’ll walk through what this means for your health in an upcoming step.</p>
           </div>
         )}
 
         <div className="mb-2">
-          {currentStepConfig && <QuizStepRenderer step={currentStepConfig} />}
+          {currentStepConfig && (
+            <QuizStepRenderer
+              step={currentStepConfig}
+              onPrimaryAction={currentStepConfig.id === 'welcome_consent' ? handleNext : undefined}
+            />
+          )}
         </div>
         {validationMessage && (
-          <div className="mx-auto mb-6 max-w-2xl rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/40 dark:bg-amber-900/20 dark:text-amber-200">
+          <p className="mx-auto mb-4 max-w-2xl text-sm font-medium text-rose-600">
             {validationMessage}
-          </div>
+          </p>
         )}
 
         {/* Desktop/tablet navigation */}
-        <div className="hidden max-w-2xl mx-auto gap-4 md:flex">
-          {currentStep > 0 && (
+        {!currentStepConfig?.id?.includes('welcome_consent') && (
+          <div className="hidden max-w-2xl mx-auto gap-4 md:flex">
+            {currentStep > 0 && (
+              <button
+                onClick={handleBack}
+                className="px-6 py-3 border-2 border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+              >
+                ← Back
+              </button>
+            )}
             <button
-              onClick={handleBack}
-              className="px-6 py-3 border-2 border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition-colors"
+              onClick={handleNext}
+              disabled={isSubmitting}
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
             >
-              ← Back
+              {currentStep >= visibleSteps.length - 1
+                ? isSubmitting
+                  ? 'Saving...'
+                  : 'Complete Quiz →'
+                : 'Next →'}
             </button>
-          )}
-          <button
-            onClick={handleNext}
-            disabled={isSubmitting}
-            className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
-          >
-            {currentStep >= visibleSteps.length - 1
-              ? isSubmitting
-                ? 'Saving...'
-                : 'Complete Quiz →'
-              : 'Next →'}
-          </button>
-        </div>
+          </div>
+        )}
 
         {/* Mobile sticky CTA */}
-        <div className="md:hidden">
-          <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/40 bg-background/90 p-3 backdrop-blur-md">
-            <div className="mx-auto flex max-w-4xl items-center gap-3">
-              {currentStep > 0 && (
+        {!currentStepConfig?.id?.includes('welcome_consent') && (
+          <div className="md:hidden">
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/40 bg-background/90 p-3 backdrop-blur-md">
+              <div className="mx-auto flex max-w-4xl items-center gap-3">
+                {currentStep > 0 && (
+                  <button
+                    onClick={handleBack}
+                    className="shrink-0 rounded-xl border-2 border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+                  >
+                    ← Back
+                  </button>
+                )}
                 <button
-                  onClick={handleBack}
-                  className="shrink-0 rounded-xl border-2 border-gray-300 px-4 py-2 text-sm font-medium hover:bg-gray-50"
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white"
                 >
-                  ← Back
+                  {currentStep >= visibleSteps.length - 1
+                    ? isSubmitting
+                      ? 'Saving...'
+                      : 'Complete Quiz →'
+                    : 'Next →'}
                 </button>
-              )}
-              <button
-                onClick={handleNext}
-                disabled={isSubmitting}
-                className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white"
-              >
-                {currentStep >= visibleSteps.length - 1
-                  ? isSubmitting
-                    ? 'Saving...'
-                    : 'Complete Quiz →'
-                  : 'Next →'}
-              </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Exit Intent Modal */}
         {showExitIntent && (

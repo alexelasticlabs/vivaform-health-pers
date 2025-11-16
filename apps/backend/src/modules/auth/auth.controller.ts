@@ -97,6 +97,7 @@ export class AuthController {
     return (this.authService as any).resetPassword(dto);
   }
 
+  @Throttle(5, 60)
   @Get("verify-email")
   @ApiOkResponse({ description: "Верификация email" })
   verifyEmail(@Query("token") token: string) {

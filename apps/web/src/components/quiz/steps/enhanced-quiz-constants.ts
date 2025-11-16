@@ -1,4 +1,4 @@
-﻿﻿// Enhanced quiz constants for 30-step interactive quiz
+﻿﻿﻿// Enhanced quiz constants for 30-step interactive quiz
 // Phase-based structure for better engagement
 
 // Quiz Phases

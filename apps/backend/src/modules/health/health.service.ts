@@ -2,36 +2,31 @@
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
 
+type DatabaseHealth = {
+  status: "ok" | "error" | "skipped";
+  latencyMs: number;
+};
+
 @Injectable()
 export class HealthService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getStatus() {
-
-    // Check database connectivity
-    let dbStatus = 'ok';
-    let dbLatency = 0;
-    try {
-      const dbStart = Date.now();
-      await this.prisma.$queryRaw`SELECT 1`;
-      dbLatency = Date.now() - dbStart;
-    } catch {
-      dbStatus = 'error';
-    }
+    const skipDbCheck = process.env.HEALTH_SKIP_DB_CHECK === "true";
+    const database = skipDbCheck ? { status: "skipped", latencyMs: 0 } : await this.pingDatabase();
 
     // System info
     const memoryUsage = process.memoryUsage();
     const uptime = process.uptime();
 
+    const overallStatus = database.status === "error" ? "degraded" : "ok";
+
     return {
-      status: dbStatus === 'ok' ? 'ok' : 'degraded',
+      status: overallStatus,
       timestamp: new Date().toISOString(),
       uptime: Math.floor(uptime),
-      version: process.env.npm_package_version || '0.1.0',
-      database: {
-        status: dbStatus,
-        latencyMs: dbLatency
-      },
+      version: process.env.npm_package_version || "0.1.0",
+      database,
       memory: {
         heapUsedMB: Math.round(memoryUsage.heapUsed / 1024 / 1024),
         heapTotalMB: Math.round(memoryUsage.heapTotal / 1024 / 1024),
@@ -39,9 +34,24 @@ export class HealthService {
       },
       node: {
         version: process.version,
-        env: process.env.NODE_ENV || 'development'
+        env: process.env.NODE_ENV || "development"
       }
     };
+  }
+
+  private async pingDatabase(): Promise<DatabaseHealth> {
+    let status: DatabaseHealth["status"] = "ok";
+    let latencyMs = 0;
+
+    try {
+      const dbStart = Date.now();
+      await this.prisma.$queryRaw`SELECT 1`;
+      latencyMs = Date.now() - dbStart;
+    } catch {
+      status = "error";
+    }
+
+    return { status, latencyMs };
   }
 
   async getMetrics() {
