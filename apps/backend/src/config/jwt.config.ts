@@ -1,13 +1,12 @@
 ﻿﻿import { registerAs } from "@nestjs/config";
 
 export const jwtConfig = registerAs("jwt", () => {
-  const isProd = process.env.NODE_ENV === 'production';
-  const secret = process.env.JWT_SECRET ?? "super-secret";
-  const refreshSecret = process.env.JWT_REFRESH_SECRET ?? "super-refresh-secret";
+  const secret = process.env.JWT_SECRET;
+  const refreshSecret = process.env.JWT_REFRESH_SECRET;
 
-  // Warn in production if using default secrets (env validator will catch this earlier)
-  if (isProd && (secret === "super-secret" || refreshSecret === "super-refresh-secret")) {
-    throw new Error('Default JWT secrets detected in production! Set JWT_SECRET and JWT_REFRESH_SECRET.');
+  if (!secret || !refreshSecret) {
+    const nodeEnv = process.env.NODE_ENV || 'development';
+    throw new Error(`JWT secrets are missing for NODE_ENV=${nodeEnv}. Set JWT_SECRET and JWT_REFRESH_SECRET.`);
   }
 
   return {

@@ -1,4 +1,4 @@
-﻿import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
+﻿import { BadRequestException, Injectable, NotFoundException, InternalServerErrorException, Logger } from "@nestjs/common";
 import type Stripe from "stripe";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -18,6 +18,8 @@ const ACTIVE_STATUSES: Stripe.Subscription.Status[] = [
 
 @Injectable()
 export class SubscriptionsService {
+  private readonly logger = new Logger(SubscriptionsService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly stripeService: StripeService,
@@ -154,45 +156,61 @@ export class SubscriptionsService {
 
     const plan = subscription.metadata.plan || 'monthly';
 
-    await this.prisma.subscription.upsert({
-      where: { userId },
-      update: {
-        stripeCustomerId: subscription.customer as string,
-        stripeSubscriptionId: subscription.id,
-        stripePriceId: priceId,
-        plan: this.mapPlanToPrisma(plan) as any,
-        status: this.mapStripeStatusToPrisma(subscription.status) as any,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
-        canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
-        trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-        metadata: subscription.metadata as any
-      },
-      create: {
-        userId,
-        stripeCustomerId: subscription.customer as string,
-        stripeSubscriptionId: subscription.id,
-        stripePriceId: priceId,
-        plan: this.mapPlanToPrisma(plan) as any,
-        status: this.mapStripeStatusToPrisma(subscription.status) as any,
-        currentPeriodStart: new Date(subscription.current_period_start * 1000),
-        currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-        cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
-        canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
-        trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
-        trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
-        metadata: subscription.metadata as any
-      }
-    });
+    try {
+      await this.prisma.subscription.upsert({
+        where: { userId },
+        update: {
+          stripeCustomerId: subscription.customer as string,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId: priceId,
+          plan: this.mapPlanToPrisma(plan) as any,
+          status: this.mapStripeStatusToPrisma(subscription.status) as any,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+          canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+          trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+          trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+          metadata: subscription.metadata as any
+        },
+        create: {
+          userId,
+          stripeCustomerId: subscription.customer as string,
+          stripeSubscriptionId: subscription.id,
+          stripePriceId: priceId,
+          plan: this.mapPlanToPrisma(plan) as any,
+          status: this.mapStripeStatusToPrisma(subscription.status) as any,
+          currentPeriodStart: new Date(subscription.current_period_start * 1000),
+          currentPeriodEnd: new Date(subscription.current_period_end * 1000),
+          cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
+          canceledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
+          trialStart: subscription.trial_start ? new Date(subscription.trial_start * 1000) : null,
+          trialEnd: subscription.trial_end ? new Date(subscription.trial_end * 1000) : null,
+          metadata: subscription.metadata as any
+        }
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to upsert subscription for userId=${userId}`,
+        error instanceof Error ? error.stack : undefined
+      );
+      throw new InternalServerErrorException('Не удалось обновить подписку пользователя');
+    }
 
     const tier = ACTIVE_STATUSES.includes(subscription.status) ? "PREMIUM" : "FREE";
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { tier }
-    });
+    try {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { tier }
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to update user tier for userId=${userId}`,
+        error instanceof Error ? error.stack : undefined
+      );
+      throw new InternalServerErrorException('Не удалось обновить статус пользователя');
+    }
   }
 
   async handleCheckoutCompleted(session: Stripe.Checkout.Session) {

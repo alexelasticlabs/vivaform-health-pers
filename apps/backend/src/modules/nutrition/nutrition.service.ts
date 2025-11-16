@@ -1,4 +1,4 @@
-﻿import { Injectable } from "@nestjs/common";
+﻿import { Injectable, InternalServerErrorException, Logger } from "@nestjs/common";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from "../../common/prisma/prisma.service";
@@ -7,22 +7,32 @@ import type { CreateNutritionEntryDto } from "./dto/create-nutrition-entry.dto";
 
 @Injectable()
 export class NutritionService {
+  private readonly logger = new Logger(NutritionService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateNutritionEntryDto) {
     const date = dto.date ? new Date(dto.date) : new Date();
-    return this.prisma.nutritionEntry.create({
-      data: {
-        userId,
-        date,
-        mealType: dto.mealType,
-        food: dto.food,
-        calories: dto.calories,
-        protein: dto.protein,
-        fat: dto.fat,
-        carbs: dto.carbs
-      }
-    });
+    try {
+      return await this.prisma.nutritionEntry.create({
+        data: {
+          userId,
+          date,
+          mealType: dto.mealType,
+          food: dto.food,
+          calories: dto.calories,
+          protein: dto.protein,
+          fat: dto.fat,
+          carbs: dto.carbs
+        }
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to create nutrition entry for userId=${userId}`,
+        error instanceof Error ? error.stack : undefined
+      );
+      throw new InternalServerErrorException("Не удалось сохранить запись о питании");
+    }
   }
 
   async findDaily(userId: string, date?: string) {
