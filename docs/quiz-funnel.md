@@ -23,6 +23,12 @@ This document defines the quiz funnel design, recommended question types, analyt
 - Smooth transitions (fade/slide)
 - Save progress locally and to backend for logged users
 
+## Lead Capture
+- Endpoint: `POST /quiz/capture-email` (anonymous friendly)
+- DTO: `CaptureQuizEmailDto` with `{ email, clientId?, step?, type?, metadata? }`
+- Persistence: `QuizLead` table via `QuizLeadService.captureLead`
+- Behaviour: dedupe on `(email, clientId)`, attach userId when available, return `{ ok, leadId, savedAt }`
+
 ## Analytics Events (English names)
 - quiz.started -> { quizId, sessionId, entryPoint }
 - quiz.step_viewed -> { quizId, stepIndex }

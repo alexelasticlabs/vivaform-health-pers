@@ -1,47 +1,18 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { PrismaService } from '../../../common/prisma/prisma.service';
 import type { SubmitQuizDto, UpdateQuizProfileDto } from '../dto/submit-quiz.dto';
+import {
+  extractHeightCm,
+  extractWeightKg,
+  mapCookingTimeMinutes,
+  mapDietPreference,
+  mapExerciseRegularly,
+} from '../utils/answer-normalizer';
 
 @Injectable()
 export class QuizService {
   constructor(private prisma: PrismaService) {}
-
-  /**
-   * Normalize height to centimeters
-   * Accepts either cm or ft+in
-   */
-  private normalizeHeight(height: any): number {
-    if (height.cm) {
-      return height.cm;
-    }
-    if (height.ft !== undefined && height.in !== undefined) {
-      // Convert feet and inches to cm
-      const totalInches = height.ft * 12 + height.in;
-      return totalInches * 2.54;
-    }
-    if (height.ft !== undefined) {
-      // Only feet provided
-      const totalInches = height.ft * 12;
-      return totalInches * 2.54;
-    }
-    throw new BadRequestException('Height must be provided in cm or ft+in');
-  }
-
-  /**
-   * Normalize weight to kilograms
-   * Accepts either kg or lb
-   */
-  private normalizeWeight(weight: any): number {
-    if (weight.kg) {
-      return weight.kg;
-    }
-    if (weight.lb) {
-      // Convert pounds to kg
-      return weight.lb * 0.453592;
-    }
-    throw new BadRequestException('Weight must be provided in kg or lb');
-  }
 
   /**
    * Calculate BMI (Body Mass Index)
@@ -57,40 +28,103 @@ export class QuizService {
    * Extract normalized fields from quiz answers
    */
   private extractNormalizedFields(answers: any) {
-    const normalized: any = {};
+    const normalized: Record<string, any> = {};
 
-    // Normalize body metrics if provided
-    if (answers.body) {
-      if (answers.body.height) {
-        normalized.heightCm = this.normalizeHeight(answers.body.height);
-      }
-      if (answers.body.weight) {
-        normalized.weightKg = this.normalizeWeight(answers.body.weight);
+    const heightCm = extractHeightCm(answers);
+    if (typeof heightCm === 'number') {
+      normalized.heightCm = heightCm;
+    }
+
+    const weightKg = extractWeightKg(answers);
+    if (typeof weightKg === 'number') {
+      normalized.weightKg = weightKg;
+    }
+
+    if (typeof heightCm === 'number' && typeof weightKg === 'number') {
+      normalized.bmi = this.calculateBMI(weightKg, heightCm);
+    }
+
+    const primaryGoalBlock =
+      (answers?.primary_goal && typeof answers.primary_goal === 'object' ? answers.primary_goal : undefined) ??
+      (answers?.primaryGoal && typeof answers.primaryGoal === 'object' ? answers.primaryGoal : undefined);
+    const legacyGoals = typeof answers?.goals === 'object' ? answers.goals : undefined;
+    const goalSource = primaryGoalBlock ?? legacyGoals;
+
+    if (goalSource) {
+      const goalType = goalSource.type ?? goalSource.goalType ?? goalSource.intent;
+      if (typeof goalType === 'string') {
+        normalized.goalType = goalType;
       }
 
-      // Calculate BMI if we have both height and weight
-      if (normalized.heightCm && normalized.weightKg) {
-        normalized.bmi = this.calculateBMI(normalized.weightKg, normalized.heightCm);
+      const goalDeltaKg =
+        typeof goalSource.deltaKg === 'number'
+          ? goalSource.deltaKg
+          : typeof goalSource.delta_kg === 'number'
+            ? goalSource.delta_kg
+            : undefined;
+      if (goalDeltaKg !== undefined) {
+        normalized.goalDeltaKg = goalDeltaKg;
+      }
+
+      const etaMonths =
+        typeof goalSource.etaMonths === 'number'
+          ? goalSource.etaMonths
+          : typeof goalSource.eta_months === 'number'
+            ? goalSource.eta_months
+            : typeof goalSource.months === 'number'
+              ? goalSource.months
+              : undefined;
+      if (etaMonths !== undefined) {
+        normalized.etaMonths = etaMonths;
       }
     }
 
-    // Extract goal information
-    if (answers.goals) {
-      normalized.goalType = answers.goals.type;
-      normalized.goalDeltaKg = answers.goals.deltaKg;
-      normalized.etaMonths = answers.goals.etaMonths;
+    if (typeof answers?.primary_goal === 'string' && !normalized.goalType) {
+      const key = answers.primary_goal.toLowerCase();
+      if (key === 'weight_loss') normalized.goalType = 'lose';
+      else if (key === 'muscle_gain') normalized.goalType = 'gain';
+      else if (key === 'maintenance') normalized.goalType = 'maintain';
     }
 
-    // Extract diet plan
-    if (answers.diet?.plan) {
-      normalized.dietPlan = answers.diet.plan;
+    const dietPlan = mapDietPreference(answers) ?? answers?.diet?.plan;
+    if (typeof dietPlan === 'string') {
+      normalized.dietPlan = dietPlan;
     }
 
-    // Extract common habit fields
-    if (answers.habits) {
-      normalized.mealsPerDay = answers.habits.mealsPerDay;
-      normalized.cookingTimeMinutes = answers.habits.cookingTimeMinutes;
-      normalized.exerciseRegularly = answers.habits.exerciseRegularly;
+    const mealsPerDay =
+      typeof answers?.habits?.mealsPerDay === 'number'
+        ? answers.habits.mealsPerDay
+        : typeof answers?.meals_per_day === 'number'
+          ? answers.meals_per_day
+          : typeof answers?.mealsPerDay === 'number'
+            ? answers.mealsPerDay
+            : undefined;
+    if (mealsPerDay !== undefined) {
+      normalized.mealsPerDay = mealsPerDay;
+    }
+
+    const cookingTimeMinutes =
+      typeof answers?.habits?.cookingTimeMinutes === 'number'
+        ? answers.habits.cookingTimeMinutes
+        : typeof answers?.cooking_time_minutes === 'number'
+          ? answers.cooking_time_minutes
+          : typeof answers?.cookingTimeMinutes === 'number'
+            ? answers.cookingTimeMinutes
+            : mapCookingTimeMinutes(answers);
+    if (typeof cookingTimeMinutes === 'number') {
+      normalized.cookingTimeMinutes = cookingTimeMinutes;
+    }
+
+    const exerciseRegularly =
+      typeof answers?.habits?.exerciseRegularly === 'boolean'
+        ? answers.habits.exerciseRegularly
+        : typeof answers?.exercise_regularly === 'boolean'
+          ? answers.exercise_regularly
+          : typeof answers?.exerciseRegularly === 'boolean'
+            ? answers.exerciseRegularly
+            : mapExerciseRegularly(answers);
+    if (typeof exerciseRegularly === 'boolean') {
+      normalized.exerciseRegularly = exerciseRegularly;
     }
 
     return normalized;

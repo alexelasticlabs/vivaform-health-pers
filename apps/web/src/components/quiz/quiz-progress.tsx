@@ -56,6 +56,8 @@ const groupStageMap: Record<string, StageId> = {
   goals: 'goals',
   body_metrics: 'basics',
   activity: 'basics',
+  demographics: 'start',
+  lifestyle: 'basics',
   eating: 'basics',
   preferences: 'plan',
   health: 'goals',

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { QuizAnswersModel, derivePlanType } from '@/features/quiz/quiz-config';
+import type { QuizAnswersModel } from '@/features/quiz/quiz-config';
+import { derivePlanType } from '@/features/quiz/quiz-config';
 
 // Безопасные хелперы доступа к Storage
 const safeStorage = {
@@ -22,10 +23,25 @@ export interface QuizAnswers extends QuizAnswersModel {
 
 const NON_SENSITIVE_ANSWER_FIELDS: (keyof QuizAnswers)[] = [
   'primary_goal',
+  'gender',
   'activity_level',
+  'weekly_rhythm',
+  'sleep_quality',
+  'weight_loss_rebound',
+  'last_ideal_weight_timing',
   'food_likes',
+  'eating_habits',
+  'protein_preferences',
+  'food_allergies',
+  'food_intolerances',
+  'diet_preference',
+  'diet_safety_override',
   'cooking_style',
+  'cooking_confidence',
+  'cooking_skill_tags',
   'budget_level',
+  'clothing_size_current',
+  'clothing_size_goal',
   'final_plan_type',
   'answersVersion'
 ];
@@ -177,6 +193,8 @@ export const useQuizStore = create<QuizStore>()(
             'food_likes',
             'health_conditions',
             'cooking_style',
+            'diet_preference',
+            'diet_safety_override',
           ];
           if (planAffinityFields.some((field) => field in updates)) {
             nextAnswers.final_plan_type = derivePlanType(nextAnswers);

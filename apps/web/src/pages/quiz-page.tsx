@@ -128,7 +128,7 @@ export function QuizPage() {
     capturedEmailRef.current = rawEmail;
     void (async () => {
       try {
-        await captureQuizEmail({ email: rawEmail, clientId, step: currentStep, type: 'mid_quiz' });
+        await captureQuizEmail({ email: rawEmail, clientId, step: currentStep, type: 'midpoint' });
       } catch {
         // fail silently
       }

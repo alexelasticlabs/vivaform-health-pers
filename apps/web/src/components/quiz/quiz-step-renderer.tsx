@@ -17,12 +17,16 @@ const GROUP_VARIANT_MAP: Record<string, QuizCardVariant> = {
   summary: 'plan',
   milestone: 'plan',
   offer: 'plan',
+  lifestyle: 'behavior',
+  demographics: 'goals',
 };
 
 const GROUP_EYEBROW_MAP: Record<string, string> = {
   onboarding: 'Let’s get acquainted',
   body_metrics: 'Vitals & safety',
   activity: 'Daily rhythm',
+  demographics: 'Profile basics',
+  lifestyle: 'Lifestyle pulse',
   goals: 'Your focus',
   eating: 'Food personality',
   preferences: 'Nutrition vibe check',
@@ -224,6 +228,146 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
           <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-4 text-sm font-medium text-amber-900">
             <span className="mr-2 text-base">⏳</span>
             {urgency}
+          </div>
+        </div>
+      );
+    }
+
+    if (step.id === 'premium_value_teaser') {
+      const proofCopy = typeof step.microcopy === 'string'
+        ? step.microcopy
+        : 'Premium spots refresh nightly — upgrading early keeps your streak boosts alive.';
+      return (
+        <div className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-3xl border border-indigo-100 bg-white/90 p-5 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-600">Premium (Step 11 sneak peek)</p>
+              <h4 className="mt-2 text-lg font-semibold text-indigo-900">Keeps streak boosts + habit nudges alive</h4>
+              <ul className="mt-4 space-y-2 text-sm text-indigo-900/80">
+                <li>• Adaptive meal builder + grocery automation</li>
+                <li>• Coach nudges + hydration/reminder texts</li>
+                <li>• Macro recalculations during Optimization Week 2</li>
+              </ul>
+            </div>
+            <div className="rounded-3xl border border-dashed border-gray-200 bg-gradient-to-b from-gray-50 to-white p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500">Free path</p>
+              <h4 className="mt-2 text-lg font-semibold text-gray-800">Keeps blueprint + weekly check-ins</h4>
+              <ul className="mt-4 space-y-2 text-sm text-gray-600">
+                <li>• Static calorie + macro targets</li>
+                <li>• Manual grocery planning</li>
+                <li>• Upgrade anytime without losing progress</li>
+              </ul>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900">
+            <p className="font-semibold">Social proof</p>
+            <p className="mt-1">{proofCopy}</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (step.id === 'calculating_plan') {
+      const planType = answers.final_plan_type ?? derivePlanType(answers);
+      const firstName = (answers.name ?? '').split(' ')[0] || 'Member';
+      const progress = 82; // pseudo progress for animation feel
+      const goalMap: Record<string, string> = {
+        weight_loss: 'Steady fat loss',
+        muscle_gain: 'Lean muscle gain',
+        maintenance: 'Maintenance & accountability',
+        energy_health: 'Energy + metabolic health',
+        food_relationship: 'Gentle nutrition reset',
+      };
+      const goalSummary = goalMap[answers.primary_goal ?? ''] ?? 'Balanced progress';
+      const insightBullets = [
+        `Goal locked: ${goalSummary}`,
+        answers.weekly_rhythm ? `Weekly rhythm: ${(answers.weekly_rhythm ?? '').replace(/_/g, ' ')}` : 'Lifestyle synced',
+        answers.eating_habits?.length ? `${answers.eating_habits.length} habit cues logged` : 'Habit cues unlocked',
+      ];
+      const macroSplit: Record<string, { carbs: number; protein: number; fats: number }> = {
+        mediterranean: { carbs: 45, protein: 30, fats: 25 },
+        carnivore: { carbs: 5, protein: 55, fats: 40 },
+        anti_inflammatory: { carbs: 40, protein: 30, fats: 30 },
+      };
+      const macros = macroSplit[planType ?? 'mediterranean'];
+      return (
+        <div className="space-y-5">
+          <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 shadow-inner">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Crunching the numbers</p>
+            <h3 className="mt-1 text-lg font-bold text-emerald-900">{firstName}, we’re syncing macros, meal timing, and habit cues.</h3>
+            <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-emerald-100">
+              <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-400" style={{ width: `${progress}%` }} />
+            </div>
+            <p className="mt-2 text-xs text-emerald-900/70">{progress}% complete · pulling latest member data + RD heuristics</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-emerald-100 bg-white/90 p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Live insights</p>
+              <ul className="mt-3 space-y-2 text-sm text-emerald-900">
+                {insightBullets.map((item) => (
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="mt-0.5 text-emerald-500">✦</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="rounded-2xl border border-emerald-100 bg-white/90 p-4 shadow-sm">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Macro preview</p>
+              <div className="mt-3 space-y-3">
+                {['Carbs', 'Protein', 'Fats'].map((label) => {
+                  const key = label.toLowerCase() as 'carbs' | 'protein' | 'fats';
+                  const value = macros[key];
+                  return (
+                    <div key={label}>
+                      <div className="flex items-center justify-between text-sm font-medium text-emerald-900">
+                        <span>{label}</span>
+                        <span>{value}%</span>
+                      </div>
+                      <div className="mt-1 h-2 rounded-full bg-neutral-100">
+                        <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style={{ width: `${value}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-dashed border-emerald-200 p-4 text-sm text-muted-foreground">
+            Coach note: we’ll email the full Phase 1 kit the moment the plan is ready.
+          </div>
+        </div>
+      );
+    }
+
+    if (step.id === 'member_testimonials') {
+      const quotes = [
+        {
+          name: 'Kara · lost 8 kg',
+          text: '“Phase 1 killed the night snacking. The weekly recap emails make it impossible to ghost myself.”',
+        },
+        {
+          name: 'Sam · down 2 sizes',
+          text: '“The anti-inflammatory plan stopped the bloating in 10 days. I finally trust my hunger again.”',
+        },
+        {
+          name: 'Andre · more energy',
+          text: '“Macro recalculations after travel are clutch. I stay on track without feeling punished.”',
+        },
+      ];
+      return (
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            {quotes.map((quote) => (
+              <div key={quote.name} className="rounded-3xl border border-emerald-100 bg-white/90 p-4 shadow-sm">
+                <p className="text-sm text-emerald-900">{quote.text}</p>
+                <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-emerald-700">{quote.name}</p>
+              </div>
+            ))}
+          </div>
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/80 p-4 text-sm text-emerald-900">
+            <p className="font-semibold">Live community signal</p>
+            <p className="mt-1">4.8★ satisfaction this week · 120k members active · Coach replies in under 12h.</p>
           </div>
         </div>
       );
@@ -533,9 +677,10 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
     }
 
     if (step.uiType === 'info') {
+      const infoCopy = typeof step.microcopy === 'string' ? step.microcopy : undefined;
       return (
         <div className="space-y-3">
-          {step.microcopy && <p className="text-sm text-muted-foreground">{step.microcopy}</p>}
+          {infoCopy && <p className="text-sm text-muted-foreground">{infoCopy}</p>}
           {step.options && renderOptions(step.options)}
         </div>
       );
@@ -544,12 +689,14 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
     return renderOptions(step.options);
   };
 
+  const helpText = step.uiType !== 'info' && typeof step.microcopy === 'string' ? step.microcopy : undefined;
+
   return (
     <QuizCard
       title={step.question}
       subtitle={step.subtitle}
       emoji={undefined}
-      helpText={step.microcopy}
+      helpText={helpText}
       variant={getCardVariant(step)}
       eyebrowLabel={getCardEyebrow(step)}
     >

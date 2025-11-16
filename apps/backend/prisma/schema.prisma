@@ -141,6 +141,26 @@ model QuizProfile {
   @@index([clientId])
 }
 
+model QuizLead {
+  id          String   @id @default(cuid())
+  email       String
+  clientId    String   @default("")
+  captureType String?
+  step        Int?
+  metadata    Json?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([email, clientId])
+  @@index([email])
+  @@index([clientId])
+  @@index([captureType])
+  @@index([createdAt])
+  @@index([userId])
+}
+
 model NutritionEntry {
   id        String   @id @default(cuid())
   user      User     @relation(fields: [userId], references: [id])

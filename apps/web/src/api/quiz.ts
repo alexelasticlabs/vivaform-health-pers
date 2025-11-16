@@ -1,36 +1,12 @@
 import { apiClient } from './client';
 import axios from 'axios';
+import type { QuizAnswersModel } from '@/features/quiz/quiz-config';
 
-// Quiz answer structure matching backend DTO
-export interface QuizAnswers {
-  diet?: {
-    plan?: string;
-  };
-  body?: {
-    height?: {
-      cm?: number;
-      ft?: number;
-      in?: number;
-    };
-    weight?: {
-      kg?: number;
-      lb?: number;
-    };
-  };
-  goals?: {
-    type?: 'lose' | 'maintain' | 'gain';
-    deltaKg?: number;
-    etaMonths?: number;
-  };
-  habits?: {
-    mealsPerDay?: number;
-    snacks?: boolean;
-    cookingTimeMinutes?: number;
-    exerciseRegularly?: boolean;
-    [key: string]: any;
-  };
-  [key: string]: any;
-}
+// Quiz answer structure mirrored from quiz store to keep submit payloads typed.
+export type QuizAnswers = QuizAnswersModel & {
+  answersVersion?: number;
+  [key: string]: unknown;
+};
 
 export interface SubmitQuizRequest {
   clientId: string;
@@ -95,6 +71,21 @@ export interface GetQuizPreviewResponse {
   savedAt?: string;
 }
 
+export interface CaptureQuizEmailRequest {
+  email: string;
+  clientId?: string;
+  step?: number;
+  type?: 'midpoint' | 'exit' | 'offer';
+  metadata?: Record<string, unknown>;
+}
+
+export interface CaptureQuizEmailResponse {
+  ok: boolean;
+  message?: string;
+  leadId?: string;
+  savedAt?: string;
+}
+
 /**
  * Submit quiz profile (creates or updates) - authenticated
  */
@@ -153,14 +144,9 @@ export async function getQuizPreview(): Promise<GetQuizPreviewResponse> {
 /**
  * Capture email for quiz progress (midpoint/exit-intent) - anonymous endpoint
  */
-export async function captureQuizEmail(data: {
-  email: string;
-  clientId?: string;
-  step?: number;
-  type?: 'midpoint' | 'exit'
-}): Promise<{ ok: boolean; message: string }> {
+export async function captureQuizEmail(data: CaptureQuizEmailRequest): Promise<CaptureQuizEmailResponse> {
   try {
-    const response = await apiClient.post('/quiz/capture-email', data);
+    const response = await apiClient.post<CaptureQuizEmailResponse>('/quiz/capture-email', data);
     return response.data;
   } catch (err) {
     // Non-fatal: return success anyway

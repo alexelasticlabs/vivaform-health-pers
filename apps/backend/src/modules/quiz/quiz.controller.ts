@@ -8,7 +8,9 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { CurrentUser as CurrentUserPayload } from '../../common/types/current-user';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { QuizService as LegacyQuizService } from './quiz.service';
-import type { QuizAnswers } from '@vivaform/shared';
+import { buildLegacyQuizAnswers } from './utils/answer-normalizer';
+import type { CaptureQuizEmailDto } from './dto/capture-email.dto';
+import { QuizLeadService } from './services/quiz-lead.service';
 
 @ApiTags('quiz')
 @Controller('quiz')
@@ -16,47 +18,8 @@ export class QuizController {
   constructor(
     private quizProfileService: QuizProfileService,
     private legacyQuizService: LegacyQuizService,
+    private quizLeadService: QuizLeadService,
   ) {}
-
-  private mapAnyToQuizAnswers(payload: any): QuizAnswers {
-    const p = payload || {};
-    const answers: QuizAnswers = {
-      dietPlan: p.dietPlan || p?.diet?.plan,
-      heightCm: p.heightCm ?? p.height ?? p?.body?.height?.cm,
-      currentWeightKg: p.currentWeightKg ?? p.weight ?? p?.body?.weight?.kg,
-      targetWeightKg: p.targetWeightKg,
-      activityLevel: p.activityLevel || p?.habits?.activityLevel,
-      gender: p.gender,
-      birthDate: p.birthDate,
-      mealsPerDay: p.mealsPerDay ?? p?.habits?.mealsPerDay,
-      snackBetweenMeals: p.snackBetweenMeals ?? p?.habits?.snacks,
-      cookAtHomeFrequency: p.cookAtHomeFrequency ?? p?.habits?.cookAtHomeFrequency,
-      fastFoodFrequency: p.fastFoodFrequency ?? p?.habits?.fastFoodFrequency,
-      exerciseRegularly: p.exerciseRegularly ?? p?.habits?.exerciseRegularly,
-      sleepHours: p.sleepHours ?? p?.habits?.sleepHours,
-      foodAllergies: p.foodAllergies ?? p?.habits?.foodAllergies,
-      avoidedFoods: p.avoidedFoods ?? p?.habits?.avoidedFoods,
-      mealComplexity: p.mealComplexity ?? p?.habits?.mealComplexity,
-      cookingTimeMinutes: p.cookingTimeMinutes ?? p?.habits?.cookingTimeMinutes,
-      wakeUpTime: p.wakeUpTime ?? p?.habits?.wakeUpTime,
-      dinnerTime: p.dinnerTime ?? p?.habits?.dinnerTime,
-      dailyWaterMl: p.dailyWaterMl ?? p?.habits?.dailyWaterMl,
-      wantReminders: p.wantReminders ?? p?.habits?.wantReminders,
-      trackActivity: p.trackActivity ?? p?.habits?.trackActivity,
-      connectHealthApp: p.connectHealthApp ?? p?.habits?.connectHealthApp,
-      theme: p.theme,
-    };
-
-    // Derive targetWeight from simple goal strings if provided by legacy clients
-    if (!answers.targetWeightKg && typeof p.goal === 'string' && typeof answers.currentWeightKg === 'number') {
-      const w = answers.currentWeightKg;
-      if (/lose/i.test(p.goal)) answers.targetWeightKg = w - 5;
-      else if (/gain|muscle/i.test(p.goal)) answers.targetWeightKg = w + 3;
-      else answers.targetWeightKg = w;
-    }
-
-    return answers;
-  }
 
   /**
    * POST /quiz/preview
@@ -81,7 +44,7 @@ export class QuizController {
       } catch {}
     }
     // Always compute full preview using legacy calculator
-    const answers = this.mapAnyToQuizAnswers(dto?.answers ?? dto);
+    const answers = buildLegacyQuizAnswers(dto?.answers ?? dto);
     const result = this.legacyQuizService.calculateQuizResult(answers);
     return {
       bmr: result.bmr,
@@ -178,10 +141,13 @@ export class QuizController {
     description: 'Save email for guest users to resume quiz later. Non-fatal endpoint.'
   })
   @ApiOkResponse({ description: 'Email captured successfully' })
-  async captureEmail(@Body() dto: { email: string; clientId?: string; step?: number; type?: 'midpoint' | 'exit' }) {
-    // TODO: Implement email capture logic (e.g., save to LeadCapture table, send reminder email)
-    // For now, just log and return success
-    console.log('[Quiz] Email captured:', { email: dto.email, clientId: dto.clientId, step: dto.step, type: dto.type });
-    return { ok: true, message: 'Email saved successfully' };
+  async captureEmail(@Body() dto: CaptureQuizEmailDto, @CurrentUser() user?: CurrentUserPayload) {
+    const result = await this.quizLeadService.captureLead(dto, user?.userId);
+    return {
+      ok: true,
+      leadId: result.leadId,
+      savedAt: result.savedAt,
+      message: 'Email saved successfully',
+    };
   }
 }
