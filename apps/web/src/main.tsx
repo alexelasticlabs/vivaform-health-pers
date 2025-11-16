@@ -4,7 +4,7 @@ import {RouterProvider} from "react-router-dom";
 import "@radix-ui/themes/styles.css";
 
 import {AppProviders} from "@/providers/app-providers";
-import {createAppRouter} from "@/routes/router";
+import {createAppRouter} from "@/routes/router-v2";
 import {initSentry} from '@/lib/sentry';
 import "./styles/tailwind.css";
 import "./styles/animations.css";
