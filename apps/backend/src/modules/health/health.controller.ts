@@ -1,11 +1,12 @@
-﻿import { Controller, Get } from "@nestjs/common";
-import { ApiOperation, ApiTags } from "@nestjs/swagger";
+﻿import { Controller, Get, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 import { SkipThrottle } from "@nestjs/throttler";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { HealthService } from "./health.service";
+import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+import { AdminGuard } from "../../common/guards/admin.guard";
 
-@SkipThrottle()
 @ApiTags("health")
 @Controller("health")
 export class HealthController {
@@ -17,6 +18,7 @@ export class HealthController {
     }
   }
 
+  @SkipThrottle()
   @Get()
   @ApiOperation({ summary: "Проверить статус API" })
   async getHealth() {
@@ -30,6 +32,8 @@ export class HealthController {
     return this.healthService.getStatus();
   }
 
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  @ApiBearerAuth()
   @Get("metrics")
   @ApiOperation({ summary: "Получить метрики приложения" })
   async getMetrics() {

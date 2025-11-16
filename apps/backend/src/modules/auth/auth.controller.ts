@@ -1,6 +1,7 @@
 ﻿import { Body, Controller, Get, Post, Query, UseGuards, Res, Req, HttpCode, ForbiddenException } from "@nestjs/common";
 import { ApiOkResponse, ApiTags, ApiCreatedResponse } from "@nestjs/swagger";
 import type { Response, Request } from "express";
+import { Throttle } from "@nestjs/throttler";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
 import type { CurrentUser as CurrentUserPayload } from "../../common/types/current-user";
@@ -24,6 +25,7 @@ export class AuthController {
     return `${norm}/auth/refresh`.replace(/\/+/g, '/');
   }
 
+  @Throttle(5, 60)
   @Post("register")
   @ApiCreatedResponse({ description: "Регистрация пользователя и выдача токенов" })
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
@@ -41,6 +43,7 @@ export class AuthController {
     };
   }
 
+  @Throttle(10, 60)
   @Post("login")
   @ApiOkResponse({ description: "Авторизация пользователя" })
   login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
@@ -80,12 +83,14 @@ export class AuthController {
     return (this.authService as any).getProfile(user.userId);
   }
 
+  @Throttle(5, 60)
   @Post("forgot-password")
   @ApiOkResponse({ description: "Запрос на сброс пароля" })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return (this.authService as any).forgotPassword(dto);
   }
 
+  @Throttle(5, 60)
   @Post("reset-password")
   @ApiOkResponse({ description: "Сброс пароля по токену" })
   resetPassword(@Body() dto: ResetPasswordDto) {
@@ -98,6 +103,7 @@ export class AuthController {
     return (this.authService as any).verifyEmail(token);
   }
 
+  @Throttle(3, 60)
   @Post("request-temp-password")
   @ApiOkResponse({ description: "Запрос временного пароля" })
   requestTempPassword(@Body() dto: RequestTempPasswordDto) {
@@ -122,6 +128,7 @@ export class AuthController {
     return (this.authService as any).testEmail(dto.email);
   }
 
+  @Throttle(3, 60)
   @Post("resend-verification")
   @ApiOkResponse({ description: "Повторная отправка письма для верификации email" })
   resendVerification(@Body() dto: ResendVerificationDto) {
