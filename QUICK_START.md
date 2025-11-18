@@ -32,6 +32,18 @@ FRONTEND_URL="http://localhost:5173"
 # Optional
 NODE_ENV="development"
 PORT=4000
+# Cron timezone (используется в планировщике задач; по умолчанию UTC)
+APP_TIMEZONE="Europe/Moscow"
+
+# Разрешённые источники для CORS (обязательны в production; запятая между значениями)
+# Пример: "https://vivaform.app,https://app.vivaform.health"
+CORS_ORIGINS="http://localhost:5173,http://localhost:5174"
+
+# Сид администратора (опционально, для быстрого доступа в dev)
+ADMIN_SEED_ENABLE=1
+ADMIN_SEED_EMAIL="admin@vivaform.local"
+ADMIN_SEED_PASSWORD="ChangeMe123!"
+ADMIN_SEED_NAME="Dev Admin"
 ```
 
 #### Применить миграции и seeds:
@@ -192,6 +204,22 @@ npx prisma migrate status
 npx prisma migrate reset
 ```
 
+В development частая причина — отсутствует `STRIPE_SECRET_KEY`. Установите тестовый ключ `sk_test_...` или временно добавьте его в `.env`. Без ключа сервис Stripe выбросит исключение и сервер упадёт, что приводит к ошибкам `ECONNREFUSED` во фронтенде.
+
+Если фронтенд показывает `ECONNREFUSED` на запросы `/api/...`:
+1. Убедитесь, что backend действительно слушает порт (по умолчанию `4000`):
+  ```bash
+  pnpm --filter @vivaform/backend dev
+  ```
+2. Проверьте, что переменная `PORT` не занята другим процессом.
+3. Убедитесь, что в браузере нет кэша старых service worker (очистите приложение).
+4. В production обязательно задайте корректный `CORS_ORIGINS`, иначе ответы будут отклоняться политикой CORS.
+
+Порт можно проверить:
+```bash
+netstat -ano | findstr :4000
+```
+
 ### Frontend CORS ошибки
 Убедитесь, что `FRONTEND_URL` в backend `.env` соответствует вашему frontend URL.
 
@@ -210,6 +238,12 @@ cd apps/web && npx tsc --noEmit
 ```
 
 ### Stripe webhook не работает локально
+### Предупреждение CSP о frame-ancestors
+Если видите предупреждение о `frame-ancestors` в meta-теге: директива удалена из HTML и теперь доставляется только через заголовки (Helmet / nginx). Это ожидаемое поведение.
+
+### React Fast Refresh отключён / DevTools shim
+Сообщение обычно связано с расширением браузера React DevTools. В кодовой базе нет пользовательского переопределения `__REACT_DEVTOOLS_GLOBAL_HOOK__`. Проверьте отключение проблемных расширений, если необходимо восстановить Fast Refresh.
+
 Используйте Stripe CLI:
 ```bash
 stripe listen --forward-to localhost:4000/webhooks/stripe

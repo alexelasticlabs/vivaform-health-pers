@@ -4,7 +4,7 @@ import { QuizCard, OptionButton, OptionTile, SliderInput, BMIIndicator } from '@
 import type { QuizCardVariant } from '@/components/quiz/quiz-card';
 import { useQuizStore, calculateBMI } from '@/store/quiz-store';
 import type { QuizAnswers } from '@/store/quiz-store';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { logCalculatingScreenViewed, logDemographicVariantShown } from '@/lib/analytics';
 
 interface QuizStepRendererProps {
@@ -12,6 +12,100 @@ interface QuizStepRendererProps {
   onPrimaryAction?: () => void;
 }
 
+interface StageHeaderConfig {
+  stage: string;
+  step: string;
+  progress: number;
+}
+
+const STAGE_HEADERS: Record<string, StageHeaderConfig> = {
+  primary_goal: { stage: 'Stage 1 · Goals', step: 'Step 1 of 3', progress: 33 },
+  gender_identity: { stage: 'Stage 1 · Goals', step: 'Step 2 of 3', progress: 66 },
+  body_metrics: { stage: 'Stage 2 · Basics', step: 'Step 1 of 2', progress: 50 },
+  weight_loss_rebound: { stage: 'Stage 2 · Basics', step: 'Step 2 of 2', progress: 100 },
+};
+
+const GOAL_EMOJIS: Record<string, string> = {
+  weight_loss: '⚖️',
+  muscle_gain: '💪',
+  maintenance: '🛡️',
+  energy_health: '⚡',
+  food_relationship: '🧠',
+};
+
+const GENDER_EMOJIS: Record<string, string> = {
+  female: '💃',
+  male: '🏃‍♂️',
+  non_binary: '🌈',
+  prefer_not_say: '🤍',
+};
+
+const WEIGHT_HISTORY_EMOJIS: Record<string, string> = {
+  first_time: '🚀',
+  lost_and_kept_off: '✅',
+  lost_and_regained: '🔁',
+  not_weight_focused: '🧭',
+};
+
+interface SelectionCardProps {
+  label: string;
+  description?: string;
+  icon?: string;
+  selected: boolean;
+  onClick: () => void;
+}
+
+function SelectionCard({ label, description, icon, selected, onClick }: SelectionCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex w-full items-center gap-4 rounded-2xl border-2 px-4 py-3 text-left transition duration-200 ${
+        selected
+          ? 'border-emerald-500 bg-emerald-50/80 shadow-md'
+          : 'border-gray-200 bg-white/90 hover:border-emerald-200 hover:bg-emerald-50/40'
+      }`}
+      aria-pressed={selected}
+    >
+      {icon && (
+        <span className="text-2xl" aria-hidden>
+          {icon}
+        </span>
+      )}
+      <div className="flex-1">
+        <p className="font-semibold text-foreground">{label}</p>
+        {description && <p className="text-sm text-muted-foreground">{description}</p>}
+      </div>
+      {selected && (
+        <svg className="h-6 w-6 text-emerald-500" viewBox="0 0 20 20" fill="currentColor">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+function StageProgressBar({ info }: { info?: StageHeaderConfig }) {
+  if (!info) return null;
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-[13px] font-semibold uppercase tracking-wide text-neutral-500">
+        <span>{info.stage}</span>
+        <span>{info.step}</span>
+      </div>
+      <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+        <div
+          className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-200"
+          style={{ width: `${info.progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 const GROUP_VARIANT_MAP: Record<string, QuizCardVariant> = {
   goals: 'goals',
@@ -57,9 +151,12 @@ function isSelectedMulti(valueList: string[] | undefined, value: string): boolea
 
 export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProps) {
   const { answers, updateAnswers } = useQuizStore();
-  // reset ephemeral per-step UI flags if needed (removed unused state)
+  const [showGenderWhy, setShowGenderWhy] = useState(false);
+  const [weightHistoryBmiExpanded, setWeightHistoryBmiExpanded] = useState(true);
+
   useEffect(() => {
-    // no-op
+    setShowGenderWhy(false);
+    setWeightHistoryBmiExpanded(true);
   }, [step.id]);
 
   // Precompute analytics-related demographic variables so we can call hooks unconditionally
@@ -120,6 +217,436 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
     const exists = current.includes(value);
     const next = exists ? current.filter((v) => v !== value) : [...current, value];
     updateAnswers({ [field]: next as QuizAnswers[K] } as Pick<QuizAnswers, K>);
+  };
+
+  const renderIntroStep = () => {
+    if (step.id !== 'welcome_consent') return null;
+    const consentAccepted = Boolean((answers as any).consent_non_medical);
+    const bullets = [
+      'Realistic meal timings for your schedule',
+      'Nutrition nudges, not strict rules',
+      'Progress tracking and weekly check-ins',
+    ];
+    return (
+      <div className="mx-auto w-full max-w-5xl">
+        <div
+          className="relative overflow-hidden rounded-[32px] border border-emerald-100/80 bg-white/95 shadow-2xl"
+          style={{ minHeight: '60vh', maxHeight: '75vh' }}
+        >
+          <div className="grid h-full gap-8 p-6 md:grid-cols-2 md:p-10">
+            <div className="flex flex-col justify-between">
+              <div className="space-y-5">
+                <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-800">
+                  <span className="rounded-full bg-emerald-100/80 px-3 py-1">Let’s get acquainted</span>
+                  <span className="rounded-full bg-emerald-100/80 px-3 py-1">3-minute adaptive quiz</span>
+                </div>
+                <div>
+                  <h1 className="text-[clamp(1.9rem,2.6vw,2.4rem)] font-bold leading-snug text-emerald-950">{step.question}</h1>
+                  <p className="mt-3 text-base text-emerald-900/80">{step.subtitle}</p>
+                </div>
+                <ul className="space-y-3 text-sm text-emerald-900">
+                  {bullets.map((item) => (
+                    <li key={item} className="flex items-start gap-2">
+                      <span className="text-lg leading-none text-emerald-500">✦</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-xs font-semibold text-emerald-900/70">
+                  {step.microcopy ?? 'Educational guidance only — not a substitute for medical advice.'}
+                </p>
+              </div>
+              <div className="space-y-3">
+                <button
+                  type="button"
+                  className="w-full rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-500 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!consentAccepted}
+                  onClick={() => {
+                    if (!consentAccepted) return;
+                    onPrimaryAction?.();
+                  }}
+                >
+                  Start quiz
+                </button>
+                <label className="flex items-start gap-2 text-sm text-emerald-900/80">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 rounded border-emerald-200 text-emerald-600 focus:ring-emerald-500"
+                    checked={consentAccepted}
+                    onChange={(e) => updateAnswers({ consent_non_medical: e.target.checked } as any)}
+                  />
+                  <span>I understand this is educational support, not a medical diagnosis.</span>
+                </label>
+                <p className="text-xs font-semibold uppercase tracking-wide text-emerald-700">Takes about 3 minutes · 9 quick steps</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-center">
+              <div className="relative mx-auto w-full max-w-sm rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-600/90 to-teal-500/90 p-5 text-white shadow-2xl">
+                <div className="flex items-center justify-between text-xs uppercase tracking-wide text-emerald-100/80">
+                  <span>Sample plan snapshot</span>
+                  <span>Week 4</span>
+                </div>
+                <p className="mt-4 text-sm text-emerald-50/90">Plan confidence</p>
+                <p className="text-4xl font-bold">92%</p>
+                <div className="mt-4 grid gap-3 rounded-2xl bg-white/10 p-4 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span>Average progress</span>
+                    <span className="font-semibold">+2.4 kg lean</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Weekly check-ins</span>
+                    <span className="font-semibold">Every Sunday</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Meal timing score</span>
+                    <span className="font-semibold">8.7 / 10</span>
+                  </div>
+                </div>
+                <div className="mt-5 rounded-2xl bg-white/15 p-3 text-xs text-emerald-50/90">
+                  <p>“Steady, doable wins beat extremes. We’ll pace it with you.”</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderGoalStep = () => {
+    if (step.id !== 'primary_goal') return null;
+    const field = step.fields[0] as keyof QuizAnswers;
+    const current = answers[field] as string | undefined;
+    return (
+      <div className="mx-auto w-full max-w-3xl space-y-6">
+        <StageProgressBar info={STAGE_HEADERS[step.id]} />
+        <div className="rounded-[32px] border border-emerald-100 bg-white/95 p-6 shadow-lg md:p-8">
+          <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+            Your focus
+          </span>
+          <h2 className="mt-4 text-[clamp(1.6rem,2.3vw,2rem)] font-bold leading-snug text-emerald-950">{step.question}</h2>
+          <p className="mt-2 text-base text-neutral-600">{step.subtitle}</p>
+          <div className="mt-6 space-y-3">
+            {(step.options ?? []).map((opt) => (
+              <SelectionCard
+                key={opt.value}
+                label={opt.label}
+                icon={GOAL_EMOJIS[opt.value] ?? '✨'}
+                selected={current === opt.value}
+                onClick={() => handleSingleSelect(field, opt.value as QuizAnswers[typeof field])}
+              />
+            ))}
+          </div>
+          <p className="mt-6 text-sm font-medium text-emerald-700">Nice — this helps us set realistic expectations.</p>
+        </div>
+      </div>
+    );
+  };
+
+  const renderGenderStep = () => {
+    if (step.id !== 'gender_identity') return null;
+    const field = step.fields[0] as keyof QuizAnswers;
+    const current = answers[field] as string | undefined;
+    return (
+      <div className="mx-auto w-full max-w-3xl space-y-6">
+        <StageProgressBar info={STAGE_HEADERS[step.id]} />
+        <div className="rounded-[32px] border border-emerald-100 bg-white/95 p-6 shadow-lg md:p-8">
+          <span className="inline-flex items-center rounded-full bg-amber-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-700">
+            Personalization seed
+          </span>
+          <h2 className="mt-4 text-[clamp(1.6rem,2.3vw,2rem)] font-bold leading-snug text-emerald-950">What’s your gender?</h2>
+          <p className="mt-2 text-base text-neutral-600">Used to adjust calorie and nutrient estimates.</p>
+          <p className="text-sm text-neutral-500">Optional and only used for personalization — never shared.</p>
+          <div className="mt-6 space-y-3">
+            {(step.options ?? []).map((opt) => (
+              <SelectionCard
+                key={opt.value}
+                label={opt.label}
+                icon={GENDER_EMOJIS[opt.value] ?? '🙂'}
+                selected={current === opt.value}
+                onClick={() => handleSingleSelect(field, opt.value as QuizAnswers[typeof field])}
+              />
+            ))}
+          </div>
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setShowGenderWhy((prev) => !prev)}
+              className="text-sm font-semibold text-emerald-700 underline-offset-2 hover:underline"
+            >
+              Why do we ask?
+            </button>
+            {showGenderWhy && (
+              <div className="mt-2 max-w-sm rounded-2xl border border-emerald-100 bg-white/95 p-3 text-sm text-neutral-700 shadow-md">
+                We only use this to keep calorie and nutrient ranges safe. Skip anytime — it’s never shared with other members.
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderBasicsStep = () => {
+    if (step.id !== 'body_metrics') return null;
+    const unit = (answers.unit_system ?? 'metric') as 'metric' | 'us';
+    const age = answers.age_years ?? '';
+    const heightCm = answers.height_cm ?? '';
+    const weightKg = answers.weight_kg ?? '';
+    const heightFt = answers.raw_height_ft ?? '';
+    const heightIn = answers.raw_height_in ?? '';
+    const weightLbs = answers.raw_weight_lbs ?? '';
+    const heightFtNumber = typeof answers.raw_height_ft === 'number' ? answers.raw_height_ft : 0;
+    const heightInNumber = typeof answers.raw_height_in === 'number' ? answers.raw_height_in : 0;
+    const bmiPreview = calculateBMI(answers);
+
+    const ageWarning =
+      typeof answers.age_years === 'number' && (answers.age_years < 18 || answers.age_years > 75)
+        ? 'If you are outside this range, consider checking in with your physician too.'
+        : null;
+    const heightWarning =
+      typeof answers.height_cm === 'number' && (answers.height_cm < 135 || answers.height_cm > 210)
+        ? 'Double-check your height — an estimate is fine.'
+        : null;
+    const weightWarningMetric =
+      typeof answers.weight_kg === 'number' && (answers.weight_kg < 40 || answers.weight_kg > 200)
+        ? 'If this looks off, tweak it so macros stay safe.'
+        : null;
+    const weightWarningImperial =
+      typeof answers.raw_weight_lbs === 'number' &&
+      answers.raw_weight_lbs > 0 &&
+      (answers.raw_weight_lbs < 90 || answers.raw_weight_lbs > 440)
+        ? 'If this feels inaccurate, adjust before continuing.'
+        : null;
+
+    const convertImperialHeightToCm = (ftVal: number, inchVal: number) => {
+      const totalInches = ftVal * 12 + inchVal;
+      if (!totalInches) return undefined;
+      return Math.round(totalInches * 2.54 * 10) / 10;
+    };
+
+    const convertLbsToKg = (lbsVal: number) => {
+      if (!lbsVal) return undefined;
+      return parseFloat((lbsVal * 0.45359237).toFixed(1));
+    };
+
+    return (
+      <div className="mx-auto w-full max-w-3xl space-y-6">
+        <StageProgressBar info={STAGE_HEADERS[step.id]} />
+        <div className="rounded-[32px] border border-emerald-100 bg-white/95 p-6 shadow-lg md:p-8">
+          <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            Vitals & safety
+          </span>
+          <h2 className="mt-4 text-[clamp(1.6rem,2.3vw,2rem)] font-bold leading-snug text-emerald-950">Your stats</h2>
+          <p className="mt-2 text-base text-neutral-600">Approximate values are okay — you can edit them later.</p>
+          <div className="mt-4 inline-flex rounded-full bg-neutral-100 p-1 text-xs font-medium">
+            <button
+              type="button"
+              className={`px-3 py-1 rounded-full transition ${unit === 'metric' ? 'bg-white shadow-sm text-emerald-700' : 'text-neutral-500'}`}
+              onClick={() => updateAnswers({ unit_system: 'metric' } as any)}
+            >
+              Metric (cm / kg)
+            </button>
+            <button
+              type="button"
+              className={`px-3 py-1 rounded-full transition ${unit === 'us' ? 'bg-white shadow-sm text-emerald-700' : 'text-neutral-500'}`}
+              onClick={() => updateAnswers({ unit_system: 'us' } as any)}
+            >
+              US (ft / lbs)
+            </button>
+          </div>
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
+            <div className="space-y-4">
+              <div>
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Age</label>
+                <input
+                  type="number"
+                  min={18}
+                  max={90}
+                  value={age}
+                  onChange={(e) => updateAnswers({ age_years: Number(e.target.value) || undefined } as any)}
+                  placeholder="30"
+                  className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                />
+                {ageWarning && <p className="mt-1 text-xs text-amber-600">{ageWarning}</p>}
+              </div>
+              {unit === 'metric' ? (
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Height (cm)</label>
+                  <input
+                    type="number"
+                    min={120}
+                    max={230}
+                    value={heightCm}
+                    onChange={(e) => updateAnswers({ height_cm: Number(e.target.value) || undefined } as any)}
+                    placeholder="170"
+                    className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  />
+                  {heightWarning && <p className="mt-1 text-xs text-amber-600">{heightWarning}</p>}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Height (ft)</label>
+                    <input
+                      type="number"
+                      min={4}
+                      max={7}
+                      value={heightFt || ''}
+                      onChange={(e) => {
+                        const nextValue = Number(e.target.value) || 0;
+                        const cmFromImperial = convertImperialHeightToCm(nextValue, heightInNumber);
+                        updateAnswers({
+                          raw_height_ft: nextValue,
+                          height_cm: cmFromImperial ?? undefined,
+                        } as any);
+                      }}
+                      placeholder="5"
+                      className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Height (in)</label>
+                    <input
+                      type="number"
+                      min={0}
+                      max={11}
+                      value={heightIn || ''}
+                      onChange={(e) => {
+                        const nextValue = Number(e.target.value) || 0;
+                        const cmFromImperial = convertImperialHeightToCm(heightFtNumber, nextValue);
+                        updateAnswers({
+                          raw_height_in: nextValue,
+                          height_cm: cmFromImperial ?? undefined,
+                        } as any);
+                      }}
+                      placeholder="8"
+                      className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className="space-y-4">
+              {unit === 'metric' ? (
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Weight (kg)</label>
+                  <input
+                    type="number"
+                    min={35}
+                    max={250}
+                    value={weightKg}
+                    onChange={(e) => updateAnswers({ weight_kg: Number(e.target.value) || undefined } as any)}
+                    placeholder="65"
+                    className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  />
+                  {weightWarningMetric && <p className="mt-1 text-xs text-amber-600">{weightWarningMetric}</p>}
+                </div>
+              ) : (
+                <div>
+                  <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-neutral-500">Weight (lbs)</label>
+                  <input
+                    type="number"
+                    min={70}
+                    max={600}
+                    value={weightLbs || ''}
+                    onChange={(e) => {
+                      const nextValue = Number(e.target.value) || 0;
+                      const kgFromLbs = convertLbsToKg(nextValue);
+                      updateAnswers({
+                        raw_weight_lbs: nextValue,
+                        weight_kg: kgFromLbs ?? undefined,
+                      } as any);
+                    }}
+                    placeholder="150"
+                    className="w-full rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  />
+                  {weightWarningImperial && <p className="mt-1 text-xs text-amber-600">{weightWarningImperial}</p>}
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="mt-6 rounded-2xl border border-emerald-100 bg-white/90 px-4 py-4">
+            {bmiPreview ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Your BMI</p>
+                    <p className="text-2xl font-bold text-emerald-700">{bmiPreview.bmi}</p>
+                  </div>
+                  <p className="text-sm font-semibold text-emerald-900">{bmiPreview.category}</p>
+                </div>
+                <p className="mt-2 text-xs text-neutral-500">We’ll explain what this means for you later in the quiz.</p>
+              </>
+            ) : (
+              <p className="text-sm text-neutral-600">We’ll calculate this once you add your height and weight.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderWeightHistoryStep = () => {
+    if (step.id !== 'weight_loss_rebound') return null;
+    const field = step.fields[0] as keyof QuizAnswers;
+    const current = answers[field] as string | undefined;
+    const bmiPreview = calculateBMI(answers);
+    return (
+      <div className="mx-auto w-full max-w-3xl space-y-6">
+        <StageProgressBar info={STAGE_HEADERS[step.id]} />
+        {bmiPreview && (
+          <div className="rounded-2xl border border-emerald-100 bg-white/95 px-4 py-4 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm font-semibold text-emerald-900">
+                {weightHistoryBmiExpanded ? (
+                  <>
+                    BMI:&nbsp;
+                    <span className="text-xl font-bold text-emerald-700">{bmiPreview.bmi}</span>
+                    <span className="ml-2 text-sm text-emerald-900/80">· {bmiPreview.category}</span>
+                  </>
+                ) : (
+                  `BMI: ${bmiPreview.bmi} · ${bmiPreview.category}`
+                )}
+              </p>
+              <button
+                type="button"
+                onClick={() => setWeightHistoryBmiExpanded((prev) => !prev)}
+                className="text-sm font-semibold text-emerald-700 underline-offset-2 hover:underline"
+              >
+                {weightHistoryBmiExpanded ? 'Hide details' : 'Show details'}
+              </button>
+            </div>
+            {weightHistoryBmiExpanded && (
+              <p className="mt-2 text-xs text-neutral-500">Rounded from your height and weight. We’ll unpack it later in the quiz.</p>
+            )}
+          </div>
+        )}
+        <div className="rounded-[32px] border border-emerald-100 bg-white/95 p-6 shadow-lg md:p-8">
+          <span className="inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+            Vitals & safety
+          </span>
+          <h2 className="mt-4 text-[clamp(1.6rem,2.3vw,2rem)] font-bold leading-snug text-emerald-950">Have you tried losing weight before?</h2>
+          <p className="mt-2 text-base text-neutral-600">Understanding your story helps us prevent rebound weight.</p>
+          <div className="mt-6 space-y-3">
+            {(step.options ?? []).map((opt) => (
+              <SelectionCard
+                key={opt.value}
+                label={opt.label}
+                icon={WEIGHT_HISTORY_EMOJIS[opt.value] ?? '✨'}
+                selected={current === opt.value}
+                onClick={() => handleSingleSelect(field, opt.value as QuizAnswers[typeof field])}
+              />
+            ))}
+          </div>
+          {current && (
+            <div className="mt-5 rounded-2xl bg-emerald-50/70 px-4 py-2 text-sm font-medium text-emerald-900">
+              Got it — we’ll factor this into your plan.
+            </div>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const renderOptions = (options: QuizOption[] = []) => {
@@ -184,89 +711,6 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
   };
 
   const renderBody = () => {
-    if (step.id === 'welcome_consent') {
-      const consentAccepted = Boolean((answers as any).consent_non_medical);
-      const heroImage = (step.meta as any)?.heroImage as string | undefined;
-      const socialProof = step.microcopy ?? '120,000+ people trust VivaForm • AI-personalized • Research-backed.';
-
-      return (
-        <div className="space-y-5">
-          <div className="overflow-hidden rounded-[30px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 shadow-inner">
-            <div className="grid items-center gap-8 p-6 md:grid-cols-[1.05fr_0.95fr] md:p-10">
-              <div className="space-y-5">
-                <div className="flex flex-wrap gap-2 text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-                  {socialProof.split('•').map((item) => (
-                    <span key={item.trim()} className="rounded-full bg-white/70 px-3 py-1 shadow-sm">
-                      {item.trim()}
-                    </span>
-                  ))}
-                </div>
-                <div className="space-y-3 text-emerald-900">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">3-minute adaptive quiz</p>
-                  <h3 className="text-[clamp(1.9rem,2.5vw,2.4rem)] font-bold leading-snug">Let’s craft nutrition coaching that feels human, not generic.</h3>
-                  <p className="text-sm text-emerald-900/80">
-                    Answer a few story-driven questions so we can blend data, dietitian insight, and habit cues into a plan that actually fits your day.
-                  </p>
-                </div>
-                <ul className="space-y-2 text-sm text-emerald-900/90">
-                  <li className="flex items-start gap-2"><span className="text-lg leading-none text-emerald-500">✦</span><span>Macros, meal timing, and hydration nudges aligned to your primary goal.</span></li>
-                  <li className="flex items-start gap-2"><span className="text-lg leading-none text-emerald-500">✦</span><span>Flexible routines that respect real life — travel, cravings, busy cycles.</span></li>
-                  <li className="flex items-start gap-2"><span className="text-lg leading-none text-emerald-500">✦</span><span>Registered-dietitian input layered with behavioral design.</span></li>
-                </ul>
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    disabled={!consentAccepted}
-                    onClick={() => {
-                      if (!consentAccepted) return;
-                      onPrimaryAction?.();
-                    }}
-                    className="w-full rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-500 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition hover:scale-[1.01] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    Start my personalized plan
-                  </button>
-                  <label className="flex items-center gap-2 text-xs text-emerald-900/70">
-                    <input
-                      type="checkbox"
-                      checked={consentAccepted}
-                      onChange={(e) => updateAnswers({ consent_non_medical: e.target.checked } as any)}
-                      className="h-4 w-4 rounded border-emerald-200 text-emerald-600 focus:ring-emerald-500"
-                    />
-                    <span>I know this is educational support, not a medical diagnosis.</span>
-                  </label>
-                </div>
-              </div>
-              <div className="relative">
-                <div aria-hidden="true" className="absolute inset-0 scale-110 rounded-[32px] bg-gradient-to-tr from-emerald-200 via-emerald-100 to-transparent blur-3xl opacity-70" />
-                <div className="relative rounded-[26px] bg-white/90 p-4 shadow-2xl backdrop-blur">
-                  <div className="overflow-hidden rounded-2xl">
-                    <img
-                      src={heroImage ?? 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=900&q=80'}
-                      alt="Healthy, colorful meals on a table"
-                      className="h-64 w-full object-cover"
-                    />
-                  </div>
-                  <div className="mt-4 grid gap-3 text-left text-sm text-emerald-900 md:grid-cols-2">
-                    <div className="rounded-2xl bg-emerald-50/70 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-600">Avg. loss</p>
-                      <p className="text-2xl font-bold text-emerald-900">7.4 kg</p>
-                      <p className="text-[11px] text-emerald-800">within the first 8 weeks*</p>
-                    </div>
-                    <div className="rounded-2xl border border-emerald-100/80 p-4">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-600">Feel-good score</p>
-                      <p className="text-2xl font-bold text-emerald-900">93%</p>
-                      <p className="text-[11px] text-emerald-800">report higher meal confidence</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p className="text-center text-[11px] text-muted-foreground">Educational guidance only · Please consult your physician for medical care.</p>
-        </div>
-      );
-    }
-
     if (step.id === 'momentum_social_proof') {
       const testimonial = step.microcopy ?? 'Members see change within the first 3 weeks when they finish this quiz.';
       const urgency = typeof step.meta?.urgencyCopy === 'string' ? (step.meta.urgencyCopy as string) : 'Premium seats refresh nightly.';
@@ -677,130 +1121,6 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
       );
     }
 
-    if (step.uiType === 'number_inputs' && step.meta?.dualUnits) {
-      const unit = answers.unit_system ?? 'metric';
-      const name = answers.name ?? '';
-      const age = answers.age_years ?? '';
-      const ft = answers.raw_height_ft ?? 0;
-      const inch = answers.raw_height_in ?? 0;
-      const lbs = answers.raw_weight_lbs ?? 0;
-      const cm = answers.height_cm ?? '';
-      const kg = answers.weight_kg ?? '';
-      return (
-        <div className="space-y-5">
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">First name</label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => updateAnswers({ name: e.target.value } as any)}
-                placeholder="Alex"
-                className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base text-foreground shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs font-medium text-muted-foreground">Age</label>
-              <input
-                type="number"
-                min={18}
-                max={90}
-                value={age}
-                onChange={(e) => updateAnswers({ age_years: Number(e.target.value) || undefined } as any)}
-                placeholder="30"
-                className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base text-foreground shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-              />
-            </div>
-          </div>
-
-          <div className="inline-flex rounded-full bg-neutral-100 p-1 text-xs font-medium">
-            <button
-              type="button"
-              className={`px-3 py-1 rounded-full transition ${unit === 'metric' ? 'bg-white shadow-sm text-emerald-700' : 'opacity-60'}`}
-              onClick={() => updateAnswers({ unit_system: 'metric' } as any)}
-            >
-              Metric (cm / kg)
-            </button>
-            <button
-              type="button"
-              className={`px-3 py-1 rounded-full transition ${unit === 'us' ? 'bg-white shadow-sm text-emerald-700' : 'opacity-60'}`}
-              onClick={() => updateAnswers({ unit_system: 'us' } as any)}
-            >
-              US (ft / lbs)
-            </button>
-          </div>
-
-          {unit === 'us' ? (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Height (ft)</label>
-                <input
-                  type="number"
-                  min={4}
-                  max={7}
-                  value={ft || ''}
-                  onChange={(e) => updateAnswers({ raw_height_ft: Number(e.target.value) || 0 } as any)}
-                  placeholder="5"
-                  className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Height (in)</label>
-                <input
-                  type="number"
-                  min={0}
-                  max={11}
-                  value={inch || ''}
-                  onChange={(e) => updateAnswers({ raw_height_in: Number(e.target.value) || 0 } as any)}
-                  placeholder="8"
-                  className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                />
-              </div>
-              <div className="col-span-2">
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Weight (lbs)</label>
-                <input
-                  type="number"
-                  min={70}
-                  max={600}
-                  value={lbs || ''}
-                  onChange={(e) => updateAnswers({ raw_weight_lbs: Number(e.target.value) || 0 } as any)}
-                  placeholder="150"
-                  className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                />
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Height (cm)</label>
-                <input
-                  type="number"
-                  min={120}
-                  max={230}
-                  value={cm}
-                  onChange={(e) => updateAnswers({ height_cm: Number(e.target.value) || undefined } as any)}
-                  placeholder="170"
-                  className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">Weight (kg)</label>
-                <input
-                  type="number"
-                  min={35}
-                  max={250}
-                  value={kg}
-                  onChange={(e) => updateAnswers({ weight_kg: Number(e.target.value) || undefined } as any)}
-                  placeholder="65"
-                  className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
-                />
-              </div>
-            </div>
-          )}
-        </div>
-      );
-    }
-
     if (step.uiType === 'info') {
       const infoCopy = typeof step.microcopy === 'string' ? step.microcopy : undefined;
       return (
@@ -815,6 +1135,17 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
   };
 
   const helpText = step.uiType !== 'info' && typeof step.microcopy === 'string' ? step.microcopy : undefined;
+
+  const customStep =
+    renderIntroStep() ??
+    renderGoalStep() ??
+    renderGenderStep() ??
+    renderBasicsStep() ??
+    renderWeightHistoryStep();
+
+  if (customStep) {
+    return customStep;
+  }
 
   return (
     <QuizCard

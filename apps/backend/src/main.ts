@@ -32,7 +32,8 @@ const initSentryBackend = () => {
       }
     }
   } catch (e) {
-    console.warn('[sentry] profiling disabled:', (e as Error)?.message);
+    const logger = new Logger('Sentry');
+    logger.warn(`[sentry] profiling disabled: ${(e as Error)?.message}`);
   }
   Sentry.init({
     dsn,
@@ -121,7 +122,7 @@ async function bootstrap() {
   // Fail-fast email config in production
   assertEmailConfigOrFail(configService, logger);
 
-  const corsOrigins = configService.get<string[]>("app.corsOrigins", ["http://localhost:5173", "http://localhost:5174"]);
+  const corsOrigins = configService.get<string[]>("app.corsOrigins") ?? [];
 
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {

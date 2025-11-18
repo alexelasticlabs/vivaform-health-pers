@@ -4,6 +4,8 @@ import { Cron, CronExpression } from "@nestjs/schedule";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { RecommendationsGeneratorService } from "./recommendations-generator.service";
 
+const TIME_ZONE = process.env.APP_TIMEZONE || 'UTC';
+
 /**
  * RecommendationsCronService
  *
@@ -22,7 +24,7 @@ export class RecommendationsCronService {
    */
   @Cron(CronExpression.EVERY_DAY_AT_6AM, {
     name: "generate-daily-recommendations",
-    timeZone: "Europe/Moscow"
+    timeZone: TIME_ZONE
   })
   async handleDailyRecommendations() {
     this.logger.log("Starting daily recommendations generation...");

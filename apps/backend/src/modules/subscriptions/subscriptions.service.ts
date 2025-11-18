@@ -127,19 +127,6 @@ export class SubscriptionsService {
     return { success: true, message: "Subscription synced successfully" };
   }
 
-  private mapStripeStatusToPrisma(status: Stripe.Subscription.Status): string {
-    const statusMap: Record<Stripe.Subscription.Status, string> = {
-      'active': 'ACTIVE',
-      'trialing': 'TRIALING',
-      'canceled': 'CANCELED',
-      'past_due': 'PAST_DUE',
-      'incomplete': 'INCOMPLETE',
-      'incomplete_expired': 'INCOMPLETE_EXPIRED',
-      'unpaid': 'UNPAID',
-      'paused': 'CANCELED'
-    };
-    return statusMap[status] || 'INCOMPLETE';
-  }
 
   private mapPlanToPrisma(plan: string): string {
     const planMap: Record<string, string> = {
@@ -166,7 +153,7 @@ export class SubscriptionsService {
           stripeSubscriptionId: subscription.id,
           stripePriceId: priceId,
           plan: this.mapPlanToPrisma(plan) as any,
-          status: this.mapStripeStatusToPrisma(subscription.status) as any,
+          status: this.stripeService.mapSubscriptionStatus(subscription.status) as any,
           currentPeriodStart: new Date(subscription.current_period_start * 1000),
           currentPeriodEnd: new Date(subscription.current_period_end * 1000),
           cancelAtPeriodEnd: subscription.cancel_at_period_end || false,
@@ -181,7 +168,7 @@ export class SubscriptionsService {
           stripeSubscriptionId: subscription.id,
           stripePriceId: priceId,
           plan: this.mapPlanToPrisma(plan) as any,
-          status: this.mapStripeStatusToPrisma(subscription.status) as any,
+          status: this.stripeService.mapSubscriptionStatus(subscription.status) as any,
           currentPeriodStart: new Date(subscription.current_period_start * 1000),
           currentPeriodEnd: new Date(subscription.current_period_end * 1000),
           cancelAtPeriodEnd: subscription.cancel_at_period_end || false,

@@ -6,6 +6,8 @@ import { PrismaService } from "../../common/prisma/prisma.service";
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NotificationsService } from "./notifications.service";
 
+const TIME_ZONE = process.env.APP_TIMEZONE || 'UTC';
+
 /**
  * NotificationsCronService
  *
@@ -31,7 +33,7 @@ export class NotificationsCronService {
    */
   @Cron("0 9,11,13,15,17,19,21 * * *", {
     name: "water-reminders",
-    timeZone: "Europe/Moscow"
+    timeZone: TIME_ZONE
   })
   async sendWaterReminders() {
     const endTimer = this.jobDuration.startTimer({ job: 'water' } as any);
@@ -73,7 +75,7 @@ export class NotificationsCronService {
    */
   @Cron(CronExpression.MONDAY_TO_FRIDAY_AT_8AM, {
     name: "weight-tracking-reminder",
-    timeZone: "Europe/Moscow"
+    timeZone: TIME_ZONE
   })
   async sendWeightTrackingReminders() {
     const endTimer = this.jobDuration.startTimer({ job: 'weight' } as any);
@@ -115,7 +117,7 @@ export class NotificationsCronService {
    */
   @Cron("0 8 * * *", {
     name: "breakfast-reminder",
-    timeZone: "Europe/Moscow"
+    timeZone: TIME_ZONE
   })
   async sendBreakfastReminders() {
     const endTimer = this.jobDuration.startTimer({ job: 'breakfast' } as any);
@@ -127,7 +129,7 @@ export class NotificationsCronService {
    */
   @Cron("0 13 * * *", {
     name: "lunch-reminder",
-    timeZone: "Europe/Moscow"
+    timeZone: TIME_ZONE
   })
   async sendLunchReminders() {
     const endTimer = this.jobDuration.startTimer({ job: 'lunch' } as any);
@@ -139,7 +141,7 @@ export class NotificationsCronService {
    */
   @Cron("0 19 * * *", {
     name: "dinner-reminder",
-    timeZone: "Europe/Moscow"
+    timeZone: TIME_ZONE
   })
   async sendDinnerReminders() {
     const endTimer = this.jobDuration.startTimer({ job: 'dinner' } as any);
@@ -187,7 +189,7 @@ export class NotificationsCronService {
    */
   @Cron(CronExpression.EVERY_DAY_AT_2AM, {
     name: "cleanup-invalid-push-tokens",
-    timeZone: "Europe/Moscow"
+    timeZone: TIME_ZONE
   })
   async cleanupInvalidTokens() {
     const endTimer = this.jobDuration.startTimer({ job: 'cleanup' } as any);

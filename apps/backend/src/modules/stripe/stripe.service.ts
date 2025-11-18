@@ -29,6 +29,11 @@ export class StripeService implements OnModuleInit {
     paused: 'CANCELED'
   } as const;
 
+  // Public helper to map Stripe status to internal enum
+  mapSubscriptionStatus(status: Stripe.Subscription.Status): 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID' {
+    return this.subscriptionStatusMap[status] ?? 'INCOMPLETE';
+  }
+
   // Simple in-memory cache for prices to reduce Stripe calls
   private priceCache = new Map<string, { monthlyAmount: number; currency: string }>();
   private redis: Redis | null = null;

@@ -12,7 +12,6 @@ interface WelcomeSectionProps {
 
 export function WelcomeSection({ user, streak = 0, lastSync, subscriptionEndsAt }: WelcomeSectionProps) {
   const isPremium = user.tier === 'PREMIUM';
-  // const now = new Date(); // not used
   const lastSyncTime = lastSync
     ? new Date(lastSync).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     : null;

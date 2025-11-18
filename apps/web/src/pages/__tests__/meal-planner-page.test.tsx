@@ -5,20 +5,19 @@ import { initUserPremium } from '@/test/store-helpers';
 
 vi.mock('../../api', async () => {
   const mod = await vi.importActual<any>('../../api');
+  const base = new Date('2025-11-16T10:00:00Z');
   return {
     ...mod,
     getMealPlan: vi.fn().mockResolvedValue({
       days: [
-        { date: new Date().toISOString(), meals: [], dailyTotals: { calories: 1800, protein: 120, fat: 60, carbs: 200 } },
-        { date: new Date(Date.now()+86400000).toISOString(), meals: [], dailyTotals: { calories: 1900, protein: 130, fat: 65, carbs: 210 } },
+        { date: base.toISOString(), meals: [], dailyTotals: { calories: 1800, protein: 120, fat: 60, carbs: 200 } },
+        { date: new Date(base.getTime()+86400000).toISOString(), meals: [], dailyTotals: { calories: 1900, protein: 130, fat: 65, carbs: 210 } },
       ],
       weeklyAverages: { calories: 1850, protein: 125, fat: 62, carbs: 205 },
       targetMacros: { calories: 2000, protein: 150, fat: 70, carbs: 230 }
     })
   };
 });
-
-vi.setSystemTime(new Date('2025-11-12T10:00:00Z'));
 
 describe('MealPlannerPage', () => {
   it('renders and switches days', async () => {

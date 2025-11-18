@@ -77,6 +77,11 @@ export function QuizPage() {
   const visibleSteps = getVisibleQuizSteps(answers as any);
   const currentStepConfig = visibleSteps[currentStep] ?? visibleSteps[visibleSteps.length - 1];
   const participantName = ((answers as any)?.name as string | undefined)?.split(' ')[0];
+  const EMBEDDED_PROGRESS_STEPS = new Set(['primary_goal', 'gender_identity', 'body_metrics', 'weight_loss_rebound']);
+  const showGlobalProgress =
+    !!currentStepConfig &&
+    currentStepConfig.id !== 'welcome_consent' &&
+    !EMBEDDED_PROGRESS_STEPS.has(currentStepConfig.id);
 
   // Calculate BMI preview in real-time
   const bmiPreview = calculateBMI(answers);
@@ -230,6 +235,7 @@ export function QuizPage() {
   }, []);
 
   const canGoNext = () => canProceed(currentStep, answers as any);
+  const nextButtonDisabled = isSubmitting || !canGoNext();
 
   const triggerMomentumCue = (group?: string, percentOverride?: number) => {
     const cueGroup = MOMENTUM_CUES[group ?? 'default'] ?? MOMENTUM_CUES.default;
@@ -354,7 +360,7 @@ export function QuizPage() {
   return (
     <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
       <div className="mx-auto max-w-4xl">
-        {currentStepConfig?.id !== 'welcome_consent' && (
+        {showGlobalProgress && (
           <div className="mb-6 px-1 md:px-0">
             <QuizProgress
               currentIndex={currentStep}
@@ -430,7 +436,7 @@ export function QuizPage() {
             )}
             <button
               onClick={handleNext}
-              disabled={isSubmitting}
+              disabled={nextButtonDisabled}
               className="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98]"
             >
               {currentStep >= visibleSteps.length - 1
@@ -457,7 +463,7 @@ export function QuizPage() {
                 )}
                 <button
                   onClick={handleNext}
-                  disabled={isSubmitting}
+                  disabled={nextButtonDisabled}
                   className="flex-1 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-3 text-base font-semibold text-white"
                 >
                   {currentStep >= visibleSteps.length - 1

@@ -9,6 +9,11 @@ import type {
 } from '@vivaform/shared';
 import { ACTIVITY_LEVELS } from '@vivaform/shared';
 
+/**
+ * @deprecated Legacy quiz calculator tied to old Profile model.
+ * Use QuizProfileService for persistence and normalized profile handling.
+ * This service remains only for preview calculations and backward compatibility.
+ */
 @Injectable()
 export class QuizService {
   private readonly logger = new Logger(QuizService.name);
@@ -234,6 +239,9 @@ export class QuizService {
     answers: QuizAnswers,
     userId?: string,
   ): Promise<QuizResult> {
+    if (userId) {
+      this.logger.warn('QuizService.submitQuiz is deprecated — prefer QuizProfileService.submitQuiz for persistence');
+    }
     const result = this.calculateQuizResult(answers);
 
     // If userId provided, save to profile
