@@ -97,7 +97,16 @@ export default defineConfig({
         target: process.env.VITE_API_PROXY_TARGET || "http://localhost:4000",
         changeOrigin: true,
         rewrite: (pathStr) => pathStr.replace(/^\/api/, ""),
-        ws: true
+        ws: true,
+        // Graceful error handling for backend unavailable
+        onError: (err, req, res) => {
+          console.warn(`[proxy] Backend unavailable: ${err.message}`);
+          res.writeHead(503, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({
+            error: 'Backend service unavailable',
+            message: 'Ensure backend is running on port 4000 with valid STRIPE_SECRET_KEY'
+          }));
+        }
       }
     }
   },
