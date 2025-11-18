@@ -10,7 +10,8 @@ import type { CurrentUser as CurrentUserPayload } from '../../common/types/curre
 import { QuizService as LegacyQuizService } from './quiz.service';
 import { buildLegacyQuizAnswers } from './utils/answer-normalizer';
 import type { CaptureQuizEmailDto } from './dto/capture-email.dto';
-import type { QuizLeadService } from './services/quiz-lead.service';
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
+import { QuizLeadService } from './services/quiz-lead.service';
 
 @ApiTags('quiz')
 @Controller('quiz')
