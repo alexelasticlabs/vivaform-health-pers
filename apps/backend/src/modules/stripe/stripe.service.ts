@@ -14,6 +14,20 @@ import { PrismaService } from "../../common/prisma/prisma.service";
 export class StripeService implements OnModuleInit {
   private readonly stripe: Stripe;
   private readonly logger = new Logger(StripeService.name);
+  // Shared mapping from Stripe subscription status -> internal status
+  private readonly subscriptionStatusMap: Record<
+    Stripe.Subscription.Status,
+    'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'
+  > = {
+    active: 'ACTIVE',
+    trialing: 'TRIALING',
+    canceled: 'CANCELED',
+    past_due: 'PAST_DUE',
+    incomplete: 'INCOMPLETE',
+    incomplete_expired: 'INCOMPLETE_EXPIRED',
+    unpaid: 'UNPAID',
+    paused: 'CANCELED'
+  } as const;
 
   // Simple in-memory cache for prices to reduce Stripe calls
   private priceCache = new Map<string, { monthlyAmount: number; currency: string }>();
@@ -168,19 +182,8 @@ export class StripeService implements OnModuleInit {
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
 
       const stripePriceId = subscription.items.data[0]?.price?.id || 'unknown';
-      const statusMap: Record<Stripe.Subscription.Status, 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'> = {
-        active: 'ACTIVE',
-        trialing: 'TRIALING',
-        canceled: 'CANCELED',
-        past_due: 'PAST_DUE',
-        incomplete: 'INCOMPLETE',
-        incomplete_expired: 'INCOMPLETE_EXPIRED',
-        unpaid: 'UNPAID',
-        paused: 'CANCELED'
-      } as const;
-
       const plan = (Object.entries(this.stripeSettings.prices).find(([, id]) => id === stripePriceId)?.[0] || 'MONTHLY') as 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
-      const status = statusMap[subscription.status] || 'INCOMPLETE';
+      const status = this.subscriptionStatusMap[subscription.status] || 'INCOMPLETE';
       const tier = status === 'ACTIVE' || status === 'TRIALING' ? 'PREMIUM' : 'FREE';
 
       await this.prisma.user.update({ where: { id: userId }, data: { tier } });
@@ -233,17 +236,7 @@ export class StripeService implements OnModuleInit {
       const currentPeriodStart = new Date(subscription.current_period_start * 1000);
       const currentPeriodEnd = new Date(subscription.current_period_end * 1000);
       const stripePriceId = subscription.items.data[0]?.price?.id || 'unknown';
-      const statusMap: Record<Stripe.Subscription.Status, 'ACTIVE' | 'TRIALING' | 'CANCELED' | 'PAST_DUE' | 'INCOMPLETE' | 'INCOMPLETE_EXPIRED' | 'UNPAID'> = {
-        active: 'ACTIVE',
-        trialing: 'TRIALING',
-        canceled: 'CANCELED',
-        past_due: 'PAST_DUE',
-        incomplete: 'INCOMPLETE',
-        incomplete_expired: 'INCOMPLETE_EXPIRED',
-        unpaid: 'UNPAID',
-        paused: 'CANCELED'
-      } as const;
-      const status = statusMap[subscription.status] || 'INCOMPLETE';
+      const status = this.subscriptionStatusMap[subscription.status] || 'INCOMPLETE';
 
       await this.prisma.subscription.updateMany({
         where: { stripeSubscriptionId: subscriptionId },

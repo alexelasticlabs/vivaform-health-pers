@@ -1,4 +1,4 @@
-﻿import { type FormEvent, useState, type ChangeEvent } from "react";
+import { type FormEvent, useState, type ChangeEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { MEAL_TYPES, type CreateNutritionEntryPayload } from "@vivaform/shared";
