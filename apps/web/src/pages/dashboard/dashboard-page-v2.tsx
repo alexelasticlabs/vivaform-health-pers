@@ -4,7 +4,9 @@
  */
 
 import React, { useState, lazy, Suspense } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Settings, TrendingUp, Award } from 'lucide-react';
 import { cn, getGreeting } from '@/lib/dashboard-utils';
 import { useUserStore } from '@/store/user-store';
@@ -14,209 +16,54 @@ import { QuickActions } from '@/components/dashboard-v2/quick-actions';
 import { InsightsCard } from '@/components/dashboard-v2/insights-card';
 import { StreakDisplay } from '@/components/dashboard-v2/streak-display';
 import { AchievementsGrid } from '@/components/dashboard-v2/achievement-card';
+import { QuickAddModal, AddNutritionFormWithAutocomplete, AddWeightForm } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import type { DailyDashboardResponse } from '@/types/dashboard.types';
+import { fetchDailyDashboardV2 } from '@/api/dashboard-v2';
+import { createWaterEntry } from '@/api';
 
 // Lazy load heavy components
 const WeightTrendWidget = lazy(() => import('@/components/dashboard-v2/weight-trend-widget'));
 const MealTimelineWidget = lazy(() => import('@/components/dashboard-v2/meal-timeline-widget'));
 
-// Mock API call - replace with real implementation
-const fetchDashboardData = async (date: string): Promise<DailyDashboardResponse> => {
-  // TODO: Replace with actual API call
+// Dev-only mock data fallback (used only in development for local UX work)
+const fetchDashboardDataDev = async (date: string): Promise<DailyDashboardResponse> => {
   return {
     date,
     healthScore: {
       overall: 78,
-      breakdown: {
-        nutrition: 82,
-        hydration: 75,
-        activity: 70,
-        consistency: 85,
-      },
+      breakdown: { nutrition: 82, hydration: 75, activity: 70, consistency: 85 },
       trend: 'improving',
     },
     metrics: {
-      calories: {
-        id: 'calories',
-        label: 'Calories',
-        value: 1450,
-        target: 1800,
-        unit: 'kcal',
-        trend: 'stable',
-        changePercent: 2,
-        icon: '🔥',
-      },
-      water: {
-        id: 'water',
-        label: 'Water',
-        value: 1500,
-        target: 2000,
-        unit: 'ml',
-        trend: 'up',
-        changePercent: 5,
-        icon: '💧',
-      },
-      weight: {
-        id: 'weight',
-        label: 'Weight',
-        value: 75.2,
-        target: 72.0,
-        unit: 'kg',
-        trend: 'down',
-        changePercent: 3,
-        icon: '⚖️',
-      },
-      steps: {
-        id: 'steps',
-        label: 'Steps',
-        value: 7240,
-        target: 10000,
-        unit: 'steps',
-        trend: 'up',
-        changePercent: 8,
-        icon: '👟',
-      },
-      protein: {
-        id: 'protein',
-        label: 'Protein',
-        value: 85,
-        target: 120,
-        unit: 'g',
-        icon: '🥩',
-      },
-      carbs: {
-        id: 'carbs',
-        label: 'Carbs',
-        value: 180,
-        target: 200,
-        unit: 'g',
-        icon: '🍞',
-      },
-      fat: {
-        id: 'fat',
-        label: 'Fat',
-        value: 45,
-        target: 60,
-        unit: 'g',
-        icon: '🥑',
-      },
+      calories: { id: 'calories', label: 'Calories', value: 1450, target: 1800, unit: 'kcal', trend: 'stable', changePercent: 2, icon: '🔥' },
+      water: { id: 'water', label: 'Water', value: 1500, target: 2000, unit: 'ml', trend: 'up', changePercent: 5, icon: '💧' },
+      weight: { id: 'weight', label: 'Weight', value: 75.2, target: 72.0, unit: 'kg', trend: 'down', changePercent: 3, icon: '⚖️' },
+      steps: { id: 'steps', label: 'Steps', value: 7240, target: 10000, unit: 'steps', trend: 'up', changePercent: 8, icon: '👟' },
+      protein: { id: 'protein', label: 'Protein', value: 85, target: 120, unit: 'g', icon: '🥩' },
+      carbs: { id: 'carbs', label: 'Carbs', value: 180, target: 200, unit: 'g', icon: '🍞' },
+      fat: { id: 'fat', label: 'Fat', value: 45, target: 60, unit: 'g', icon: '🥑' },
     },
     mealTimeline: [],
     insights: [
-      {
-        id: '1',
-        type: 'milestone',
-        title: "You're down 0.3kg this week!",
-        description: 'Keep up the great work! Your consistency is paying off.',
-        priority: 'high',
-        icon: '🎉',
-      },
-      {
-        id: '2',
-        type: 'tip',
-        title: 'Try adding protein to breakfast',
-        description: 'Studies show protein-rich breakfasts help with satiety throughout the day.',
-        priority: 'medium',
-        actionable: {
-          label: 'See protein-rich recipes',
-          action: '/recipes?filter=protein',
-        },
-      },
-      {
-        id: '3',
-        type: 'achievement',
-        title: '7-day streak unlocked!',
-        description: "You've logged meals for 7 days straight. Amazing!",
-        priority: 'medium',
-        icon: '🔥',
-      },
+      { id: '1', type: 'milestone', title: "You're down 0.3kg this week!", description: 'Keep up the great work! Your consistency is paying off.', priority: 'high', icon: '🎉' },
+      { id: '2', type: 'tip', title: 'Try adding protein to breakfast', description: 'Studies show protein-rich breakfasts help with satiety throughout the day.', priority: 'medium', actionable: { label: 'See protein-rich recipes', action: '/recipes?filter=protein' } },
+      { id: '3', type: 'achievement', title: '7-day streak unlocked!', description: "You've logged meals for 7 days straight. Amazing!", priority: 'medium', icon: '🔥' },
     ],
     streaks: [
-      {
-        current: 7,
-        longest: 12,
-        type: 'daily-logging',
-        lastUpdated: new Date(),
-      },
-      {
-        current: 3,
-        longest: 8,
-        type: 'water-goal',
-        lastUpdated: new Date(),
-      },
+      { current: 7, longest: 12, type: 'daily-logging', lastUpdated: new Date() },
+      { current: 3, longest: 8, type: 'water-goal', lastUpdated: new Date() },
     ],
     achievements: [
-      {
-        id: '1',
-        title: 'First Steps',
-        description: 'Log your first meal',
-        icon: '🌱',
-        progress: 100,
-        unlocked: true,
-        category: 'nutrition',
-        rarity: 'common',
-      },
-      {
-        id: '2',
-        title: 'Week Warrior',
-        description: 'Log meals for 7 consecutive days',
-        icon: '🔥',
-        progress: 100,
-        unlocked: true,
-        category: 'consistency',
-        rarity: 'rare',
-      },
-      {
-        id: '3',
-        title: 'Hydration Hero',
-        description: 'Hit your water goal 30 days in a row',
-        icon: '💧',
-        progress: 10,
-        unlocked: false,
-        category: 'hydration',
-        rarity: 'epic',
-      },
-      {
-        id: '4',
-        title: 'Data Driven',
-        description: 'Log 100 meals',
-        icon: '📊',
-        progress: 45,
-        unlocked: false,
-        category: 'nutrition',
-        rarity: 'rare',
-      },
-      {
-        id: '5',
-        title: 'Goal Crusher',
-        description: 'Reach your target weight',
-        icon: '🏆',
-        progress: 60,
-        unlocked: false,
-        category: 'special',
-        rarity: 'legendary',
-        reward: {
-          type: 'premium-trial',
-          value: 7,
-        },
-      },
+      { id: '1', title: 'First Steps', description: 'Log your first meal', icon: '🌱', progress: 100, unlocked: true, category: 'nutrition', rarity: 'common' },
+      { id: '2', title: 'Week Warrior', description: 'Log meals for 7 consecutive days', icon: '🔥', progress: 100, unlocked: true, category: 'consistency', rarity: 'rare' },
+      { id: '3', title: 'Hydration Hero', description: 'Hit your water goal 30 days in a row', icon: '💧', progress: 10, unlocked: false, category: 'hydration', rarity: 'epic' },
+      { id: '4', title: 'Data Driven', description: 'Log 100 meals', icon: '📊', progress: 45, unlocked: false, category: 'nutrition', rarity: 'rare' },
+      { id: '5', title: 'Goal Crusher', description: 'Reach your target weight', icon: '🏆', progress: 60, unlocked: false, category: 'special', rarity: 'legendary', reward: { type: 'premium-trial', value: 7 } },
     ],
     goalProgress: {
-      primaryGoal: {
-        type: 'lose_weight',
-        target: 72,
-        current: 75.2,
-        unit: 'kg',
-        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        progress: 60,
-      },
-      weeklyProgress: {
-        caloriesOnTrack: 85,
-        waterGoalsHit: 5,
-        mealsLogged: 18,
-        activeStreak: 7,
-      },
+      primaryGoal: { type: 'lose_weight', target: 72, current: 75.2, unit: 'kg', deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), progress: 60 },
+      weeklyProgress: { caloriesOnTrack: 85, waterGoalsHit: 5, mealsLogged: 18, activeStreak: 7 },
     },
   };
 };
@@ -224,41 +71,61 @@ const fetchDashboardData = async (date: string): Promise<DailyDashboardResponse>
 export const DashboardPageV2: React.FC = () => {
   const user = useUserStore((state) => state.profile);
   const isPremium = user?.tier === 'PREMIUM';
+  const isDev = import.meta.env.DEV;
+  const navigate = useNavigate();
 
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
+  const [showMealModal, setShowMealModal] = useState(false);
+  const [showWeightModal, setShowWeightModal] = useState(false);
 
   // Fetch dashboard data
   const { data, isLoading, error } = useQuery({
     queryKey: ['dashboard-v2', selectedDate],
-    queryFn: () => fetchDashboardData(selectedDate),
+    queryFn: () => (isDev ? fetchDashboardDataDev(selectedDate) : fetchDailyDashboardV2(selectedDate)),
     staleTime: 30_000,
+  });
+
+  const queryClient = useQueryClient();
+  const addWaterMutation = useMutation({
+    mutationFn: async (amount: number) => {
+      const payload = { amountMl: amount, date: selectedDate } as any;
+      return await createWaterEntry(payload);
+    },
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['dashboard-v2', selectedDate] });
+      toast.success('Water logged! 💧');
+    },
+    onError: () => toast.error('Failed to log water'),
   });
 
   // Quick action handlers
   const handleAddWater = (amount: number) => {
-    console.log('Add water:', amount);
-    // TODO: Implement
+    addWaterMutation.mutate(amount);
   };
 
   const handleAddMeal = () => {
-    console.log('Add meal');
-    // TODO: Implement
+    setShowMealModal(true);
   };
 
   const handleAddWeight = () => {
-    console.log('Add weight');
-    // TODO: Implement
+    setShowWeightModal(true);
   };
 
   const handleAddActivity = () => {
-    console.log('Add activity');
-    // TODO: Implement
+    if (isDev) {
+      toast.info('Add activity: coming soon');
+    }
   };
 
   const handleInsightAction = (insight: any) => {
-    console.log('Insight action:', insight);
-    // TODO: Implement
+    const action = insight?.actionable?.action as string | undefined;
+    if (!action) return;
+    if (action.startsWith('http')) {
+      window.open(action, '_blank');
+    } else {
+      navigate(action);
+    }
   };
 
   if (isLoading) {
@@ -340,12 +207,34 @@ export const DashboardPageV2: React.FC = () => {
 
             {/* Quick Actions + Featured Streak */}
             <div className="space-y-6 lg:col-span-2">
-              <QuickActions
-                onAddWater={handleAddWater}
-                onAddMeal={handleAddMeal}
-                onAddWeight={handleAddWeight}
-                onAddActivity={handleAddActivity}
-              />
+              {isDev ? (
+                <QuickActions
+                  onAddWater={handleAddWater}
+                  onAddMeal={handleAddMeal}
+                  onAddWeight={handleAddWeight}
+                  onAddActivity={handleAddActivity}
+                />
+              ) : (
+                <div className="space-y-3">
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Quick actions</div>
+                    <div className="grid grid-cols-3 gap-3">
+                      <Button variant="outline" onClick={() => setShowMealModal(true)}>Add Meal</Button>
+                      <Button variant="outline" onClick={() => setShowWeightModal(true)}>Add Weight</Button>
+                      <div>
+                        <div className="mb-2 text-xs font-medium text-slate-500">Water</div>
+                        <div className="grid grid-cols-4 gap-2">
+                          {[250, 500, 750, 1000].map((amt) => (
+                            <Button key={amt} variant="outline" size="sm" onClick={() => handleAddWater(amt)}>
+                              {amt}ml
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {data.streaks.length > 0 && (
                 <StreakDisplay streaks={data.streaks} featured />
@@ -448,6 +337,14 @@ export const DashboardPageV2: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Quick add modals */}
+      <QuickAddModal isOpen={showMealModal} onClose={() => setShowMealModal(false)} title="Add Meal">
+        <AddNutritionFormWithAutocomplete date={selectedDate} />
+      </QuickAddModal>
+      <QuickAddModal isOpen={showWeightModal} onClose={() => setShowWeightModal(false)} title="Add Weight">
+        <AddWeightForm date={selectedDate} />
+      </QuickAddModal>
     </div>
   );
 };
