@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 
 import { fetchDailyDashboard, createWaterEntry, fetchWeightHistory, tryGetQuizProfile, type QuizProfile } from "@/api";
-import { QuickAddModal, KpiCard, AddNutritionFormWithAutocomplete, AddWeightForm } from "@/components/dashboard";
+import { QuickAddModal, KpiCard, AddNutritionFormWithAutocomplete, AddWeightForm, AddActivityForm } from "@/components/dashboard";
 import { trackConversion } from "@/lib";
 import { useQuizStore, useUserStore, type UserStore } from "@/store";
 import type { NutritionEntry, WaterEntry, CreateWaterEntryPayload } from "@vivaform/shared";
@@ -16,7 +16,7 @@ import { Droplet, Flame, TrendingUp, Activity, Scale, Sparkles, CheckCircle2, Cl
 export const DashboardPage = () => {
   const navigate = useNavigate();
   const [selectedDate] = useState(() => new Date().toISOString().slice(0, 10));
-  const [modalState, setModalState] = useState<{ type: 'meal' | 'weight' | null; mealType?: string }>({ type: null });
+  const [modalState, setModalState] = useState<{ type: 'meal' | 'weight' | 'activity' | null; mealType?: string }>({ type: null });
   const [trendTab, setTrendTab] = useState<'weight'|'calories'|'hydration'|'steps'>('weight');
   const [trendRange, setTrendRange] = useState<7|30>(7);
   const [optimisticWaterMl, setOptimisticWaterMl] = useState(0);
@@ -116,6 +116,10 @@ export const DashboardPage = () => {
 
   const openWeightModal = () => {
     setModalState({ type: 'weight' });
+  };
+
+  const openActivityModal = () => {
+    setModalState({ type: 'activity' });
   };
 
   const closeModal = () => {
@@ -250,7 +254,10 @@ export const DashboardPage = () => {
             <h1 className="text-xl font-semibold">Welcome back{user?.name ? `, ${user.name}` : ''}!</h1>
             <p className="text-sm text-muted-foreground">Stay on track: quick actions and your day at a glance.</p>
           </div>
-          <button onClick={() => openMealModal('Breakfast')} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Add meal</button>
+          <div className="flex gap-2">
+            <button onClick={() => openMealModal('Breakfast')} className="rounded-full bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Add meal</button>
+            <button onClick={openActivityModal} className="rounded-full border border-border px-4 py-2 text-sm font-semibold hover:bg-card">Add activity</button>
+          </div>
         </div>
       </section>
 
@@ -381,7 +388,7 @@ export const DashboardPage = () => {
           ) : trendTab === 'hydration' ? (
             <div className="rounded-xl bg-muted/30 p-6 text-center text-sm text-muted-foreground">Track water daily to unlock hydration trends</div>
           ) : (
-            <div className="rounded-xl bg-muted/30 p-6 text-center text-sm text-muted-foreground">Connect steps in Settings</div>
+            <div className="rounded-xl bg-muted/30 p-6 text-center text-sm text-muted-foreground">Connect steps in Settings or log activity</div>
           )}
         </div>
       </section>
@@ -433,6 +440,14 @@ export const DashboardPage = () => {
         title="Update Weight"
       >
         <AddWeightForm date={selectedDate} />
+      </QuickAddModal>
+
+      <QuickAddModal
+        isOpen={modalState.type === 'activity'}
+        onClose={closeModal}
+        title="Add Activity"
+      >
+        <AddActivityForm date={selectedDate} />
       </QuickAddModal>
     </div>
   );

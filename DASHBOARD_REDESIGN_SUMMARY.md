@@ -1,6 +1,9 @@
-# Dashboard & Admin Portal Redesign - Complete Implementation Summary
+# Dashboard & Admin Portal Redesign - Complete Implementation Summary (Deprecated)
 
 ## 🎯 Overview
+
+Note: The experimental Dashboard V2 web UI and its API client/components were removed in favor of the stable classic dashboard. Any code references to `apps/web/src/components/dashboard-v2/*`, `apps/web/src/pages/dashboard/dashboard-page-v2.tsx`, and `apps/web/src/api/dashboard-v2.ts` no longer exist. Routers now mount `@/pages/dashboard/dashboard-page`.
+This document is kept for historical context of the redesign effort.
 
 This document summarizes a **complete professional redesign** of the Vivaform Health dashboard and admin portal. All changes implement best practices in UX/UI design, modern React patterns, and professional marketing strategies.
 
