@@ -10,7 +10,7 @@ import type { CurrentUser as CurrentUserPayload } from '../../common/types/curre
 import { QuizService as LegacyQuizService } from './quiz.service';
 import { buildLegacyQuizAnswers } from './utils/answer-normalizer';
 import type { CaptureQuizEmailDto } from './dto/capture-email.dto';
-import { QuizLeadService } from './services/quiz-lead.service';
+import type { QuizLeadService } from './services/quiz-lead.service';
 
 @ApiTags('quiz')
 @Controller('quiz')

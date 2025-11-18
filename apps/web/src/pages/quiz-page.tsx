@@ -8,7 +8,8 @@ import { useUserStore } from '@/store/user-store';
 import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
 import { QuizStepRenderer, ExitIntentModal, BadgeUnlock, QuizProgress } from '@/components/quiz';
 import { getVisibleQuizSteps, calcProgressPercent } from '@/features/quiz/quiz-config';
-import { QUIZ_BADGES, getUnlockedBadges } from '@/components/quiz/steps/enhanced-quiz-constants';
+import type { QUIZ_BADGES} from '@/components/quiz/steps/enhanced-quiz-constants';
+import { getUnlockedBadges } from '@/components/quiz/steps/enhanced-quiz-constants';
 import { canProceed } from '../features/quiz/funnel-engine';
 
 type CueBuilder = (ctx: { percent: number; name?: string }) => string;
