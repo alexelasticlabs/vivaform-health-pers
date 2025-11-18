@@ -8,7 +8,6 @@ import type { PrismaService } from '../../common/prisma/prisma.service';
 import type {
   DailyDashboardResponseDto,
   HealthScoreDto,
-  DashboardMetricDto,
   DailyInsightDto,
   AchievementDto,
   StreakDto,
@@ -107,7 +106,7 @@ export class DashboardV2Service {
     const targetWater = 2000; // 2L default
 
     // Fetch today's data
-    const [nutritionEntries, waterEntries, weightEntries, activityAgg] = await Promise.all([
+    const [nutritionEntries, waterEntries, _weightEntriesCount, activityAgg] = await Promise.all([
       this.prisma.nutritionEntry.findMany({
         where: {
           userId,

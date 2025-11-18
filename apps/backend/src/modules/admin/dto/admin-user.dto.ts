@@ -1,4 +1,4 @@
-﻿﻿import { IsEmail, IsEnum, IsOptional, IsBoolean, IsString } from 'class-validator';
+﻿﻿import { IsEnum, IsOptional, IsBoolean, IsString } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { UserRole } from '@vivaform/shared';
 

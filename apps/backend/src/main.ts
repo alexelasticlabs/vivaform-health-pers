@@ -65,7 +65,7 @@ function assertEmailConfigOrFail(config: ConfigService, logger: Logger) {
   }
 }
 
-async function seedAdminUser(app: any) {
+async function _seedAdminUser(app: any) {
   try {
     if (process.env.ADMIN_SEED_ENABLE !== '1') return; // выключено по умолчанию
     const email = process.env.ADMIN_SEED_EMAIL?.trim();

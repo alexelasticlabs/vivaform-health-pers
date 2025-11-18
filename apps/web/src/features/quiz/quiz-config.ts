@@ -75,7 +75,7 @@ export interface QuizAnswersModel {
   raw_weight_lbs?: number;
   primary_goal?: 'weight_loss' | 'muscle_gain' | 'maintenance' | 'energy_health' | 'food_relationship';
   activity_level?: 'sedentary' | 'light' | 'moderate' | 'high';
-  weight_loss_rebound?: 'first_time' | 'lost_and_kept_off' | 'lost_and_regained';
+  weight_loss_rebound?: 'first_time' | 'lost_and_kept_off' | 'lost_and_regained' | 'not_weight_focused';
   last_ideal_weight_timing?: 'under_6_months' | 'six_to_twelve_months' | 'one_to_three_years' | 'over_three_years';
   weekly_rhythm?: 'desk_bound' | 'balanced_mix' | 'travel_shift' | 'high_output';
   sleep_quality?: number;
@@ -112,9 +112,9 @@ export const QUIZ_STEPS: QuizStep[] = [
     uiType: 'info',
     uiPattern: 'full_screen_intro',
     question: 'Find a nutrition plan that fits your real life',
-    subtitle: 'Answer a few quick questions — no strict rules, no pressure.',
+    subtitle: 'Answer a few quick questions — we’ll build a plan around your routine.',
     fields: ['consent_non_medical'],
-    microcopy: 'Private • Personalized • You can pause anytime',
+    microcopy: 'Educational guidance only — not a substitute for medical advice.',
     badgeUnlock: 'welcome_completed',
     animationHint: 'fade_in',
     insightType: 'none',
@@ -130,7 +130,7 @@ export const QUIZ_STEPS: QuizStep[] = [
     uiType: 'single_choice',
     uiPattern: 'chips_row',
     question: 'What is your main goal right now?',
-    subtitle: 'We’ll tailor your plan around this focus.',
+    subtitle: 'We’ll tailor your plan and targets around this focus.',
     options: [
       { value: 'weight_loss', label: 'Lose weight in a healthy way' },
       { value: 'muscle_gain', label: 'Build muscle and strength' },
@@ -175,9 +175,9 @@ export const QUIZ_STEPS: QuizStep[] = [
     group: 'body_metrics',
     uiType: 'number_inputs',
     uiPattern: 'split_vertical_inputs',
-    question: 'A couple of basics',
+    question: 'Your stats',
     subtitle: 'Approximate values are okay — you can edit later.',
-    fields: ['name', 'age_years', 'unit_system', 'height_cm', 'weight_kg', 'raw_height_ft', 'raw_height_in', 'raw_weight_lbs'],
+    fields: ['age_years', 'unit_system', 'height_cm', 'weight_kg', 'raw_height_ft', 'raw_height_in', 'raw_weight_lbs'],
     microcopy: 'Your data is encrypted and used only for personalization.',
     badgeUnlock: 'metrics_entered',
     animationHint: 'slide_left',
@@ -190,12 +190,13 @@ export const QUIZ_STEPS: QuizStep[] = [
     group: 'body_metrics',
     uiType: 'single_choice',
     uiPattern: 'cards_list',
-    question: 'Have you successfully lost weight before but struggled to keep it off?',
+    question: 'Have you tried losing weight before?',
     subtitle: 'Understanding your story helps us prevent rebound weight.',
     options: [
       { value: 'first_time', label: 'This is my first serious attempt' },
       { value: 'lost_and_kept_off', label: 'I lost weight and kept most of it off' },
       { value: 'lost_and_regained', label: 'I lost weight but gained it back' },
+      { value: 'not_weight_focused', label: 'I’m not focused on weight loss' },
     ],
     fields: ['weight_loss_rebound'],
     microcopy: 'Pick the option that feels most true right now.',

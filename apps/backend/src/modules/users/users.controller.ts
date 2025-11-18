@@ -1,6 +1,5 @@
 ﻿import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse, ApiTags, ApiBearerAuth } from "@nestjs/swagger";
-import { UserRole } from "@prisma/client";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { CreateUserDto } from "./dto/create-user.dto";
