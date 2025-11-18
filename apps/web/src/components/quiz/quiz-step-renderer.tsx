@@ -12,6 +12,7 @@ interface QuizStepRendererProps {
   onPrimaryAction?: () => void;
 }
 
+
 const GROUP_VARIANT_MAP: Record<string, QuizCardVariant> = {
   goals: 'goals',
   preferences: 'nutrition',
@@ -56,6 +57,10 @@ function isSelectedMulti(valueList: string[] | undefined, value: string): boolea
 
 export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProps) {
   const { answers, updateAnswers } = useQuizStore();
+  // reset ephemeral per-step UI flags if needed (removed unused state)
+  useEffect(() => {
+    // no-op
+  }, [step.id]);
 
   // Precompute analytics-related demographic variables so we can call hooks unconditionally
   const isCalculatingPlan = step.id === 'calculating_plan';
