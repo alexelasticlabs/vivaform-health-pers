@@ -9,7 +9,7 @@ const MDiv = motion.div as any;
 
 export function PersonalStoryStep() {
   const { answers, updateAnswers, clientId } = useQuizStore();
-  const selectedPoints = answers.painPoints || [];
+  const selectedPoints: string[] = (answers.painPoints as any) || [];
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   const handleToggle = (pointId: string) => {

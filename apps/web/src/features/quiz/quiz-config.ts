@@ -1,7 +1,7 @@
 // Adaptive quiz configuration (18 visible steps + conditional safety) powering the VivaForm funnel.
 // Defines schema, conditional logic, and helper utilities for progress + plan derivation.
 
-export type QuizUiType = 'info' | 'single_choice' | 'multi_choice' | 'slider' | 'number_inputs' | 'text_input';
+export type QuizUiType = 'info' | 'single_choice' | 'multi_choice' | 'slider' | 'number_inputs' | 'text_input' | 'dual_input';
 export type QuizUiPattern =
   | 'full_screen_intro'
   | 'checkbox_confirm'
@@ -21,7 +21,8 @@ export type QuizUiPattern =
   | 'comparison_cards'
   | 'cta_dual_buttons'
   | 'text_capture'
-  | 'milestone_card';
+  | 'milestone_card'
+  | 'side_by_side_selects';
 
 export interface QuizOption {
   value: string;
@@ -94,6 +95,14 @@ export interface QuizAnswersModel {
   clothing_size_goal?: string;
   chosen_subscription_path?: 'premium' | 'free';
   final_plan_type?: 'mediterranean' | 'carnivore' | 'anti_inflammatory';
+  // Backwards-compatibility nested shapes used by legacy components
+  habits?: Record<string, any>;
+  demographics?: Record<string, any>;
+  body?: Record<string, any>;
+  goals?: Record<string, any>;
+  cooking?: Record<string, any>;
+  diet?: Record<string, any>;
+  preferences?: Record<string, any>;
 }
 
 export const QUIZ_STEPS: QuizStep[] = [
@@ -102,10 +111,10 @@ export const QUIZ_STEPS: QuizStep[] = [
     group: 'onboarding',
     uiType: 'info',
     uiPattern: 'full_screen_intro',
-    question: 'Find a nutrition plan that actually fits your life',
-    subtitle: '94% of members see measurable change in the first 30 days. Let’s make you next.',
+    question: 'Find a nutrition plan that fits your real life',
+    subtitle: 'Answer a few quick questions — no strict rules, no pressure.',
     fields: ['consent_non_medical'],
-    microcopy: '120,000+ people trust VivaForm • AI-personalized • Limited premium spots reset nightly',
+    microcopy: 'Private • Personalized • You can pause anytime',
     badgeUnlock: 'welcome_completed',
     animationHint: 'fade_in',
     insightType: 'none',
@@ -121,7 +130,7 @@ export const QUIZ_STEPS: QuizStep[] = [
     uiType: 'single_choice',
     uiPattern: 'chips_row',
     question: 'What is your main goal right now?',
-    subtitle: 'Your answer means we can anchor calories, macros, and accountability cues.',
+    subtitle: 'We’ll tailor your plan around this focus.',
     options: [
       { value: 'weight_loss', label: 'Lose weight in a healthy way' },
       { value: 'muscle_gain', label: 'Build muscle and strength' },
@@ -130,7 +139,7 @@ export const QUIZ_STEPS: QuizStep[] = [
       { value: 'food_relationship', label: 'Improve my relationship with food' },
     ],
     fields: ['primary_goal'],
-    microcopy: 'Great — we’ll tailor the experience around this North Star.',
+    microcopy: 'Great — we’ll adapt guidance to match this.',
     badgeUnlock: 'goal_locked',
     animationHint: 'slide_left',
     insightType: 'reflect_goal',
@@ -143,7 +152,7 @@ export const QUIZ_STEPS: QuizStep[] = [
     uiType: 'single_choice',
     uiPattern: 'chips_row',
     question: 'What’s your gender?',
-    subtitle: 'We tailor hormone, metabolism, and tone guidance to match.',
+    subtitle: 'This helps personalize guidance. It’s optional — choose what feels right.',
     options: [
       { value: 'female', label: 'Female' },
       { value: 'male', label: 'Male' },
@@ -151,7 +160,7 @@ export const QUIZ_STEPS: QuizStep[] = [
       { value: 'prefer_not_say', label: 'Prefer not to say' },
     ],
     fields: ['gender'],
-    microcopy: 'Used for motivational stats and medical disclaimers — never shared.',
+    microcopy: 'Used only for personalization — never shared.',
     badgeUnlock: 'demographics_logged',
     animationHint: 'slide_left',
     insightType: 'reflect_goal',
@@ -166,10 +175,10 @@ export const QUIZ_STEPS: QuizStep[] = [
     group: 'body_metrics',
     uiType: 'number_inputs',
     uiPattern: 'split_vertical_inputs',
-    question: 'Let’s log your basics',
-    subtitle: 'Even rough estimates help us shape a safe calorie range and progress curve.',
+    question: 'A couple of basics',
+    subtitle: 'Approximate values are okay — you can edit later.',
     fields: ['name', 'age_years', 'unit_system', 'height_cm', 'weight_kg', 'raw_height_ft', 'raw_height_in', 'raw_weight_lbs'],
-    microcopy: 'We keep this encrypted. Think “170 cm / 70 kg” or “5’7” / 155 lb”.',
+    microcopy: 'Your data is encrypted and used only for personalization.',
     badgeUnlock: 'metrics_entered',
     animationHint: 'slide_left',
     insightType: 'none',
@@ -177,7 +186,7 @@ export const QUIZ_STEPS: QuizStep[] = [
     meta: { dualUnits: true, stage: 'basics' },
   },
   {
-    id: 'weight_history',
+    id: 'weight_loss_rebound',
     group: 'body_metrics',
     uiType: 'single_choice',
     uiPattern: 'cards_list',
@@ -211,7 +220,7 @@ export const QUIZ_STEPS: QuizStep[] = [
       { value: 'one_to_three_years', label: '1–3 years ago' },
       { value: 'over_three_years', label: '3+ years ago' },
     ],
-    fields: ['last_ideal_weight_timing'],
+    fields: ['weight_history_last_ideal'],
     microcopy: 'Honesty keeps the plan sustainable and non-rushed.',
     badgeUnlock: null,
     animationHint: 'slide_left',
@@ -226,10 +235,10 @@ export const QUIZ_STEPS: QuizStep[] = [
     group: 'body_metrics',
     uiType: 'info',
     uiPattern: 'two_column_stack',
-    question: 'Live health snapshot',
-    subtitle: 'We translate your height + weight into a risk-aware baseline.',
+    question: 'A quick health snapshot',
+    subtitle: 'Height and weight help adjust baseline guidance gently.',
     fields: [],
-    microcopy: 'Enter height + weight to unlock BMI insights, hydration cues, and calorie guardrails.',
+    microcopy: 'Add height and weight to unlock hydration and meal‑timing cues.',
     badgeUnlock: 'bmi_preview',
     animationHint: 'slide_left',
     insightType: 'plan_teaser',
@@ -238,22 +247,23 @@ export const QUIZ_STEPS: QuizStep[] = [
       stage: 'basics',
     },
   },
+  // (deduplicated: weight loss history captured above)
   {
     id: 'email_capture',
     group: 'onboarding',
     uiType: 'text_input',
     uiPattern: 'text_capture',
-    question: 'Where should we send your kickoff kit + saved progress?',
-    subtitle: 'Step 7 of 18. We lock your spot for 24 hours and send the “Phase 1” blueprint instantly.',
+    question: 'Want friendly tips and recipe ideas by email?',
+    subtitle: 'Optional: 1–2 emails per week. Unsubscribe anytime.',
     fields: ['email'],
-    microcopy: 'Bonus: You’ll get the Optimization (Week 2) reminders and coach nudges in your inbox.',
+    microcopy: 'Leave your email if you like — we’ll send gentle guidance and ideas. One‑click unsubscribe.',
     badgeUnlock: null,
     animationHint: 'slide_left',
     insightType: 'none',
     conditional: null,
     meta: {
       placeholder: 'you@example.com',
-      helper: 'Used for progress saves & premium alerts. Unsubscribe anytime.',
+      helper: 'We store email safely and use it only for personalization.',
       stage: 'basics',
     },
   },
@@ -284,7 +294,7 @@ export const QUIZ_STEPS: QuizStep[] = [
     uiType: 'single_choice',
     uiPattern: 'cards_list',
     question: 'What’s your typical week like?',
-    subtitle: 'Lifestyle cues help us time meals, hydration, and recovery nudges.',
+    subtitle: 'Helps us time meals, hydration, and recovery to your rhythm.',
     options: [
       { value: 'desk_bound', label: 'Desk-bound · long sitting blocks' },
       { value: 'balanced_mix', label: 'Balanced mix · meetings + movement' },
@@ -308,9 +318,9 @@ export const QUIZ_STEPS: QuizStep[] = [
     uiType: 'slider',
     uiPattern: 'slider_numeric',
     question: 'How is your sleep lately?',
-    subtitle: '1 = running on fumes · 5 = consistently rested',
+    subtitle: '1 = running on fumes · 5 = usually well rested',
     fields: ['sleep_quality'],
-    microcopy: 'Sleep scores steer your recovery cues and late-night craving coaching.',
+    microcopy: 'Sleep shapes energy and appetite — we’ll adjust cues to your routine.',
     badgeUnlock: null,
     animationHint: 'slide_left',
     insightType: 'reflect_sleep_stress',
@@ -367,7 +377,9 @@ export const QUIZ_STEPS: QuizStep[] = [
       { value: 'structured', label: 'Structured meals' },
       { value: 'stress_snacking', label: 'Stress or emotion-based snacking' },
       { value: 'skip_meals', label: 'Skip meals then overeat' },
-      { value: 'late_night', label: 'Late-night cravings' },
+      { value: 'skip_breakfast', label: 'Often skip breakfast' },
+      { value: 'late_eating', label: 'Eat late in the evening' },
+      { value: 'eat_out_often', label: 'Eat out or order in often' },
       { value: 'on_the_go', label: 'Mostly on-the-go bites' },
       { value: 'mindful', label: 'Mindful / intuitive eater' },
     ],
@@ -416,6 +428,90 @@ export const QUIZ_STEPS: QuizStep[] = [
     animationHint: 'slide_left',
     insightType: 'reflect_pattern',
     conditional: null,
+  },
+  {
+    id: 'clothes_size',
+    group: 'body_metrics',
+    uiType: 'dual_input',
+    uiPattern: 'side_by_side_selects',
+    question: 'Current and desired clothing size (EU)',
+    subtitle: 'A tangible way to track progress beyond the scale.',
+    options: [
+      { value: '32', label: 'EU 32' },
+      { value: '34', label: 'EU 34' },
+      { value: '36', label: 'EU 36' },
+      { value: '38', label: 'EU 38' },
+      { value: '40', label: 'EU 40' },
+      { value: '42', label: 'EU 42' },
+      { value: '44', label: 'EU 44' },
+      { value: '46', label: 'EU 46' },
+      { value: '48', label: 'EU 48' },
+      { value: '50', label: 'EU 50' },
+      { value: '52', label: 'EU 52' },
+      { value: '54', label: 'EU 54' },
+      { value: 'not_sure', label: "I'm not sure" },
+    ],
+    fields: ['clothing_size_current', 'clothing_size_goal'],
+    microcopy: 'Clothing size is a simple indicator of body‑composition change.',
+    badgeUnlock: null,
+    animationHint: 'slide_left',
+    insightType: 'reflect_goal',
+    conditional: null,
+    meta: {
+      stage: 'basics',
+    },
+  },
+  {
+    id: 'meat_preferences',
+    group: 'preferences',
+    uiType: 'multi_choice',
+    uiPattern: 'chips_wrap',
+    question: 'Which meat and protein sources do you prefer?',
+    subtitle: 'We’ll prioritize recipes built around what you actually enjoy.',
+    options: [
+      { value: 'chicken', label: 'Chicken' },
+      { value: 'turkey', label: 'Turkey' },
+      { value: 'beef', label: 'Beef' },
+      { value: 'pork', label: 'Pork' },
+      { value: 'fish', label: 'Fish' },
+      { value: 'seafood', label: 'Seafood' },
+      { value: 'vegetarian', label: 'Mostly vegetarian options' },
+      { value: 'no_meat', label: "I don't eat meat" },
+    ],
+    fields: ['meat_preferences'],
+    microcopy: 'No forcing foods you dislike — your plan wraps around you.',
+    badgeUnlock: null,
+    animationHint: 'slide_left',
+    insightType: 'reflect_pattern',
+    conditional: null,
+    meta: {
+      stage: 'plan',
+    },
+  },
+  {
+    id: 'cooking_styles',
+    group: 'preferences',
+    uiType: 'multi_choice',
+    uiPattern: 'chips_wrap',
+    question: 'Which cooking styles feel most like you?',
+    subtitle: 'We match your plan to the way you actually cook.',
+    options: [
+      { value: 'quick_meals', label: 'Quick 10–15 min meals' },
+      { value: 'one_pot', label: 'One-pot dishes' },
+      { value: 'oven_bakes', label: 'Oven bakes & trays' },
+      { value: 'salads', label: 'Salads & bowls' },
+      { value: 'soups', label: 'Soups & stews' },
+      { value: 'grill', label: 'Grilling & BBQ' },
+    ],
+    fields: ['preferred_cooking_styles'],
+    microcopy: 'The more this looks like your real kitchen, the easier it is to stay consistent.',
+    badgeUnlock: null,
+    animationHint: 'slide_left',
+    insightType: 'reflect_pattern',
+    conditional: null,
+    meta: {
+      stage: 'plan',
+    },
   },
   {
     id: 'protein_preference',
@@ -601,50 +697,6 @@ export const QUIZ_STEPS: QuizStep[] = [
     badgeUnlock: null,
     animationHint: 'slide_left',
     insightType: 'plan_teaser',
-    conditional: null,
-  },
-  {
-    id: 'clothing_size_current',
-    group: 'goals',
-    uiType: 'single_choice',
-    uiPattern: 'chips_wrap',
-    question: 'What size clothes do you usually wear right now?',
-    subtitle: 'Helps us set milestone photos + measurement reminders.',
-    options: [
-      { value: 'xs', label: 'XS' },
-      { value: 's', label: 'S' },
-      { value: 'm', label: 'M' },
-      { value: 'l', label: 'L' },
-      { value: 'xl', label: 'XL' },
-      { value: 'xxl', label: 'XXL+' },
-    ],
-    fields: ['clothing_size_current'],
-    microcopy: 'You can swap to EU / UK sizing later inside the app.',
-    badgeUnlock: null,
-    animationHint: 'slide_left',
-    insightType: 'reflect_goal',
-    conditional: null,
-  },
-  {
-    id: 'clothing_size_goal',
-    group: 'goals',
-    uiType: 'single_choice',
-    uiPattern: 'chips_wrap',
-    question: 'What size would feel amazing to wear comfortably?',
-    subtitle: 'We turn this into a progress visualization + habit prompts.',
-    options: [
-      { value: 'xs', label: 'XS' },
-      { value: 's', label: 'S' },
-      { value: 'm', label: 'M' },
-      { value: 'l', label: 'L' },
-      { value: 'xl', label: 'XL' },
-      { value: 'xxl', label: 'XXL+' },
-    ],
-    fields: ['clothing_size_goal'],
-    microcopy: 'We’ll pace change safely — no crash timelines.',
-    badgeUnlock: 'style_targets_logged',
-    animationHint: 'slide_left',
-    insightType: 'reflect_goal',
     conditional: null,
   },
   {

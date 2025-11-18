@@ -7,7 +7,6 @@ export { OptionTile } from './options/option-tile';
 export { ChoiceToggle } from './options/choice-toggle';
 export { QuizProgress } from './quiz-progress';
 export { OptionButton } from './option-button';
-
 // Legacy steps (for backward compatibility in tests and storybooks)
 export { IntroStep } from './steps/intro-step';
 export { BodyMetricsStep } from './steps/body-metrics-step';

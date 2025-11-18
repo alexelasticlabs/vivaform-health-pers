@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { useOfflineStore } from '@/store/offline-store';
 
-// Показывает статус сети и деградацию backend
+// Shows network status and backend degradation
 export const StatusBanner: React.FC = () => {
   const offline = useOfflineStore(s => s.offline);
   const backendDown = useOfflineStore(s => s.backendDown);
@@ -15,8 +15,8 @@ export const StatusBanner: React.FC = () => {
         ${offline ? 'bg-amber-100/90 text-amber-900 border-amber-300 dark:bg-amber-900/30 dark:text-amber-200 dark:border-amber-700/60' : ''}
         ${backendDown ? 'bg-rose-100/90 text-rose-900 border-rose-300 dark:bg-rose-900/30 dark:text-rose-200 dark:border-rose-700/60' : ''}`}
       >
-        {offline && <span>⚠️ Нет ответа от сервера. Проверяем соединение…</span>}
-        {backendDown && !offline && <span>🛠️ Сервер испытывает трудности (5xx ×{error5xxCount}). Функционал может работать нестабильно.</span>}
+        {offline && <span>⚠️ No response from the server. Checking connection…</span>}
+        {backendDown && !offline && <span>🛠️ The server is having issues (5xx ×{error5xxCount}). Features may be unstable.</span>}
       </div>
     </div>
   );

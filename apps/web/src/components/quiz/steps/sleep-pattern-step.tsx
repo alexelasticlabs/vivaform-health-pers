@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 
 export function SleepPatternStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const sleep = answers.sleep ?? {};
+  const sleep = (answers.sleep as any) ?? {};
 
   return (
     <QuizCard

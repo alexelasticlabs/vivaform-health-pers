@@ -42,14 +42,14 @@ describe('MealPlannerPage', () => {
   it('switches day and updates daily totals calories', async () => {
     initUserPremium();
     const { findByTestId, getByTestId } = renderWithProviders(<MealPlannerPage />);
-    // ждём первый рендер
+    // Wait for initial render
     const caloriesInitialEl = await findByTestId('planner-total-calories');
     const initial = caloriesInitialEl.textContent;
-    // кликаем по следующему дню
+    // Click the next day
     const nextDayBtn = getByTestId('planner-day-1');
     nextDayBtn.click();
     const caloriesAfter = (await findByTestId('planner-total-calories')).textContent;
-    // значения из мока: 1800 -> 1900
+    // Values from mock: 1800 -> 1900
     expect(initial).not.toBe(caloriesAfter);
   });
 });

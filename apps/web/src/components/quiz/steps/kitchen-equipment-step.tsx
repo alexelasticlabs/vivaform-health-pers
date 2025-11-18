@@ -5,11 +5,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 export function KitchenEquipmentStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const selected = answers.cooking?.equipment ?? [];
+    const selected = (answers.cooking as any)?.equipment ?? [];
 
   const toggle = (id: string) => {
-    const next = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
+      const next = selected.includes(id) ? selected.filter((x: any) => x !== id) : [...selected, id];
     updateAnswers({ cooking: { ...answers.cooking, equipment: next } });
+    updateAnswers({ cooking: { ...(answers.cooking as any), equipment: next } });
   };
 
   return (

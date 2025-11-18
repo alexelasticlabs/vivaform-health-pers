@@ -258,6 +258,16 @@ export type QuizAnswers = {
   connectHealthApp?: boolean;
   theme?: Theme;
 
+  // Additional profiling fields
+  weightHistory?: "never_tried" | "lost_and_regained" | "lost_and_maintained";
+  weightHistoryLastIdeal?: "lt_1y" | "1_3y" | "3_5y" | "gt_5y" | "never";
+  clothesSizeCurrent?: string; // EU size like "38", "42", or "not_sure"
+  clothesSizeTarget?: string; // desired EU size
+  lateEating?: boolean;
+  eatOutFrequency?: "never" | "rarely" | "sometimes" | "often";
+  meatPreferences?: string[];
+  preferredCookingStyles?: string[];
+
   // Calculated fields (computed on submit)
   gender?: Gender; // might be added later
   birthDate?: string; // might be added later

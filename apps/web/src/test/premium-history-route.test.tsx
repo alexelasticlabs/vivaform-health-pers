@@ -1,5 +1,5 @@
 ﻿import { vi, describe, it } from 'vitest';
-// Моки провайдеров ДО импорта остальных модулей
+// Mock providers BEFORE importing the rest of modules
 vi.mock('@/providers/auth-bootstrapper', () => ({ AuthBootstrapper: () => null }));
 vi.mock('@/providers/analytics-bootstrapper', () => ({ AnalyticsBootstrapper: () => null }));
 
@@ -26,7 +26,7 @@ describe('premium history route protection', () => {
         <RouterProvider router={router} />
       </AppProviders>
     );
-    // Ожидаем переход на /login
+    // Expect redirect to /login
     await waitFor(() => {
       expect(window.location.pathname).toBe('/login');
     });

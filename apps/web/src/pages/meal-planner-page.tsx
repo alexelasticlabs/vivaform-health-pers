@@ -12,7 +12,7 @@ export function MealPlannerPage() {
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
   const isPremium = !!profile && profile.tier === "PREMIUM";
 
-  // Загружаем meal plan с backend
+  // Load meal plan from backend
   const {
     data: mealPlan,
     isLoading,
@@ -60,7 +60,7 @@ export function MealPlannerPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Генерируем ваш персональный план питания...</p>
+          <p className="text-gray-600">Generating your personalized meal plan...</p>
         </div>
       </div>
     );
@@ -252,7 +252,7 @@ export function MealPlannerPage() {
   );
 }
 
-// Компонент карточки блюда
+// Meal card component
 function MealCard({ meal }: { meal: DayPlan["meals"][0] }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -268,7 +268,7 @@ function MealCard({ meal }: { meal: DayPlan["meals"][0] }) {
           </div>
           <div className="flex items-center gap-1 text-gray-500">
             <Clock className="w-4 h-4" />
-            <span className="text-sm">{meal.cookingTimeMinutes} мин</span>
+            <span className="text-sm">{meal.cookingTimeMinutes} min</span>
           </div>
         </div>
 
@@ -276,19 +276,19 @@ function MealCard({ meal }: { meal: DayPlan["meals"][0] }) {
         <div className="grid grid-cols-4 gap-3 mb-4">
           <div className="text-center">
             <p className="text-lg font-bold text-gray-900">{meal.calories}</p>
-            <p className="text-xs text-gray-500">ккал</p>
+            <p className="text-xs text-gray-500">kcal</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-green-600">{meal.protein}г</p>
-            <p className="text-xs text-gray-500">белок</p>
+            <p className="text-lg font-bold text-green-600">{meal.protein}g</p>
+            <p className="text-xs text-gray-500">protein</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-yellow-600">{meal.fat}г</p>
-            <p className="text-xs text-gray-500">жиры</p>
+            <p className="text-lg font-bold text-yellow-600">{meal.fat}g</p>
+            <p className="text-xs text-gray-500">fat</p>
           </div>
           <div className="text-center">
-            <p className="text-lg font-bold text-orange-600">{meal.carbs}г</p>
-            <p className="text-xs text-gray-500">углев.</p>
+            <p className="text-lg font-bold text-orange-600">{meal.carbs}g</p>
+            <p className="text-xs text-gray-500">carbs</p>
           </div>
         </div>
 
@@ -297,13 +297,13 @@ function MealCard({ meal }: { meal: DayPlan["meals"][0] }) {
           onClick={() => setExpanded(!expanded)}
           className="text-sm text-blue-600 hover:text-blue-700 font-medium"
         >
-          {expanded ? "Свернуть" : "Показать ингредиенты и рецепт →"}
+          {expanded ? "Collapse" : "Show ingredients and recipe →"}
         </button>
 
         {expanded && (
           <div className="mt-4 pt-4 border-t space-y-3">
             <div>
-              <h4 className="font-semibold text-gray-900 mb-2">Ингредиенты:</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Ingredients:</h4>
               <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
                 {meal.ingredients.map((ingredient, idx) => (
                   <li key={idx}>{ingredient}</li>
@@ -312,7 +312,7 @@ function MealCard({ meal }: { meal: DayPlan["meals"][0] }) {
             </div>
             {meal.instructions && (
               <div>
-                <h4 className="font-semibold text-gray-900 mb-2">Приготовление:</h4>
+                <h4 className="font-semibold text-gray-900 mb-2">Instructions:</h4>
                 <p className="text-sm text-gray-600 whitespace-pre-line">{meal.instructions}</p>
               </div>
             )}
@@ -323,7 +323,7 @@ function MealCard({ meal }: { meal: DayPlan["meals"][0] }) {
   );
 }
 
-// Компонент прогресс-бара для макросов
+// Macro progress bar component
 function MacroProgress({
   label,
   actual,

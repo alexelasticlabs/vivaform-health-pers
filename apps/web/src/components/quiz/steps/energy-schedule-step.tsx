@@ -20,7 +20,7 @@ export function EnergyScheduleStep() {
       helpText="Sleep, exercise and timing influence your energy and hunger."
     >
       <div className="space-y-6">
-        {/* Сон */}
+        {/* Sleep */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             How many hours do you sleep per day?
@@ -35,7 +35,7 @@ export function EnergyScheduleStep() {
           />
         </div>
 
-        {/* Физическая активность */}
+        {/* Physical activity */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you exercise regularly?
@@ -47,7 +47,7 @@ export function EnergyScheduleStep() {
           />
         </div>
 
-        {/* Время пробуждения */}
+        {/* Wake-up time */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             When do you usually wake up?
@@ -61,7 +61,7 @@ export function EnergyScheduleStep() {
           />
         </div>
 
-        {/* Время ужина */}
+        {/* Dinner time */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             When do you usually have dinner?

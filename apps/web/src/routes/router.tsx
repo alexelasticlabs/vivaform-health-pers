@@ -3,8 +3,8 @@ import React from "react";
 import { RouteErrorBoundary } from "./error-boundary";
 import { PageSkeleton } from "@/components/ui/skeleton";
 
-// В некоторых окружениях Vite при перезапуске dev-сервера ссылки на модули устаревают.
-// Эта обёртка делает 1 попытку «самовосстановления»: если модуль не загрузился — перезагружаем страницу.
+// In some environments Vite can stale dynamic imports after dev server restarts.
+// This wrapper tries a single self-recover: if import fails, reload the page once.
 function lazyWithRetry<T extends React.ComponentType<any>>(loader: () => Promise<{ default: T }>): React.LazyExoticComponent<T> {
   return React.lazy(async () => {
     try {
@@ -12,7 +12,7 @@ function lazyWithRetry<T extends React.ComponentType<any>>(loader: () => Promise
     } catch (e: any) {
       const msg = e?.message || String(e);
       if (/Failed to fetch dynamically imported module|Importing a module script failed/i.test(msg)) {
-        // Перезагрузить только один раз, чтобы не уйти в цикл
+        // Reload only once to avoid loops
         try {
           const key = 'vivaform:dynamic-import-reloaded';
           const already = typeof window !== 'undefined' ? window.sessionStorage.getItem(key) : '1';
@@ -44,6 +44,7 @@ const ResetPasswordPage = lazyWithRetry(() => import("@/pages/reset-password-pag
 const ForceChangePasswordPage = lazyWithRetry(() => import("@/pages/force-change-password-page").then(m => ({ default: m.ForceChangePasswordPage })) as any);
 const EmailVerificationPage = lazyWithRetry(() => import("@/pages/email-verification-page").then(m => ({ default: m.EmailVerificationPage })) as any);
 const PremiumPage = lazyWithRetry(() => import("@/pages/premium-page") as any);
+const TestimonialsPage = lazyWithRetry(() => import("@/pages/testimonials-page").then(m => ({ default: m.TestimonialsPage })) as any);
 const PremiumHistoryPage = lazyWithRetry(() => import("@/pages/premium-history-page").then(m => ({ default: m.default })) as any);
 const MealPlannerPage = lazyWithRetry(() => import("@/pages/meal-planner-page").then(m => ({ default: m.MealPlannerPage })) as any);
 const AdminGuard = lazyWithRetry(() => import("@/routes/slices/admin-guard").then(m => ({ default: m.AdminGuard })) as any);
@@ -67,7 +68,7 @@ const ShoppingListPage = lazyWithRetry(() => import("@/pages/shopping-list-page"
 const FoodDatabasePage = lazyWithRetry(() => import("@/pages/food-database-page").then(m => ({ default: m.FoodDatabasePage })) as any);
 const AppLayout = lazyWithRetry(() => import("./slices/app-layout").then(m => ({ default: m.AppLayout })) as any);
 
-// Обёртка Suspense со скелетоном
+// Suspense wrapper with a skeleton fallback
 const suspense = (el: React.ReactElement) => (
   <React.Suspense fallback={<PageSkeleton />}>
     {el}
@@ -85,6 +86,7 @@ export const createAppRouter = () =>
         { path: "login", element: suspense(<LoginPage />) },
         { path: "register", element: suspense(<RegisterPage />) },
         { path: "quiz", element: suspense(<QuizPage />) },
+        { path: "testimonials", element: suspense(<TestimonialsPage />) },
         { path: "forgot-password", element: suspense(<ForgotPasswordPage />) },
         { path: "reset-password", element: suspense(<ResetPasswordPage />) },
         { path: "force-change-password", element: suspense(<ForceChangePasswordPage />) },

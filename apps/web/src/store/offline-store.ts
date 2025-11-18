@@ -1,13 +1,13 @@
 ﻿import { create } from 'zustand';
 
 interface OfflineState {
-  // true — проблемы с сетью (нет ответа вообще)
+  // true — network issues (no response at all)
   offline: boolean;
-  // true — сервер отвечает 5xx часто (серия ошибок)
+  // true — server frequently responds 5xx (error burst)
   backendDown: boolean;
-  // последняя ошибка (любой тип)
+  // last error (any type)
   lastErrorTs: number | null;
-  // окно/счетчик для 5xx
+  // window/counter for 5xx
   error5xxCount: number;
   error5xxWindowStart: number | null;
   // actions
@@ -16,8 +16,8 @@ interface OfflineState {
   clearServerErrors: () => void;
 }
 
-const FIVE_XX_WINDOW_MS = 15_000; // 15 секунд
-const FIVE_XX_THRESHOLD = 3; // за окно
+const FIVE_XX_WINDOW_MS = 15_000; // 15 seconds
+const FIVE_XX_THRESHOLD = 3; // per window
 
 export const useOfflineStore = create<OfflineState>((set, get) => ({
   offline: false,
@@ -30,7 +30,7 @@ export const useOfflineStore = create<OfflineState>((set, get) => ({
     const now = Date.now();
     const { error5xxWindowStart, error5xxCount } = get();
     if (!error5xxWindowStart || now - error5xxWindowStart > FIVE_XX_WINDOW_MS) {
-      // новое окно
+      // new window
       set({ error5xxWindowStart: now, error5xxCount: 1, lastErrorTs: now, backendDown: false });
     } else {
       const newCount = error5xxCount + 1;

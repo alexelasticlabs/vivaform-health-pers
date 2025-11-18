@@ -5,7 +5,7 @@ import { SliderInput } from '@/components/quiz';
 
 export function StressLevelStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const stress = answers.stress ?? {};
+  const stress = (answers.stress as any) ?? {};
 
   return (
     <QuizCard

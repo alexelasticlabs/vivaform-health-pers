@@ -11,7 +11,7 @@ export function FoodHabitsStep() {
       subtitle="Tell us about your current nutrition habits"
     >
       <div className="space-y-6">
-        {/* Количество приёмов пищи */}
+        {/* Number of meals */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             How many times per day do you eat?
@@ -30,7 +30,7 @@ export function FoodHabitsStep() {
           </div>
         </div>
 
-        {/* Пропуск завтрака */}
+        {/* Skipping breakfast */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you eat breakfast?
@@ -53,7 +53,7 @@ export function FoodHabitsStep() {
           </div>
         </div>
 
-        {/* Перекусы */}
+        {/* Snacks */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you snack between meals?
@@ -76,7 +76,7 @@ export function FoodHabitsStep() {
           </div>
         </div>
 
-        {/* Фастфуд */}
+        {/* Fast food */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             How often do you eat fast food?
@@ -100,7 +100,7 @@ export function FoodHabitsStep() {
           </div>
         </div>
 
-        {/* Домашняя еда */}
+        {/* Home cooking */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             How often do you cook at home?

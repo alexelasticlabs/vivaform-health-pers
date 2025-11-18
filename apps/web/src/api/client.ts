@@ -6,7 +6,7 @@ import type { AuthTokens, AuthUser } from "@vivaform/shared";
 
 const baseURL = import.meta.env.DEV ? "/api" : import.meta.env.VITE_API_URL;
 if (!import.meta.env.DEV && !baseURL) {
-  // Жёсткий фейл на рантайме, но сборка отловит раньше
+  // Hard runtime fail, though build should catch earlier
   throw new Error("VITE_API_URL is required in production build");
 }
 
@@ -72,7 +72,7 @@ apiClient.interceptors.request.use(async (config) => {
   return nextConfig;
 });
 
-// Допускаем, что refresh может вернуть только токены без user
+// Assume refresh may return only tokens without user
 type RefreshResponse = { tokens: AuthTokens; user?: AuthUser };
 let refreshPromise: Promise<RefreshResponse> | null = null;
 
@@ -85,11 +85,11 @@ const refreshTokens = async () => {
   return response.data;
 };
 
-// Удалены динамические/ручные моки и адаптеры
+// Removed dynamic/manual mocks and adapters
 
 apiClient.interceptors.response.use(
   (response) => {
-    // Если ранее были офлайн — при первом успешном ответе скрываем баннер
+    // If previously offline, hide banner on first successful response
     const { offline, setOffline, backendDown, clearServerErrors } = useOfflineStore.getState();
     if (offline) setOffline(false);
     if (backendDown) clearServerErrors();
@@ -101,12 +101,12 @@ apiClient.interceptors.response.use(
     const isNetwork = !error.response;
     const is5xx = !!status && status >= 500 && status <= 599;
 
-    // Обновляем индикаторы деградации
+    // Update degradation indicators
     const offlineStore = useOfflineStore.getState();
     if (isNetwork) offlineStore.setOffline(true);
     if (is5xx) offlineStore.markServerError();
 
-    // Мягкий тост о проблемах c backend (с троттлингом)
+    // Gentle toast about backend issues (throttled)
     try {
       if (offlineStore.backendDown) {
         toast.error('Backend is unstable (5xx). We are retrying.');

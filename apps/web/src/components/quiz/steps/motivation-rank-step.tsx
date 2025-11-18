@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 export function MotivationRankStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const ranking = answers.motivation?.ranking ?? MOTIVATION_FACTORS.map(m => m.id);
+  const ranking: string[] = (answers.motivation as any)?.ranking ?? MOTIVATION_FACTORS.map(m => m.id);
 
   const move = (index: number, dir: -1 | 1) => {
     const next = ranking.slice();
@@ -24,7 +24,7 @@ export function MotivationRankStep() {
       emoji="🏅"
     >
       <div className="space-y-2">
-        {ranking.map((id, idx) => {
+        {ranking.map((id: string, idx: number) => {
           const meta = MOTIVATION_FACTORS.find((m) => m.id === id);
           if (!meta) return null;
           return (

@@ -5,6 +5,7 @@ import { apiClient } from "./client";
 export type LoginPayload = {
   email: string;
   password: string;
+  rememberMe?: boolean;
 };
 
 export type RegisterPayload = {

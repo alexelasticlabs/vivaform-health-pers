@@ -12,7 +12,7 @@ export function EmotionalStep() {
       helpText="Emotions affect appetite and choices. This shapes supportive habits."
     >
       <div className="space-y-6">
-        {/* Еда при стрессе */}
+        {/* Stress eating */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Do you eat more when you're stressed?
@@ -24,7 +24,7 @@ export function EmotionalStep() {
           />
         </div>
 
-        {/* Главная мотивация */}
+        {/* Main motivation */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             What motivates you the most?
@@ -48,7 +48,7 @@ export function EmotionalStep() {
           </div>
         </div>
 
-        {/* Уровень стресса */}
+        {/* Stress level */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             How would you rate your current stress level?
@@ -67,7 +67,7 @@ export function EmotionalStep() {
           />
         </div>
 
-        {/* Источник комфорта */}
+        {/* Comfort source */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             What helps you feel better?
@@ -91,7 +91,7 @@ export function EmotionalStep() {
           </div>
         </div>
 
-        {/* Уверенность в рутине */}
+        {/* Routine confidence */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             How easy is it for you to stick to a new routine?

@@ -18,7 +18,7 @@ import {
 import { getOverviewKpis, getRevenueTrend, getNewUsers, getSubsDistribution, getActivityHeatmap, getSystemHealth } from '@/api/admin';
 import { getAllUsersFiltered, exportUsersCsv, listSubscriptions, listTickets, getSettings, patchSettings } from '../api/admin';
 
-// Типы для overview
+// Types for overview
 type OverviewKpis = { totalUsers: number; activeSubs: number; mrr: number; dau: number };
 
 type TabType = "overview" | "users" | "foods" | "subs" | "analytics" | "support" | "settings";
@@ -116,20 +116,20 @@ export const AdminPage = () => {
   const exportMutation = useMutation({
     mutationFn: () => exportUsersCsv(userFilters),
     onSuccess: (data) => {
-      // Создаём Blob для скачивания
+      // Create a Blob for download
       const blob = new Blob([data.body], { type: data.mime });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
       a.download = data.filename;
       a.click();
-      toast.success('CSV экспортирован');
+      toast.success('CSV exported');
     },
     onError: (e) => toast.error(extractErrorMessage(e))
   });
 
   const patchSettingsMutation = useMutation({
     mutationFn: () => patchSettings(settingsDraft),
-    onSuccess: () => { toast.success('Настройки сохранены'); refetchSettings(); },
+    onSuccess: () => { toast.success('Settings saved'); refetchSettings(); },
     onError: (e) => toast.error(extractErrorMessage(e))
   });
 
@@ -293,7 +293,7 @@ export const AdminPage = () => {
                 <button onClick={()=>exportMutation.mutate()} className="px-3 py-1 bg-green-600 text-white rounded text-sm">Export CSV</button>
                 <button onClick={()=>setUserFilters({ q:'', role:'', tier:'' })} className="px-3 py-1 bg-gray-200 rounded text-sm">Reset</button>
               </div>
-              {/* таблица */}
+              {/* table */}
               { (userFilters.q || userFilters.role || userFilters.tier) ? (
                 userFilteredQuery.isLoading ? <div>Loading filtered...</div> : <UserTable usersData={userFilteredQuery.data} usersPage={usersPage} setUsersPage={setUsersPage} onRoleChange={handleRoleChange} />
               ) : (
@@ -427,7 +427,7 @@ const StatCard = ({ label, value, icon }: StatCardProps) => (
   </div>
 );
 
-// Доп. компоненты
+// Extra components
 const UserTable = ({ usersData, usersPage, setUsersPage, onRoleChange }: any) => (
   <>
     <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">

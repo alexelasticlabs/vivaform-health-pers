@@ -24,7 +24,7 @@ const appNav = [
 export const AppShell = ({ children }: PropsWithChildren) => {
   const profile = useUserStore((state) => state.profile);
   const logout = useUserStore((state) => state.logout);
-  // убрали деструктуризацию setTier из стора, чтобы избежать отсутствия метода в тестах
+  // Avoid destructuring setTier from the store to prevent missing method in tests
   const navigate = useNavigate();
   const location = useLocation();
   const { reset } = useQuizStore();
@@ -59,12 +59,12 @@ export const AppShell = ({ children }: PropsWithChildren) => {
         try {
           if (sessionId) {
             await syncCheckoutSession(sessionId);
-            // Обновляем локальный store, так как он является source of truth для tier
+            // Update local store since it is the source of truth for tier
             const setTierFn = (useUserStore.getState() as any).setTier;
             if (typeof setTierFn === 'function') {
               setTierFn('PREMIUM');
             }
-            // Инвалидируем актуальные query-ключи, чтобы перерисовать виджеты
+            // Invalidate relevant query keys to re-render widgets
             await Promise.all([
               queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
               queryClient.invalidateQueries({ queryKey: ['quiz-profile'] }),
@@ -94,7 +94,7 @@ export const AppShell = ({ children }: PropsWithChildren) => {
     <div className="min-h-screen bg-surface text-foreground">
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/75 backdrop-blur-xl">
         {offline && (
-          <div className="w-full bg-amber-500 text-white text-center text-xs py-1">Backend недоступен. В dev запросы идут через /api прокси → http://localhost:4000. Убедитесь, что backend запущен.</div>
+          <div className="w-full bg-amber-500 text-white text-center text-xs py-1">Backend is unavailable. In dev, requests go through /api proxy → http://localhost:4000. Make sure the backend is running.</div>
         )}
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 md:px-6">
           <div className="flex items-center gap-3">

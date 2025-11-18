@@ -1,4 +1,4 @@
-﻿/* Fallback для пользователей с reduced motion: принудительно показываем элементы */
+﻿/* Reduced motion fallback: force elements visible without animations */
 @media (prefers-reduced-motion: reduce) {
   [data-motion-fallback] {
     opacity: 1 !important;

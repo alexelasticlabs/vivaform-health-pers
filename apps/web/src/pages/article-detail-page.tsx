@@ -2,7 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Calendar, Eye, Tag, User } from "lucide-react";
 import { useMemo } from "react";
-import DOMPurify from "dompurify";
+import DOMPurify, { type Config as DOMPurifyConfig } from "dompurify";
 
 import { getArticleBySlug } from "../api";
 
@@ -21,15 +21,12 @@ export const ArticleDetailPage = () => {
 
     try {
       const normalized = article.content.replace(/\r?\n/g, "<br />");
-      return DOMPurify.sanitize(normalized, {
-        USE_PROFILES: { html: true },
-        ALLOWED_TAGS: ["p", "br", "strong", "em", "ul", "ol", "li", "h2", "h3", "blockquote", "code", "pre", "span", "img", "a"],
-        ALLOWED_ATTR: {
-          a: ["href", "target", "rel"],
-          img: ["src", "alt", "title", "loading"],
-          '*': ["style"]
-        }
-      } as DOMPurify.Config);
+        const config: DOMPurifyConfig = {
+          USE_PROFILES: { html: true },
+          ALLOWED_TAGS: ["p", "br", "strong", "em", "ul", "ol", "li", "h2", "h3", "blockquote", "code", "pre", "span", "img", "a"],
+          ALLOWED_ATTR: ["href", "target", "rel", "src", "alt", "title", "loading", "style"]
+        };
+        return DOMPurify.sanitize(normalized, config);
     } catch {
       return article.content
         .replace(/&/g, "&amp;")

@@ -1,6 +1,6 @@
 ﻿export type ConsentPreferences = {
   marketing: boolean;
-  analytics: boolean; // на будущее: разделение
+  analytics: boolean; // reserved for future separation
   updatedAt: number;
 };
 

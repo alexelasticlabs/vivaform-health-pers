@@ -1,8 +1,11 @@
 ﻿import type { QuizStep, QuizOption } from '@/features/quiz/quiz-config';
 import { derivePlanType } from '@/features/quiz/quiz-config';
-import { QuizCard, type QuizCardVariant, OptionButton, OptionTile, SliderInput, BMIIndicator } from '@/components/quiz';
+import { QuizCard, OptionButton, OptionTile, SliderInput, BMIIndicator } from '@/components/quiz';
+import type { QuizCardVariant } from '@/components/quiz/quiz-card';
 import { useQuizStore, calculateBMI } from '@/store/quiz-store';
 import type { QuizAnswers } from '@/store/quiz-store';
+import { useEffect } from 'react';
+import { logCalculatingScreenViewed, logDemographicVariantShown } from '@/lib/analytics';
 
 interface QuizStepRendererProps {
   step: QuizStep;
@@ -17,7 +20,7 @@ const GROUP_VARIANT_MAP: Record<string, QuizCardVariant> = {
   summary: 'plan',
   milestone: 'plan',
   offer: 'plan',
-  lifestyle: 'behavior',
+  lifestyle: 'default',
   demographics: 'goals',
 };
 
@@ -53,6 +56,55 @@ function isSelectedMulti(valueList: string[] | undefined, value: string): boolea
 
 export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProps) {
   const { answers, updateAnswers } = useQuizStore();
+
+  // Precompute analytics-related demographic variables so we can call hooks unconditionally
+  const isCalculatingPlan = step.id === 'calculating_plan';
+  let demographicData: {
+    genderLabel: string;
+    ageBucket: string;
+    etaMonths: number | undefined;
+    variantIndex: number;
+    heroClaim: string;
+  } | null = null;
+
+  if (isCalculatingPlan) {
+    const gender = answers.gender ?? 'prefer_not_say';
+    const genderLabel = gender === 'female' ? 'women' : gender === 'male' ? 'men' : 'people';
+    const age = answers.age_years ?? 0;
+    const ageBucket = age >= 10 ? `${Math.floor(age / 10) * 10}s` : 'all ages';
+    const variants = [
+      `${answers.name ? `${answers.name}, ` : ''}steady beats extreme — we’ll pace it together.`,
+      `People in their ${ageBucket} often notice gentle changes within a few weeks.`,
+      `Small nutrition shifts compound — we’ll keep it realistic for you.`
+    ];
+    const variantIndex = Math.floor(Math.random() * variants.length);
+    const heroClaim = variants[variantIndex];
+    const cm = answers.height_cm;
+    const kg = answers.weight_kg;
+    let etaMonths: number | undefined;
+    if (cm && kg) {
+      const heightM = cm / 100;
+      const targetKgAtBmi25 = 24.9 * (heightM * heightM);
+      const diff = Math.max(0, kg - targetKgAtBmi25);
+      if (diff > 0) {
+        const monthlyLossSafe = 2;
+        etaMonths = Math.min(12, Math.max(1, Math.ceil(diff / monthlyLossSafe)));
+      }
+    }
+    demographicData = { genderLabel, ageBucket, etaMonths, variantIndex, heroClaim };
+  }
+
+  // Hook must not be inside conditional branches; guard logic inside effect instead
+  useEffect(() => {
+    if (!isCalculatingPlan || !demographicData) return;
+    const clientId = useQuizStore.getState().clientId;
+    const { genderLabel, ageBucket, etaMonths, variantIndex, heroClaim } = demographicData;
+    const demographic = `${genderLabel}_${ageBucket}`;
+    if (clientId) {
+      logCalculatingScreenViewed(clientId, demographic, etaMonths);
+      logDemographicVariantShown(clientId, `variant_${variantIndex}`, demographic, heroClaim);
+    }
+  }, [isCalculatingPlan, demographicData]);
 
   const handleSingleSelect = <K extends keyof QuizAnswers>(field: K, value: QuizAnswers[K]) => {
     updateAnswers({ [field]: value } as Pick<QuizAnswers, K>);
@@ -271,6 +323,8 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
       const planType = answers.final_plan_type ?? derivePlanType(answers);
       const firstName = (answers.name ?? '').split(' ')[0] || 'Member';
       const progress = 82; // pseudo progress for animation feel
+      const months = demographicData?.etaMonths ?? 3;
+      const heroClaim = demographicData?.heroClaim ?? '';
       const goalMap: Record<string, string> = {
         weight_loss: 'Steady fat loss',
         muscle_gain: 'Lean muscle gain',
@@ -292,6 +346,10 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
       const macros = macroSplit[planType ?? 'mediterranean'];
       return (
         <div className="space-y-5">
+          <div className="rounded-2xl border border-emerald-100 bg-white/90 p-4 text-sm text-emerald-900 shadow-sm">
+            <p className="font-semibold">{heroClaim}</p>
+            <p className="mt-1 text-emerald-900/80">We’ll focus on sustainable, confidence‑building steps — no crash tactics.</p>
+          </div>
           <div className="rounded-3xl border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-5 shadow-inner">
             <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Crunching the numbers</p>
             <h3 className="mt-1 text-lg font-bold text-emerald-900">{firstName}, we’re syncing macros, meal timing, and habit cues.</h3>
@@ -333,8 +391,21 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
               </div>
             </div>
           </div>
+          <div className="rounded-2xl border border-emerald-100 bg-white/90 p-4 shadow-sm">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600">Estimated timeline</p>
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-sm text-emerald-900/90">
+                <span>Phase 1</span>
+                <span>{months} {months === 1 ? 'month' : 'months'}</span>
+              </div>
+              <div className="mt-2 h-2 w-full rounded-full bg-neutral-100">
+                <div className="h-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400" style={{ width: `${Math.min(100, (months / 12) * 100)}%` }} />
+              </div>
+              <p className="mt-2 text-xs text-emerald-900/70">We pace change safely — gentle, consistent progress beats crash diets.</p>
+            </div>
+          </div>
           <div className="rounded-2xl border border-dashed border-emerald-200 p-4 text-sm text-muted-foreground">
-            Coach note: we’ll email the full Phase 1 kit the moment the plan is ready.
+            Coach note: when your plan is ready, we can email a gentle Phase 1 checklist — totally optional.
           </div>
         </div>
       );
@@ -476,11 +547,11 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
       return (
         <div className="space-y-4">
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4 text-sm text-emerald-900">
-            <p className="font-semibold">Fast-track benefits</p>
+            <p className="font-semibold">What Premium adds (optional)</p>
             <ul className="mt-2 space-y-1 text-emerald-900/80">
-              <li>• Adaptive meal builder & grocery lists</li>
-              <li>• Smart reminders + accountability nudges</li>
-              <li>• Save progress to {email ?? 'your inbox'} instantly</li>
+              <li>• Adaptive meal builder & gentle reminders</li>
+              <li>• Extra accountability tools when you want them</li>
+              <li>• Save progress to {email ?? 'your inbox'} for convenience</li>
             </ul>
           </div>
           <div className="rounded-xl border border-amber-200 bg-amber-50/80 p-3 text-sm font-medium text-amber-900">
@@ -493,6 +564,9 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
 
     if (step.id === 'bmi_health_insight') {
       const bmiData = calculateBMI(answers as any);
+      const gender = answers.gender ?? 'prefer_not_say';
+      const avatarEmoji = gender === 'female' ? '🏃‍♀️' : gender === 'male' ? '🏃‍♂️' : '🏃';
+      const avatarBg = gender === 'female' ? 'from-pink-100 to-rose-50' : gender === 'male' ? 'from-blue-100 to-cyan-50' : 'from-violet-100 to-indigo-50';
       const riskCopy: Record<string, string[]> = {
         Underweight: [
           'Potential nutrient deficiencies and lower energy availability.',
@@ -514,6 +588,15 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
 
       return (
         <div className="space-y-5">
+          <div className={`flex items-center gap-3 rounded-2xl border border-emerald-100 bg-gradient-to-br ${avatarBg} p-4 shadow-sm`}>
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-white/80 text-2xl">
+              <span aria-hidden>{avatarEmoji}</span>
+            </div>
+            <div className="text-sm text-emerald-900">
+              <p className="font-semibold">Live snapshot</p>
+              <p className="text-emerald-900/80">We adapt visuals and coaching to your profile.</p>
+            </div>
+          </div>
           {bmiData ? (
             <BMIIndicator bmi={bmiData.bmi} />
           ) : (
@@ -549,6 +632,43 @@ export function QuizStepRenderer({ step, onPrimaryAction }: QuizStepRendererProp
           onChange={(v) => updateAnswers({ [field]: v } as any)}
           label={step.subtitle}
         />
+      );
+    }
+
+    if (step.uiType === 'dual_input') {
+      const [fieldCurrent, fieldTarget] = step.fields as [keyof QuizAnswers, keyof QuizAnswers];
+      const options = step.options ?? [];
+      const current = (answers[fieldCurrent] as string | undefined) ?? '';
+      const target = (answers[fieldTarget] as string | undefined) ?? '';
+      return (
+        <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Current size</label>
+            <select
+              className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base text-foreground shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              value={current}
+              onChange={(e) => updateAnswers({ [fieldCurrent]: e.target.value || undefined } as any)}
+            >
+              <option value="">Select…</option>
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-muted-foreground">Target size</label>
+            <select
+              className="w-full rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-base text-foreground shadow-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+              value={target}
+              onChange={(e) => updateAnswers({ [fieldTarget]: e.target.value || undefined } as any)}
+            >
+              <option value="">Select…</option>
+              {options.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
       );
     }
 

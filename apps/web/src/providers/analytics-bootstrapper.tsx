@@ -2,14 +2,14 @@
 import { initMarketingAnalytics, initProductAnalytics } from '@/lib/analytics';
 import { loadConsent } from '@/lib/consent';
 
-// Инициализирует аналитику только при наличии согласия
+// Initialize analytics only when user consent is present
 export const AnalyticsBootstrapper = () => {
   useEffect(() => {
     const prefs = loadConsent();
     if (prefs?.marketing) initMarketingAnalytics();
     if (prefs?.analytics) initProductAnalytics();
 
-    // Подписка на событие изменения consent (если баннер диспатчит его)
+    // Subscribe to consent change events (if banner dispatches it)
     const onConsentChanged = () => {
       const next = loadConsent();
       if (next?.marketing) initMarketingAnalytics();

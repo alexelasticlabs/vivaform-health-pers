@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    /* Основные цвета (HSL) */
+    /* Core colors (HSL) */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
     --surface: 210 20% 98%;
@@ -14,14 +14,14 @@
     --primary: 202 82% 48%;
     --primary-foreground: 0 0% 100%;
     
-    /* RGB-версии для rgba() */
+    /* RGB values for rgba() */
     --bg-rgb: 255 255 255;
     --text-rgb: 17 24 39;
     --bg-soft-rgb: 249 250 251;
     --card-rgb: 255 255 255;
     --muted-rgb: 107 114 128;
     
-    /* Семантические цвета */
+    /* Semantic colors */
     --card: 0 0% 100%;
     --card-hover: 210 20% 99%;
     --success: 142 71% 45%;
@@ -30,7 +30,7 @@
   }
 
   [data-theme="dark"] {
-    /* Основные цвета (HSL) */
+    /* Core colors (HSL) */
     --background: 222 47% 11%;
     --foreground: 210 20% 98%;
     --surface: 217 33% 17%;
@@ -40,14 +40,14 @@
     --primary: 202 85% 55%;
     --primary-foreground: 222 47% 11%;
     
-    /* RGB-версии для rgba() */
+    /* RGB values for rgba() */
     --bg-rgb: 17 24 39;
     --text-rgb: 249 250 251;
     --bg-soft-rgb: 31 41 55;
     --card-rgb: 31 41 55;
     --muted-rgb: 156 163 175;
     
-    /* Семантические цвета */
+    /* Semantic colors */
     --card: 217 33% 17%;
     --card-hover: 217 33% 20%;
     --success: 142 71% 50%;
@@ -63,12 +63,12 @@
     @apply transition-colors duration-200;
   }
   
-  /* Типографическая шкала */
+  /* Typography scale */
   h1, h2, h3, h4, h5, h6 {
     @apply font-display;
   }
   
-  /* Анимации */
+  /* Animations */
   @keyframes float {
     0%, 100% {
       transform: translateY(0px);

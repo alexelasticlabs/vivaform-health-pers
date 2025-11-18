@@ -82,7 +82,7 @@ export const useUserStore = create<UserStore>()(
       storage: createJSONStorage(() => getSafeSessionStorage()),
       partialize: (state) => ({ profile: state.profile }) as Pick<UserStore, "profile">,
       onRehydrateStorage: () => (state) => {
-        // Всегда сбрасываем accessToken после перезагрузки, чтобы не хранить его в web storage
+        // Always reset accessToken after reload to avoid storing it in web storage
         if (state) {
           state.accessToken = null;
           state.isAuthenticated = false;

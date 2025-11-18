@@ -18,11 +18,11 @@ function renderDash(url: string) {
 }
 
 describe('DashboardPage no session sync', () => {
-  it('не вызывает syncCheckoutSession без session_id', async () => {
+  it('does not call syncCheckoutSession without session_id', async () => {
     const subs = await import('../api/subscriptions');
     const spy = vi.spyOn(subs, 'syncCheckoutSession');
     renderDash('/app?premium=success');
-    // небольшой таймер чтобы эффект прошёл
+    // Small wait to let the effect run
     await waitFor(() => {
       expect(spy).not.toHaveBeenCalled();
     });

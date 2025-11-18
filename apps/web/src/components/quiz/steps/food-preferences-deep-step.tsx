@@ -5,7 +5,7 @@ import { COMMON_ALLERGENS, COMMON_AVOIDED_FOODS } from './quiz-constants';
 
 export function FoodPreferencesDeepStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const prefs = answers.foodPreferences ?? {};
+  const prefs = (answers.foodPreferences as any) ?? {};
 
   const updateList = (key: keyof typeof prefs, value: string) => {
     const list = (prefs as any)[key] as string[] | undefined;

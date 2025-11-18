@@ -18,7 +18,7 @@ const WeightTrendWidget: React.FC<WeightTrendWidgetProps> = ({ userId, className
     current: 75.2,
     start: 78.0,
     target: 72.0,
-    trend: 'down' as const,
+    trend: 'down' as 'down' | 'up' | 'stable',
     weeklyChange: -0.3,
     dataPoints: [
       { date: '2025-11-09', weight: 78.0 },

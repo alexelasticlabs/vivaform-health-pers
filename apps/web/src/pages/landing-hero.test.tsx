@@ -7,14 +7,14 @@ import { createAppRouter } from '@/routes/router';
 describe('landing hero', () => {
   it('renders landing page and shows primary CTA', async () => {
     const router = createAppRouter();
-    // эмулируем навигацию на главную
+    // Emulate navigation to the home page
     window.history.pushState({}, '', '/');
     const view = render(
       <AppProviders>
         <RouterProvider router={router} />
       </AppProviders>
     );
-    // Проверяем наличие ключевых CTA по role и name (стабильные селекторы)
+    // Check primary CTAs by role and name (stable selectors)
     const quizLink = await view.findByRole('link', { name: /take the quiz/i }, { timeout: 3000 });
     const loginLink = view.getByRole('link', { name: /log in/i });
     expect(quizLink).toBeInTheDocument();

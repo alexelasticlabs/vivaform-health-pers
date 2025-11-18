@@ -152,6 +152,35 @@ const THEME_ALIASES: Record<string, QuizAnswers['theme']> = {
   system_default: 'auto',
 };
 
+const WEIGHT_HISTORY_ALIASES: Record<string, QuizAnswers['weightHistory']> = {
+  never_tried: 'never_tried',
+  lost_and_regained: 'lost_and_regained',
+  lost_and_maintained: 'lost_and_maintained',
+};
+
+const WEIGHT_HISTORY_LAST_IDEAL_ALIASES: Record<string, QuizAnswers['weightHistoryLastIdeal']> = {
+  lt_1y: 'lt_1y',
+  last_year: 'lt_1y',
+  one_to_three_years: '1_3y',
+  one_three_years: '1_3y',
+  _1_3y: '1_3y',
+  three_to_five_years: '3_5y',
+  three_five_years: '3_5y',
+  _3_5y: '3_5y',
+  gt_5y: 'gt_5y',
+  more_than_five_years: 'gt_5y',
+  never: 'never',
+};
+
+const EAT_OUT_FREQUENCY_ALIASES: Record<string, QuizAnswers['eatOutFrequency']> = {
+  never: 'never',
+  rarely: 'rarely',
+  sometimes: 'sometimes',
+  weekly: 'often',
+  often: 'often',
+  daily: 'often',
+};
+
 type NumberOptions = {
   min?: number;
   max?: number;
@@ -642,6 +671,58 @@ export function buildLegacyQuizAnswers(payload: any): QuizAnswers {
     payload?.birth_date ?? payload?.birthDate ?? payload?.dob,
   );
 
+  const weightHistory = (() => {
+    const key = normalizeKey(
+      firstString(payload?.weight_history, payload?.weightHistory) ?? '',
+    );
+    return WEIGHT_HISTORY_ALIASES[key];
+  })();
+
+  const weightHistoryLastIdeal = (() => {
+    const key = normalizeKey(
+      firstString(
+        payload?.weight_history_last_ideal,
+        payload?.weightHistoryLastIdeal,
+      ) ?? '',
+    );
+    return WEIGHT_HISTORY_LAST_IDEAL_ALIASES[key];
+  })();
+
+  const clothesSizeCurrent = firstString(
+    payload?.clothes_size_current,
+    payload?.clothesSizeCurrent,
+  );
+
+  const clothesSizeTarget = firstString(
+    payload?.clothes_size_target,
+    payload?.clothesSizeTarget,
+  );
+
+  const meatPreferences = toStringArray(
+    payload?.meat_preferences ?? payload?.meatPreferences,
+  );
+
+  const preferredCookingStyles = toStringArray(
+    payload?.preferred_cooking_styles ?? payload?.preferredCookingStyles,
+  );
+
+  const lateEatingValue = toBoolean(
+    payload?.late_eating ?? payload?.lateEating,
+  );
+  const lateEating =
+    lateEatingValue !== undefined
+      ? lateEatingValue
+      : eatingHabits.has('late_eating')
+        ? true
+        : undefined;
+
+  const eatOutFrequency = (() => {
+    const key = normalizeKey(
+      firstString(payload?.eat_out_frequency, payload?.eatOutFrequency) ?? '',
+    );
+    return EAT_OUT_FREQUENCY_ALIASES[key];
+  })();
+
   const answers: QuizAnswers = {
     dietPlan,
     heightCm,
@@ -675,6 +756,14 @@ export function buildLegacyQuizAnswers(payload: any): QuizAnswers {
     theme,
     gender,
     birthDate,
+    weightHistory,
+    weightHistoryLastIdeal,
+    clothesSizeCurrent,
+    clothesSizeTarget,
+    lateEating,
+    eatOutFrequency,
+    meatPreferences,
+    preferredCookingStyles,
   };
 
   return answers;

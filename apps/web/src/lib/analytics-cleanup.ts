@@ -1,23 +1,23 @@
 ﻿/**
- * Очистка аналитических идентификаторов при logout
- * Вызывается из logout() в user-store
+ * Clear analytics identifiers on logout
+ * Called from logout() in user-store
  */
 export function cleanupAnalyticsIdentifiers(): void {
   try {
-    // Удаляем анонимный ID product analytics
+    // Remove anonymous product analytics ID
     localStorage.removeItem('vf_anon_id');
 
-    // Удаляем quiz client ID
+    // Remove quiz client ID
     localStorage.removeItem('vivaform-quiz-clientId');
 
-    // Очищаем Meta Pixel (если был инициализирован)
+    // Reset Meta Pixel (if initialized)
     if (typeof window !== 'undefined' && window.fbq) {
       try {
         window.fbq('init', ''); // reset
       } catch {}
     }
 
-    // Очищаем Google Analytics client ID (если доступен через gtag)
+    // Clear Google Analytics client ID (if available via gtag)
     if (typeof window !== 'undefined' && window.gtag) {
       try {
         window.gtag('config', '', { client_id: undefined });

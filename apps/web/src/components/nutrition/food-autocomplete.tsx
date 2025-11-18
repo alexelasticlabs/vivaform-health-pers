@@ -13,10 +13,10 @@ interface FoodAutocompleteProps {
 /**
  * FoodAutocomplete
  *
- * Компонент автодополнения для поиска продуктов питания.
- * Поддерживает debounced поиск, категории и популярные продукты.
+ * Autocomplete component for searching foods.
+ * Supports debounced search, categories, and popular items.
  */
-export function FoodAutocomplete({ onSelect, placeholder = "Поиск продуктов...", className = "" }: FoodAutocompleteProps) {
+export function FoodAutocomplete({ onSelect, placeholder = "Search foods...", className = "" }: FoodAutocompleteProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [debouncedQuery, setDebouncedQuery] = useState("");
@@ -88,7 +88,7 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
           {/* Header */}
           <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
             <span className="text-sm font-medium text-gray-600">
-              {searchQuery.trim() ? "Результаты поиска" : "Популярные продукты"}
+              {searchQuery.trim() ? "Search results" : "Popular foods"}
             </span>
           </div>
 
@@ -96,7 +96,7 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
           {isSearching && (
             <div className="px-4 py-8 text-center text-gray-500">
               <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
-              Поиск продуктов...
+              Searching foods...
             </div>
           )}
 
@@ -128,14 +128,14 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
                   </div>
                   
                   <div className="mt-1 text-sm text-gray-500">
-                    {food.servingSize} • {food.caloriesPer100g} ккал/100г
+                    {food.servingSize} • {food.caloriesPer100g} kcal/100g
                   </div>
                 </div>
                 
                 <div className="text-right text-sm text-gray-600 ml-4">
-                  <div className="font-medium">{food.caloriesPer100g} ккал</div>
+                  <div className="font-medium">{food.caloriesPer100g} kcal</div>
                   <div className="text-xs">
-                    Б: {food.proteinPer100g}г • Ж: {food.fatPer100g}г • У: {food.carbsPer100g}г
+                    Protein: {food.proteinPer100g}g • Fat: {food.fatPer100g}g • Carbs: {food.carbsPer100g}g
                   </div>
                 </div>
               </div>
@@ -145,10 +145,10 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
           {/* No Results */}
           {!isSearching && searchQuery.trim() && (!displayFoods || displayFoods.length === 0) && (
             <div className="px-4 py-8 text-center text-gray-500">
-              <div className="mb-2">Продукт не найден</div>
+              <div className="mb-2">No results</div>
               <button className="inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
                 <Plus className="w-4 h-4" />
-                Добавить новый продукт
+                Add new food
               </button>
             </div>
           )}
@@ -156,7 +156,7 @@ export function FoodAutocomplete({ onSelect, placeholder = "Поиск прод�
           {/* Empty Popular Foods */}
           {!searchQuery.trim() && (!popularFoods || (popularFoods as FoodItem[]).length === 0) && (
             <div className="px-4 py-8 text-center text-gray-500">
-              База продуктов пуста
+              Food database is empty
             </div>
           )}
         </div>

@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import { isRouteErrorResponse, useRouteError } from 'react-router-dom';
 
-// Универсальный error boundary для маршрутов react-router
+// Error boundary for React Router routes
 export function RouteErrorBoundary() {
   const error = useRouteError();
   let title = 'Something went wrong';
@@ -14,7 +14,7 @@ export function RouteErrorBoundary() {
     message = error.message;
   }
 
-  // Часто встречающаяся проблема: динамический импорт не загрузился (например, перезапуск dev сервера)
+  // Detect dynamic import failures (common during dev server restarts)
   const isDynamicImportError = typeof message === 'string' && /Failed to fetch dynamically imported module/i.test(message);
 
   return (
@@ -23,7 +23,7 @@ export function RouteErrorBoundary() {
       <div style={{ marginBottom: '1rem', color: '#555' }}>{message}</div>
       {isDynamicImportError && (
         <div style={{ marginBottom: '1rem', background: '#fffbe6', border: '1px solid #ffe58f', padding: '0.75rem', borderRadius: 8 }}>
-          <strong>Tip:</strong> Это часто происходит, когда dev‑сервер перезапустился и браузер держит старые ссылки на модули. Попробуйте обновить страницу (Ctrl+R). Если используете Service Worker или SW кеш браузера – очистите кеш.
+          <strong>Tip:</strong> This usually happens after a dev server restart when the browser keeps stale module links. Try a hard refresh (Ctrl+Shift+R or Cmd+Shift+R). If a Service Worker is enabled, clear it and reload.
         </div>
       )}
       <button
@@ -37,7 +37,7 @@ export function RouteErrorBoundary() {
           cursor: 'pointer',
           fontWeight: 600
         }}
-      >Reload</button>
+      >Reload Page</button>
     </div>
   );
 }

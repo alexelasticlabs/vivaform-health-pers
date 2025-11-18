@@ -36,7 +36,7 @@ describe('ConsentBanner defaults', () => {
   it('accept all sets both true', async () => {
     render(<ConsentBanner />);
     await screen.findByText(/We use cookies/i);
-    // небольшая пауза чтобы useEffect отработал
+    // Small pause to allow useEffect to run
     await new Promise(r=>setTimeout(r,10));
     const acceptBtn = screen.getByRole('button', { name: /accept all/i });
     fireEvent.click(acceptBtn);

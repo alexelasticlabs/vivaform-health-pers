@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 
 export function SocialEatingStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const social = answers.socialEating ?? {};
+  const social = (answers.socialEating as any) ?? {};
 
   return (
     <QuizCard

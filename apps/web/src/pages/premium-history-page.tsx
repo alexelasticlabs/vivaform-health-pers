@@ -8,12 +8,12 @@ const PremiumHistoryPage = () => {
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
-  // Applied filters (используются в запросе)
+  // Applied filters (used in the query)
   const [actions, setActions] = useState<string[]>([]);
   const [from, setFrom] = useState<string>('');
   const [to, setTo] = useState<string>('');
 
-  // Pending filters (редактируются в UI)
+  // Pending filters (edited in UI)
   const [pendingActions, setPendingActions] = useState<string[]>([]);
   const [pendingFrom, setPendingFrom] = useState<string>('');
   const [pendingTo, setPendingTo] = useState<string>('');

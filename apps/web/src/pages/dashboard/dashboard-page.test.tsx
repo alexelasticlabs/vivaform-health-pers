@@ -37,7 +37,7 @@ vi.mock("../../store/user-store", async () => {
   return api;
 });
 
-// Переносим импорты компонентов после всех моков
+// Import components after all mocks are applied
 import { AppShell } from "@/components/layouts/app-shell";
 import { DashboardPage } from "./dashboard-page";
 
@@ -55,7 +55,7 @@ describe("DashboardPage premium sync", () => {
     vi.clearAllMocks();
   });
 
-  it("вызывает syncCheckoutSession при premium=success и session_id", async () => {
+  it("calls syncCheckoutSession when premium=success and session_id present", async () => {
     const spy = vi.spyOn(api, 'syncCheckoutSession');
 
     renderWithProvidersLocal("/app?premium=success&session_id=cs_test_123");

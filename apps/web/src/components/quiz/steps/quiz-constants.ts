@@ -1,5 +1,5 @@
-﻿// Общие константы для шагов квиза (аллергены, избегаемые продукты)
-// Выделены отдельно для стабильности снапшотов и переиспользования в тестах.
+﻿// Shared constants for quiz steps (allergens, avoided foods)
+// Separated for snapshot stability and reuse in tests.
 
 export const COMMON_ALLERGENS = [
   'Gluten',

@@ -177,12 +177,12 @@ export const trackProduct = (event: string, payload?: Record<string, unknown>) =
   window.vfProductAnalytics?.track(event, payload);
 };
 
-// Back-compat: существующие события квиза используют trackConversion
+// Back-compat: existing quiz events use trackConversion
 export const trackConversion = (event: string, payload?: Record<string, unknown>) => {
   trackProduct(event, payload);
 };
 
-// Quiz events далее используют trackConversion (продуктовая аналитика)
+// Quiz events below use trackConversion (product analytics)
 export const logQuizStart = (clientId: string) => {
   trackProduct("quiz_start", { clientId, timestamp: new Date().toISOString() });
 };
@@ -246,4 +246,38 @@ export const logUserMenuOpened = (source: 'marketing' | 'app') => {
 
 export const logUserMenuItemClicked = (source: 'marketing' | 'app', item: string) => {
   trackProduct('user_menu_item_clicked', { source, item, timestamp: new Date().toISOString() });
+};
+
+// New events for enhanced quiz experience
+export const logTestimonialsPageViewed = (source?: 'direct' | 'quiz_redirect' | 'navigation') => {
+  trackProduct('testimonials_page_viewed', { source: source || 'direct', timestamp: new Date().toISOString() });
+};
+
+export const logTestimonialsCtaClicked = (placement: 'main_cta' | 'testimonial_card') => {
+  trackProduct('testimonials_cta_clicked', { placement, timestamp: new Date().toISOString() });
+};
+
+export const logCalculatingScreenViewed = (clientId: string, demographic?: string, etaMonths?: number) => {
+  trackProduct('calculating_screen_viewed', { 
+    clientId, 
+    demographic, 
+    etaMonths, 
+    timestamp: new Date().toISOString() 
+  });
+};
+
+// A/B Testing support for demographic messaging
+export const logDemographicVariantShown = (
+  clientId: string, 
+  variantKey: string, 
+  demographic: string, 
+  messageText: string
+) => {
+  trackProduct('demographic_variant_shown', {
+    clientId,
+    variantKey,
+    demographic,
+    messageText,
+    timestamp: new Date().toISOString()
+  });
 };

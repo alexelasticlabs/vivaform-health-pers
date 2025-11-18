@@ -5,10 +5,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 export function HealthConditionsStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const selected = answers.health?.conditions ?? [];
+  const selected = (answers.health as any)?.conditions ?? [];
 
   const toggle = (id: string) => {
-    const next = selected.includes(id) ? selected.filter((x) => x !== id) : [...selected, id];
+    const next = selected.includes(id) ? selected.filter((x: any) => x !== id) : [...selected, id];
     updateAnswers({ health: { conditions: next } });
   };
 

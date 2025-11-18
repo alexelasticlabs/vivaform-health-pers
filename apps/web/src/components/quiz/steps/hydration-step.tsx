@@ -20,7 +20,7 @@ export function HydrationStep() {
       helpText="Water, reminders and health app sync keep you on track."
     >
       <div className="space-y-6">
-        {/* Потребление воды */}
+        {/* Water intake */}
         <div>
           <label className="mb-3 block text-sm font-medium text-foreground/80">
             How much water do you drink per day? (ml)
@@ -41,7 +41,7 @@ export function HydrationStep() {
           </div>
         </div>
 
-        {/* Напоминания */}
+        {/* Reminders */}
         <div>
           <label className="mb-3 block text-sm font-medium text-foreground/80">
             Would you like to receive reminders about meals and water?
@@ -53,7 +53,7 @@ export function HydrationStep() {
           />
         </div>
 
-        {/* Трекинг активности */}
+        {/* Activity tracking */}
         <div>
           <label className="mb-3 block text-sm font-medium text-foreground/80">
             Would you like to track physical activity?
@@ -65,7 +65,7 @@ export function HydrationStep() {
           />
         </div>
 
-        {/* Интеграция с Health Apps */}
+        {/* Health apps integration */}
         <div>
           <label className="mb-3 block text-sm font-medium text-foreground/80">
             Connect Apple Health / Google Fit?
@@ -82,7 +82,7 @@ export function HydrationStep() {
           )}
         </div>
 
-        {/* Тема приложения */}
+        {/* App theme */}
         <div>
           <label className="mb-3 block text-sm font-medium text-foreground/80">
             Choose app theme

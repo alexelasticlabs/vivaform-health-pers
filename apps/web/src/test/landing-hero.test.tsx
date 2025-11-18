@@ -16,7 +16,7 @@ describe("Landing Hero", () => {
     expect(screen.getByText(/Discover your perfect nutrition plan/i)).toBeInTheDocument();
     const quizLinks = screen.getAllByRole("link", { name: /Take the Quiz|Continue quiz|Go to Dashboard|Open my plan/i });
     expect(quizLinks.length).toBeGreaterThan(0);
-    // проверяем наличие любой ссылки входа/логина
+    // Check for any login/sign-in link presence
     expect(screen.getAllByRole("link").some(l => /Log in|Sign in/i.test(l.textContent || ""))).toBe(true);
   });
 

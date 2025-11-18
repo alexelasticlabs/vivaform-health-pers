@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 export function AccountabilityStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const acc = answers.accountability ?? {};
+  const acc = (answers.accountability as any) ?? {};
 
   return (
     <QuizCard

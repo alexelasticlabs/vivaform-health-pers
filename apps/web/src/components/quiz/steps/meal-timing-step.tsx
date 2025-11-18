@@ -9,7 +9,7 @@ const MDiv = motion.div as any;
 export function MealTimingStep() {
   const { answers, updateAnswers } = useQuizStore();
 
-  const meal = answers.mealTiming ?? {};
+  const meal = (answers.mealTiming as any) ?? {};
 
   const mealIcons = {
     breakfast: <Coffee className="w-5 h-5 text-amber-500" />,

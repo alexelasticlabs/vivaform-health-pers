@@ -74,11 +74,11 @@ export const DashboardPage = () => {
   const waterMutation = useMutation<WaterEntry, Error, CreateWaterEntryPayload>({
     mutationFn: createWaterEntry,
     onMutate: async (variables) => {
-      // Optimistic UI update: сразу увеличиваем отображаемое значение
+      // Optimistic UI update: immediately increase the displayed value
       setOptimisticWaterMl(prev => prev + variables.amountMl);
     },
     onSuccess: async (_result, variables) => {
-      // Обновляем кэш dashboard с новым значением воды
+      // Update dashboard cache with the new water value
       const currentData = queryClient.getQueryData<any>(["dashboard", selectedDate]);
       if (currentData) {
         queryClient.setQueryData(["dashboard", selectedDate], {
@@ -93,12 +93,12 @@ export const DashboardPage = () => {
       toast.success("Water logged! 💧");
     },
     onError: (_error, variables) => {
-      // Откатываем optimistic update при ошибке
+      // Roll back optimistic update on error
       setOptimisticWaterMl(prev => prev - variables.amountMl);
       toast.error("Failed to log water");
     },
     onSettled: () => {
-      // Сбрасываем оптимистичное значение после завершения
+      // Reset optimistic value after completion
       setOptimisticWaterMl(0);
     }
   });
@@ -122,7 +122,7 @@ export const DashboardPage = () => {
     setModalState({ type: null });
   };
 
-  // Calculate goals (получаем из API dashboard.goals либо fallback)
+  // Calculate goals (fetch from API dashboard.goals or use fallback)
   const calorieGoal = data?.goals?.calories ?? 2000;
   const proteinGoal = data?.goals?.protein ?? Math.round((calorieGoal * 0.3) / 4);
   const fatGoal = data?.goals?.fat ?? Math.round((calorieGoal * 0.3) / 9);

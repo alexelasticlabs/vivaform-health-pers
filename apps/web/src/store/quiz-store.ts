@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { QuizAnswersModel } from '@/features/quiz/quiz-config';
 import { derivePlanType } from '@/features/quiz/quiz-config';
 
-// Безопасные хелперы доступа к Storage
+// Safe storage helpers
 const safeStorage = {
   getItem(key: string): string | null {
     try { return typeof window !== 'undefined' ? window.localStorage.getItem(key) : null; } catch { return null; }
@@ -18,7 +18,7 @@ const safeStorage = {
 
 // Quiz answer structure aligned with the lean 12-step funnel
 export interface QuizAnswers extends QuizAnswersModel {
-  answersVersion?: number;
+  [key: string]: unknown; // Allow API compatibility
 }
 
 const NON_SENSITIVE_ANSWER_FIELDS: (keyof QuizAnswers)[] = [

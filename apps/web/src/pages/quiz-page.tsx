@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Lightbulb } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store';
 import { submitQuiz, saveQuizPreview, getQuizPreview, captureQuizEmail } from '@/api';
 import { useUserStore } from '@/store/user-store';
@@ -15,30 +15,30 @@ type CueBuilder = (ctx: { percent: number; name?: string }) => string;
 
 const MOMENTUM_CUES: Record<string, CueBuilder[]> = {
   default: [
-    ({ percent, name }) => `${name ?? 'Nice'} pace — ${percent}% of your plan is already mapped.`,
-    ({ percent }) => `Momentum unlocked. ${percent}% complete and climbing.`,
+    ({ percent, name }) => `${name ?? 'Nice'} pace — ${percent}% done`,
+    ({ percent }) => `Steady progress. Completed ${percent}%`,
   ],
   goals: [
-    ({ percent, name }) => `${name ?? 'Goal-setter'}, intention locked. ${percent}% dialed in.`,
-    ({ percent }) => `Goal locked ✅ ${percent}% of your roadmap ready.`,
+    ({ percent, name }) => `${name ?? 'Great'}, goal set. ${percent}% done`,
+    ({ percent }) => `Focus captured ✅ ${percent}% complete`,
   ],
   eating: [
-    ({ percent }) => `Flavor profile saved — ${percent}% closer to craving-friendly meals.`,
-    ({ percent }) => `Diet vibe noted. ${percent}% of personalization complete.`,
+    ({ percent }) => `Food preferences noted — ${percent}%`,
+    ({ percent }) => `Eating habits set. Progress ${percent}%`,
   ],
   preferences: [
-    ({ percent }) => `Taste guardrails set. ${percent}% complete.`,
-    ({ percent, name }) => `${name ?? 'Chef'}, your menu cues are in. ${percent}% done.`,
+    ({ percent }) => `Taste anchors set. ${percent}% done`,
+    ({ percent, name }) => `${name ?? 'Looking good'}, we’ll tailor the menu. ${percent}%`,
   ],
   activity: [
-    ({ percent }) => `Energy rhythm mapped. ${percent}% of insights secured.`,
+    ({ percent }) => `Weekly rhythm captured. Progress ${percent}%`,
   ],
   behavior: [
-    ({ percent }) => `Mindset cues pinned — ${percent}% of the story captured.`,
+    ({ percent }) => `Habit tips ready — ${percent}%`,
   ],
   plan_choice: [
-    ({ percent }) => `Plan shell is forming. ${percent}% locked in.`,
-    ({ percent, name }) => `${name ?? 'Plan architect'}, only ${100 - percent}% until reveal.`,
+    ({ percent }) => `Plan framework forming. Already ${percent}%`,
+    ({ percent, name }) => `${name ?? 'Almost there'}, ${100 - percent}% left`,
   ],
 };
 
@@ -64,8 +64,10 @@ export function QuizPage() {
   const [newBadge, setNewBadge] = useState<(typeof QUIZ_BADGES)[number] | null>(null);
   const [lastBadgeStep, setLastBadgeStep] = useState(-1);
   const [momentumCue, setMomentumCue] = useState<string | null>(null);
+  const [gentleHint, setGentleHint] = useState<string | null>(null);
   const previewTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gentleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const loggedStartRef = useRef(false);
   const lastViewedStepRef = useRef<number | null>(null);
   const lastSectionLoggedRef = useRef<number | null>(null);
@@ -111,6 +113,25 @@ export function QuizPage() {
       logQuizFinalStepViewed(clientId);
     }
   }, [clientId, currentStep, currentStepConfig, visibleSteps.length]);
+
+  // Gentle hint if the participant dwells on a step
+  useEffect(() => {
+    if (gentleTimerRef.current) clearTimeout(gentleTimerRef.current);
+    setGentleHint(null);
+    // Don’t show on intro and final steps
+    const isBoundary = currentStep === 0 || currentStep === visibleSteps.length - 1;
+    if (isBoundary) return;
+    gentleTimerRef.current = setTimeout(() => {
+      const group = currentStepConfig?.group;
+      const hintCopy = group === 'body_metrics'
+        ? 'Approximate values are fine — you can refine later.'
+        : 'You can pause anytime; your progress is saved.';
+      setGentleHint(hintCopy);
+    }, 28000);
+    return () => {
+      if (gentleTimerRef.current) clearTimeout(gentleTimerRef.current);
+    };
+  }, [currentStep, currentStepConfig, visibleSteps.length]);
 
   // Trigger autosave when answers change
   useEffect(() => {
@@ -240,6 +261,7 @@ export function QuizPage() {
     }
     const nextPercent = calcProgressPercent(currentStep + 1, visibleSteps.length);
     triggerMomentumCue(currentStepConfig?.group, nextPercent);
+    setGentleHint(null);
     nextStep();
   };
 
@@ -249,6 +271,7 @@ export function QuizPage() {
     if (currentStep === 0) return;
     setMomentumCue(null);
     prevStep();
+    setGentleHint(null);
   };
 
   const handleSubmit = async () => {
@@ -334,15 +357,34 @@ export function QuizPage() {
   return (
     <div className="min-h-screen bg-background px-4 pb-28 pt-8 md:pb-8">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-6 px-1 md:px-0">
-          <QuizProgress currentIndex={currentStep} visibleSteps={visibleSteps} participantName={participantName} />
-        </div>
+        {currentStepConfig?.id !== 'welcome_consent' && (
+          <div className="mb-6 px-1 md:px-0">
+            <QuizProgress
+              currentIndex={currentStep}
+              visibleSteps={visibleSteps}
+              participantName={participantName}
+              condensed
+              showTotal={false}
+              showPercent={false}
+              showStageChips={false}
+            />
+          </div>
+        )}
 
         {momentumCue && (
           <div className="mb-4 flex justify-center">
             <div className="flex items-center gap-2 rounded-2xl border border-emerald-100 bg-white/95 px-4 py-2 text-sm font-semibold text-emerald-900 shadow-sm">
               <Sparkles size={16} className="text-amber-500" />
               <span>{momentumCue}</span>
+            </div>
+          </div>
+        )}
+
+        {gentleHint && (
+          <div className="mb-4 flex justify-center">
+            <div className="flex items-center gap-2 rounded-2xl border border-gray-200 bg-white/90 px-4 py-2 text-sm text-gray-800 shadow-sm">
+              <Lightbulb size={16} className="text-amber-500" />
+              <span>{gentleHint}</span>
             </div>
           </div>
         )}

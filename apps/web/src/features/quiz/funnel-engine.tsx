@@ -17,8 +17,8 @@ export function canProceed(stepIndex: number, answers: QuizAnswers): boolean {
   const visible = getVisibleQuizSteps(answers);
   const step = visible[stepIndex];
   if (!step) return true;
-  // Строгая валидация для базового шага профиля: имя не обязательно,
-  // но возраст и базовые антропометрические данные должны быть указаны.
+  // Strict validation for the basic profile step: name is optional,
+  // but age and baseline anthropometrics must be provided.
   if (step.id === 'body_metrics') {
     const age = (answers as any).age_years;
     const heightCm = (answers as any).height_cm;

@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 
 export function CurrentDietStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const diet = answers.currentDiet ?? {};
+  const diet = (answers.currentDiet as any) ?? {};
 
   return (
     <QuizCard

@@ -1,7 +1,7 @@
 ﻿import React from 'react';
 import clsx from 'clsx';
 
-// Базовый прямоугольный skeleton
+// Base rectangular skeleton
 export const Skeleton: React.FC<React.HTMLAttributes<HTMLDivElement> & { width?: number | string; height?: number | string; radius?: number | string } > = ({
   className,
   width = '100%',
@@ -19,7 +19,7 @@ export const Skeleton: React.FC<React.HTMLAttributes<HTMLDivElement> & { width?:
   );
 };
 
-// Набор скелетонов для страницы: хедер + карточки / текст
+// Page skeletons set: header + cards/text
 export const PageSkeleton: React.FC<{ lines?: number }> = ({ lines = 5 }) => {
   return (
     <div className="p-6 space-y-6">

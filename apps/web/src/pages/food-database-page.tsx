@@ -206,7 +206,7 @@ const FoodCard: React.FC<{ food: FoodItem }> = ({ food }) => {
             <div className="mb-1 flex items-center gap-2">
               <h3 className="font-bold text-slate-900 dark:text-white">{food.name}</h3>
               {food.verified && (
-                <Verified className="h-4 w-4 fill-emerald-500 text-emerald-500" title="Verified by nutritionists" />
+                <Verified className="h-4 w-4 fill-emerald-500 text-emerald-500" />
               )}
               {food.isFavorite && <Star className="h-4 w-4 fill-amber-500 text-amber-500" />}
             </div>

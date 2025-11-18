@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 
 export function BudgetStep() {
   const { answers, updateAnswers } = useQuizStore();
-  const budget = answers.budget ?? {};
+  const budget = (answers.budget as any) ?? {};
 
   const setRange = (id: string) => updateAnswers({ budget: { ...budget, range: id } });
 

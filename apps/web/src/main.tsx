@@ -10,12 +10,12 @@ import "./styles/tailwind.css";
 import "./styles/animations.css";
 import "./styles/quiz-fallback.css";
 
-// Сброс одноразового флага перезагрузки после успешного старта приложения
+// Reset one-time reload flag after successful app start
 try { sessionStorage.removeItem('vivaform:dynamic-import-reloaded'); } catch {}
 
 const router = createAppRouter();
 
-// Безопасно создаём/переиспользуем root, чтобы не было "createRoot() called twice" при HMR
+// Safely create/reuse root to avoid "createRoot() called twice" during HMR
 function getOrCreateRoot(container: HTMLElement) {
   const key = '__vivaform_app_root__';
   const w = window as any;

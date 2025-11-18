@@ -72,7 +72,7 @@ export function MyPlanPage() {
   const handleUpdate = (section: keyof QuizAnswers, data: any) => {
     setFormData((prev) => ({
       ...prev,
-      [section]: { ...prev[section], ...data },
+      [section]: { ...(prev[section] as object || {}), ...data },
     }));
   };
 
@@ -185,7 +185,7 @@ export function MyPlanPage() {
             Dietary Preference
           </label>
           <select
-            value={formData.diet?.plan || ''}
+            value={(formData.diet?.plan as string) || ''}
             onChange={(e) => handleUpdate('diet', { plan: e.target.value })}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
           >
@@ -217,7 +217,7 @@ export function MyPlanPage() {
                   key={type}
                   onClick={() => handleUpdate('goals', { type })}
                   className={`px-4 py-3 rounded-xl font-medium transition-all ${
-                    formData.goals?.type === type
+                      (formData.goals?.type as string) === type
                       ? 'bg-emerald-600 text-white'
                       : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   }`}
@@ -235,7 +235,7 @@ export function MyPlanPage() {
               min={30}
               max={300}
               step={0.1}
-              value={formData.targetWeightKg ?? ''}
+                value={(formData.targetWeightKg as any) ?? ''}
               onChange={(e) => handleUpdate('targetWeightKg' as any, Number(e.target.value))}
               className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
               placeholder="e.g. 65"

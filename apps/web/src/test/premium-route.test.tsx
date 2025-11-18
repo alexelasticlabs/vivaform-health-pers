@@ -23,7 +23,7 @@ describe('premium route protection', () => {
         <RouterProvider router={router} />
       </AppProviders>
     );
-    // Ищем кнопку/ссылку логина
+    // Find a login button or link
     const matches = await view.findAllByText(/log in|sign in|login/i);
     expect(matches.length).toBeGreaterThan(0);
   });
