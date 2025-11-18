@@ -91,9 +91,9 @@ const NotFoundPage = lazyWithRetry(
   () => import('@/pages/not-found-page').then((m) => ({ default: m.NotFoundPage })) as any
 );
 
-// User Pages - NEW V2 Dashboard
-const DashboardPageV2 = lazyWithRetry(
-  () => import('@/pages/dashboard/dashboard-page-v2').then((m) => ({ default: m.default })) as any
+// User Pages - switch to classic Dashboard
+const DashboardPage = lazyWithRetry(
+  () => import('@/pages/dashboard/dashboard-page').then((m) => ({ default: m.DashboardPage })) as any
 );
 const ProgressPage = lazyWithRetry(
   () => import('@/pages/progress-page').then((m) => ({ default: m.ProgressPage })) as any
@@ -221,8 +221,8 @@ export const createAppRouter = () =>
         {
           element: suspense(<AppLayout />),
           children: [
-            // NEW V2 Dashboard!
-            { index: true, element: suspense(<DashboardPageV2 />) },
+            // Classic Dashboard
+            { index: true, element: suspense(<DashboardPage />) },
             { path: 'progress', element: suspense(<ProgressPage />) },
             { path: 'recommendations', element: suspense(<RecommendationsPage />) },
             { path: 'meal-planner', element: suspense(<MealPlannerPage />) },

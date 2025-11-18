@@ -29,8 +29,8 @@ function lazyWithRetry<T extends React.ComponentType<any>>(loader: () => Promise
 
 const MarketingLayout = lazyWithRetry(() => import("./slices/marketing-layout").then(m => ({ default: m.MarketingLayout })) as any);
 const RequireAuthOutlet = lazyWithRetry(() => import("./require-auth").then(m => ({ default: m.RequireAuthOutlet })) as any);
-// Using new Dashboard V2
-const DashboardPage = lazyWithRetry(() => import("@/pages/dashboard/dashboard-page-v2").then(m => ({ default: m.default })) as any);
+// Using classic Dashboard page
+const DashboardPage = lazyWithRetry(() => import("@/pages/dashboard/dashboard-page").then(m => ({ default: m.DashboardPage })) as any);
 const LandingPage = lazyWithRetry(() => import("@/pages/landing-page").then(m => ({ default: m.LandingPage })) as any);
 const LoginPage = lazyWithRetry(() => import("@/pages/login-page").then(m => ({ default: m.LoginPage })) as any);
 const NotFoundPage = lazyWithRetry(() => import("@/pages/not-found-page").then(m => ({ default: m.NotFoundPage })) as any);
