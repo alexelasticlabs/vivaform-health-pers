@@ -1,4 +1,4 @@
-﻿import { Controller, Get, Query, UseGuards } from "@nestjs/common";
+﻿import { Controller, Get, Post, Body, Query, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
 
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -34,5 +34,23 @@ export class DashboardController {
     @Query('date') date?: string,
   ) {
     return this.dashboardV2Service.getDailyDashboard(user.userId, date);
+  }
+
+  @Post('activity')
+  @ApiOperation({ summary: 'Log user activity (steps/duration/calories)' })
+  logActivity(
+    @CurrentUser() user: CurrentUserPayload,
+    @Body()
+    payload: {
+      date?: string;
+      type?: string;
+      steps?: number;
+      durationMin?: number;
+      calories?: number;
+      note?: string;
+    },
+  ) {
+    // Store as audit log entry to avoid schema changes
+    return (this.dashboardService as any).logActivity(user.userId, payload);
   }
 }

@@ -3,7 +3,7 @@
  * Business logic for the new dashboard features
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../common/prisma/prisma.service';
 import type {
   DailyDashboardResponseDto,
@@ -19,6 +19,7 @@ import { AchievementCategory, AchievementRarity, GoalType } from './dto/dashboar
 
 @Injectable()
 export class DashboardV2Service {
+  private readonly logger = new Logger('DashboardV2Service');
   constructor(private readonly prisma: PrismaService) {}
 
   /**
@@ -64,12 +65,16 @@ export class DashboardV2Service {
       this.getMealTimeline(userId, targetDate),
     ]);
 
+    // Activity aggregation for today (from audit logs)
+    const { stepsToday } = await this.getActivityForDay(userId, targetDate);
+
     // Calculate metrics
     const metrics = this.calculateMetrics(
       user,
       nutritionEntries,
       waterEntries,
-      weightEntries
+      weightEntries,
+      stepsToday,
     );
 
     return {
@@ -98,11 +103,11 @@ export class DashboardV2Service {
       where: { userId },
     });
 
-    const targetCalories = profile?.targetDailyCalories || 2000;
+    const targetCalories = profile?.recommendedCalories ?? 2000;
     const targetWater = 2000; // 2L default
 
     // Fetch today's data
-    const [nutritionEntries, waterEntries, weightEntries] = await Promise.all([
+    const [nutritionEntries, waterEntries, weightEntries, activityAgg] = await Promise.all([
       this.prisma.nutritionEntry.findMany({
         where: {
           userId,
@@ -130,6 +135,7 @@ export class DashboardV2Service {
           },
         },
       }),
+      this.getActivityForDay(userId, date),
     ]);
 
     const totalCalories = nutritionEntries.reduce((sum, e) => sum + (e.calories || 0), 0);
@@ -139,7 +145,22 @@ export class DashboardV2Service {
     // Calculate scores (0-100)
     const caloriesPercent = Math.min(100, (totalCalories / targetCalories) * 100);
     const waterPercent = Math.min(100, (totalWater / targetWater) * 100);
-    const activityPercent = 70; // TODO: Implement with actual activity data
+    // Activity percent: based on steps vs target; fallback to profile.activityLevel mapping
+    const targetSteps = 10000;
+    let activityPercent = 0;
+    const steps = (activityAgg?.stepsToday ?? 0) as number;
+    if (steps > 0) {
+      activityPercent = Math.min(100, Math.round((steps / targetSteps) * 100));
+    } else {
+      // Fallback to profile activity level heuristic
+      const profile = await this.prisma.profile.findUnique({ where: { userId } });
+      const level = profile?.activityLevel;
+      activityPercent =
+        level === 'ATHLETE' ? 95 :
+        level === 'ACTIVE' ? 80 :
+        level === 'MODERATE' ? 60 :
+        level === 'LIGHT' ? 40 : 20;
+    }
     const consistencyPercent = Math.min(100, (mealsLogged / 3) * 100); // Expect 3 meals/day
 
     const nutrition = Math.round((caloriesPercent + consistencyPercent) / 2);
@@ -172,7 +193,8 @@ export class DashboardV2Service {
     user: any,
     nutritionEntries: any[],
     waterEntries: any[],
-    weightEntries: any[]
+    weightEntries: any[],
+    stepsToday: number,
   ): DailyDashboardResponseDto['metrics'] {
     const profile = user.profile;
 
@@ -181,13 +203,13 @@ export class DashboardV2Service {
     const totalCarbs = nutritionEntries.reduce((sum, e) => sum + (e.carbs || 0), 0);
     const totalFat = nutritionEntries.reduce((sum, e) => sum + (e.fat || 0), 0);
     const totalWater = waterEntries.reduce((sum, e) => sum + (e.amountMl || 0), 0);
-    const currentWeight = weightEntries[0]?.weightKg || profile?.currentWeight || 0;
+    const currentWeight = weightEntries[0]?.weightKg || profile?.currentWeightKg || 0;
 
-    const targetCalories = profile?.targetDailyCalories || 2000;
+    const targetCalories = profile?.recommendedCalories || 2000;
     const targetProtein = profile?.targetProtein || 120;
     const targetCarbs = profile?.targetCarbs || 200;
     const targetFat = profile?.targetFat || 60;
-    const targetWeight = profile?.targetWeight || currentWeight;
+    const targetWeight = profile?.targetWeightKg || currentWeight;
     const targetWater = 2000;
     const targetSteps = 10000;
 
@@ -225,7 +247,7 @@ export class DashboardV2Service {
       steps: {
         id: 'steps',
         label: 'Steps',
-        value: 0, // TODO: Implement with actual activity data
+        value: stepsToday,
         target: targetSteps,
         unit: 'steps',
         trend: 'stable',
@@ -264,84 +286,106 @@ export class DashboardV2Service {
    */
   private async generateDailyInsights(userId: string, date: Date): Promise<DailyInsightDto[]> {
     const insights: DailyInsightDto[] = [];
+    const startOfDay = new Date(date); startOfDay.setHours(0,0,0,0);
+    const endOfDay = new Date(date); endOfDay.setHours(23,59,59,999);
 
-    // TODO: Implement smart insight generation based on:
-    // - Progress trends
-    // - Achievement milestones
-    // - Nutritional patterns
-    // - Goal proximity
+    const profile = await this.prisma.profile.findUnique({ where: { userId } });
+    const targetCalories = profile?.recommendedCalories ?? 2000;
 
-    // Example insights for now
-    insights.push({
-      id: '1',
-      type: 'tip',
-      title: 'Try adding protein to breakfast',
-      description: 'Studies show protein-rich breakfasts help with satiety throughout the day.',
-      priority: 'medium',
-      icon: '💡',
-      actionable: {
-        label: 'See protein-rich recipes',
-        action: '/recipes?filter=protein',
-      },
-    });
+    const [nutritionEntries, waterEntries, { stepsToday }] = await Promise.all([
+      this.prisma.nutritionEntry.findMany({ where: { userId, date: { gte: startOfDay, lte: endOfDay } } }),
+      this.prisma.waterEntry.findMany({ where: { userId, date: { gte: startOfDay, lte: endOfDay } } }),
+      this.getActivityForDay(userId, date),
+    ]);
 
-    return insights;
+    const totalCalories = nutritionEntries.reduce((s, e) => s + (e.calories || 0), 0);
+    const totalWater = waterEntries.reduce((s, e) => s + (e.amountMl || 0), 0);
+
+    if (totalCalories < targetCalories * 0.6) {
+      insights.push({
+        id: 'calories_low', type: 'tip', priority: 'medium', icon: '🍽️',
+        title: 'Наберите минимум по калориям',
+        description: 'Сегодня вы далеко от целевой калорийности. Добавьте питательный приём пищи.',
+        actionable: { label: 'Добавить приём пищи', action: '/app/add-meal' },
+      });
+    }
+    if (totalWater < 1500) {
+      insights.push({
+        id: 'water_boost', type: 'tip', priority: 'low', icon: '💧',
+        title: 'Добавьте воды',
+        description: 'Стакан воды улучшит самочувствие и контроль аппетита.',
+      });
+    }
+    if (stepsToday >= 8000) {
+      insights.push({
+        id: 'activity_good', type: 'milestone', priority: 'high', icon: '🎉',
+        title: 'Отличная активность сегодня!',
+        description: 'Вы близки к цели по шагам. Так держать!',
+      });
+    }
+
+    return insights.slice(0, 3);
   }
 
   /**
    * Calculate user streaks
    */
   private async calculateStreaks(userId: string): Promise<StreakDto[]> {
-    // TODO: Implement actual streak calculation
-    // For now, return mock data
-    return [
-      {
-        current: 7,
-        longest: 12,
-        type: 'daily-logging',
-        lastUpdated: new Date(),
-      },
-    ];
+    // Compute logging streaks over the last 90 days
+    const days = 90;
+    const now = new Date(); now.setHours(0,0,0,0);
+    const from = new Date(now); from.setDate(now.getDate() - (days - 1));
+
+    const entries = await this.prisma.nutritionEntry.findMany({
+      where: { userId, date: { gte: from, lte: new Date(now.getTime() + 86400000 - 1) } },
+      select: { date: true },
+    });
+
+    const set = new Set(entries.map(e => e.date.toISOString().slice(0,10)));
+    // daily-logging streak
+    let current = 0, longest = 0; let cursor = new Date(now);
+    for (let i = 0; i < days; i++) {
+      const key = cursor.toISOString().slice(0,10);
+      if (set.has(key)) { current++; longest = Math.max(longest, current); }
+      else { current = 0; }
+      cursor.setDate(cursor.getDate() - 1);
+    }
+
+    return [{ current: Math.min(current, days), longest, type: 'daily-logging', lastUpdated: new Date() }];
   }
 
   /**
    * Get user achievements
    */
   private async getUserAchievements(userId: string): Promise<AchievementDto[]> {
-    // TODO: Implement achievement system with database
-    // For now, return sample achievements
-    return [
-      {
-        id: '1',
-        title: 'First Steps',
-        description: 'Log your first meal',
-        icon: '🌱',
-        progress: 100,
-        unlocked: true,
-        category: AchievementCategory.NUTRITION,
-        rarity: AchievementRarity.COMMON,
-      },
-      {
-        id: '2',
-        title: 'Week Warrior',
-        description: 'Log meals for 7 consecutive days',
-        icon: '🔥',
-        progress: 100,
-        unlocked: true,
-        category: AchievementCategory.CONSISTENCY,
-        rarity: AchievementRarity.RARE,
-      },
-      {
-        id: '3',
-        title: 'Hydration Hero',
-        description: 'Hit your water goal 30 days in a row',
-        icon: '💧',
-        progress: 10,
-        unlocked: false,
-        category: AchievementCategory.HYDRATION,
-        rarity: AchievementRarity.EPIC,
-      },
-    ];
+    // Derive simple achievements from existing data
+    const now = new Date(); now.setHours(0,0,0,0);
+    const from30 = new Date(now); from30.setDate(now.getDate() - 29);
+
+    const [anyMeal, waterEntries] = await Promise.all([
+      this.prisma.nutritionEntry.count({ where: { userId } }),
+      this.prisma.waterEntry.findMany({ where: { userId, date: { gte: from30, lte: new Date(now.getTime()+86400000-1) } } }),
+    ]);
+
+    const byDay = new Map<string, number>();
+    for (const w of waterEntries) {
+      const k = w.date.toISOString().slice(0,10);
+      byDay.set(k, (byDay.get(k) ?? 0) + (w.amountMl || 0));
+    }
+    const daysHit = Array.from(byDay.values()).filter(x => x >= 2000).length;
+
+    const achievements: AchievementDto[] = [];
+    achievements.push({
+      id: 'first_meal', title: 'First Meal Logged', description: 'Log your first meal', icon: '🌱',
+      progress: Math.min(100, anyMeal > 0 ? 100 : 0), unlocked: anyMeal > 0,
+      category: AchievementCategory.NUTRITION, rarity: AchievementRarity.COMMON,
+    });
+    achievements.push({
+      id: 'hydration_hero_30d', title: 'Hydration Hero', description: 'Hit water goal on 10 of last 30 days', icon: '💧',
+      progress: Math.min(100, Math.round((daysHit / 10) * 100)), unlocked: daysHit >= 10,
+      category: AchievementCategory.HYDRATION, rarity: daysHit >= 10 ? AchievementRarity.RARE : AchievementRarity.COMMON,
+    });
+    return achievements;
   }
 
   /**
@@ -356,9 +400,9 @@ export class DashboardV2Service {
       where: { userId },
     });
 
-    const goalType = (quizProfile?.primaryGoal as GoalType) || GoalType.LOSE_WEIGHT;
-    const targetWeight = profile?.targetWeight || 70;
-    const currentWeight = profile?.currentWeight || 75;
+    const goalType = ((quizProfile as any)?.primaryGoal as GoalType) || GoalType.LOSE_WEIGHT;
+    const targetWeight = profile?.targetWeightKg || 70;
+    const currentWeight = profile?.currentWeightKg || 75;
 
     return {
       primaryGoal: {
@@ -395,10 +439,46 @@ export class DashboardV2Service {
           lte: endOfDay,
         },
       },
+      orderBy: { date: 'asc' },
     });
+    const groups = new Map<string, typeof entries>();
+    for (const e of entries) {
+      const key = (e.mealType || 'Meal').toLowerCase();
+      if (!groups.has(key as any)) groups.set(key as any, [] as any);
+      (groups.get(key as any) as any[]).push(e);
+    }
+    const timeline: MealTimelineEntryDto[] = [];
+    let i = 0;
+    for (const [mealType, items] of groups.entries()) {
+      const calories = items.reduce((s, e) => s + (e.calories || 0), 0);
+      const time = items[0]?.date?.toISOString().split('T')[1]?.slice(0,5) || '08:00';
+      timeline.push({
+        id: `${mealType}-${i++}`,
+        type: ['breakfast','lunch','dinner','snack'].includes(mealType) ? (mealType as any) : 'snack',
+        time,
+        calories,
+        logged: true,
+        items: items.slice(0,3).map((x) => ({ name: x.food, calories: x.calories || 0 })),
+      });
+    }
+    return timeline;
+  }
 
-    // TODO: Group by meal type and create timeline
-    return [];
+  private async getActivityForDay(userId: string, date: Date): Promise<{ stepsToday: number; durationMin?: number; calories?: number }>{
+    const start = new Date(date); start.setHours(0,0,0,0);
+    const end = new Date(date); end.setHours(23,59,59,999);
+    const logs = await this.prisma.auditLog.findMany({
+      where: { userId, action: 'activity.logged', createdAt: { gte: start, lte: end } },
+      select: { metadata: true },
+    });
+    let steps = 0; let duration = 0; let calories = 0;
+    for (const l of logs) {
+      const m = (l.metadata ?? {}) as any;
+      if (typeof m.steps === 'number') steps += m.steps;
+      if (typeof m.durationMin === 'number') duration += m.durationMin;
+      if (typeof m.calories === 'number') calories += m.calories;
+    }
+    return { stepsToday: steps, durationMin: duration || undefined, calories: calories || undefined };
   }
 
   // Helper methods

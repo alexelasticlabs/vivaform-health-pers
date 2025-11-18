@@ -10,3 +10,4 @@ export * from "./weight";
 export * from "./quiz";
 export * from "./meal-plan";
 export * from "./password";
+export * from "./activity";

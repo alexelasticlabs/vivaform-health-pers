@@ -1,4 +1,4 @@
-﻿import { Injectable, Optional } from "@nestjs/common";
+﻿import { Injectable, Optional, Logger } from "@nestjs/common";
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import { NutritionService } from "../nutrition/nutrition.service";
@@ -98,5 +98,41 @@ export class DashboardService {
       recommendations,
       goals
     };
+  }
+
+  /**
+   * Log a user activity event as an audit log entry (avoids schema changes)
+   */
+  async logActivity(
+    userId: string,
+    payload: { date?: string; type?: string; steps?: number; durationMin?: number; calories?: number; note?: string },
+  ) {
+    if (!this.prisma) throw new Error('Persistence layer not available');
+    const logger = new Logger('DashboardService');
+    try {
+      const createdAt = payload.date ? new Date(payload.date) : new Date();
+      // Normalize to provided date, but preserve now-time if same day
+      const entry = await this.prisma.auditLog.create({
+        data: {
+          userId,
+          action: 'activity.logged',
+          entity: 'activity',
+          entityId: undefined,
+          metadata: {
+            type: payload.type ?? 'custom',
+            steps: typeof payload.steps === 'number' ? payload.steps : undefined,
+            durationMin: typeof payload.durationMin === 'number' ? payload.durationMin : undefined,
+            calories: typeof payload.calories === 'number' ? payload.calories : undefined,
+            note: payload.note,
+            date: (payload.date ?? createdAt.toISOString()).slice(0, 10),
+          },
+          createdAt,
+        },
+      });
+      return { id: entry.id, ok: true };
+    } catch (e) {
+      logger.error(`Failed to log activity: ${(e as Error)?.message}`);
+      throw e;
+    }
   }
 }

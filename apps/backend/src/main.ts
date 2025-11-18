@@ -81,9 +81,9 @@ async function seedAdminUser(app: any) {
     if (existing) {
       if (existing.role !== 'ADMIN') {
         await prisma.user.update({ where: { id: existing.id }, data: { role: 'ADMIN' } });
-        logger.log(`Существующий пользователь ${email} повышен до ADMIN`);
+        logger.log(`Существующий пользователь ${maskEmail(email)} повышен до ADMIN`);
       } else {
-        logger.log(`Администратор ${email} уже существует — пропускаем сид`);
+        logger.log(`Администратор ${maskEmail(email)} уже существует — пропускаем сид`);
       }
       return;
     }
@@ -97,11 +97,20 @@ async function seedAdminUser(app: any) {
         emailVerified: true
       }
     });
-    logger.log(`Создан аккаунт администратора email=${email}`);
+    logger.log(`Создан аккаунт администратора email=${maskEmail(email)}`);
   } catch (e) {
     const logger = new Logger('AdminSeed');
     logger.error(`Не удалось выполнить сид админа: ${(e as Error)?.message}`);
   }
+}
+
+function maskEmail(email: string): string {
+  const [user, domain] = email.split('@');
+  if (!domain) return '***';
+  const maskedUser = user.length <= 2 ? user[0] + '*' : user[0] + '*'.repeat(Math.min(user.length - 2, 6)) + user[user.length - 1];
+  const parts = domain.split('.');
+  const maskedDomain = parts[0].slice(0,1) + '***' + (parts[0].slice(-1) || '') + (parts.length>1?'.'+parts.slice(1).join('.'):'');
+  return `${maskedUser}@${maskedDomain}`;
 }
 
 async function bootstrap() {

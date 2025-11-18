@@ -16,7 +16,7 @@ import { QuickActions } from '@/components/dashboard-v2/quick-actions';
 import { InsightsCard } from '@/components/dashboard-v2/insights-card';
 import { StreakDisplay } from '@/components/dashboard-v2/streak-display';
 import { AchievementsGrid } from '@/components/dashboard-v2/achievement-card';
-import { QuickAddModal, AddNutritionFormWithAutocomplete, AddWeightForm } from '@/components/dashboard';
+import { QuickAddModal, AddNutritionFormWithAutocomplete, AddWeightForm, AddActivityForm } from '@/components/dashboard';
 import { Button } from '@/components/ui/button';
 import type { DailyDashboardResponse } from '@/types/dashboard.types';
 import { fetchDailyDashboardV2 } from '@/api/dashboard-v2';
@@ -78,6 +78,7 @@ export const DashboardPageV2: React.FC = () => {
   const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
   const [showMealModal, setShowMealModal] = useState(false);
   const [showWeightModal, setShowWeightModal] = useState(false);
+  const [showActivityModal, setShowActivityModal] = useState(false);
 
   // Fetch dashboard data
   const { data, isLoading, error } = useQuery({
@@ -113,9 +114,7 @@ export const DashboardPageV2: React.FC = () => {
   };
 
   const handleAddActivity = () => {
-    if (isDev) {
-      toast.info('Add activity: coming soon');
-    }
+    setShowActivityModal(true);
   };
 
   const handleInsightAction = (insight: any) => {
@@ -207,34 +206,12 @@ export const DashboardPageV2: React.FC = () => {
 
             {/* Quick Actions + Featured Streak */}
             <div className="space-y-6 lg:col-span-2">
-              {isDev ? (
-                <QuickActions
-                  onAddWater={handleAddWater}
-                  onAddMeal={handleAddMeal}
-                  onAddWeight={handleAddWeight}
-                  onAddActivity={handleAddActivity}
-                />
-              ) : (
-                <div className="space-y-3">
-                  <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-800 dark:bg-slate-900">
-                    <div className="mb-2 text-sm font-semibold text-slate-700 dark:text-slate-300">Quick actions</div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <Button variant="outline" onClick={() => setShowMealModal(true)}>Add Meal</Button>
-                      <Button variant="outline" onClick={() => setShowWeightModal(true)}>Add Weight</Button>
-                      <div>
-                        <div className="mb-2 text-xs font-medium text-slate-500">Water</div>
-                        <div className="grid grid-cols-4 gap-2">
-                          {[250, 500, 750, 1000].map((amt) => (
-                            <Button key={amt} variant="outline" size="sm" onClick={() => handleAddWater(amt)}>
-                              {amt}ml
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+              <QuickActions
+                onAddWater={handleAddWater}
+                onAddMeal={handleAddMeal}
+                onAddWeight={handleAddWeight}
+                onAddActivity={handleAddActivity}
+              />
 
               {data.streaks.length > 0 && (
                 <StreakDisplay streaks={data.streaks} featured />
@@ -344,6 +321,9 @@ export const DashboardPageV2: React.FC = () => {
       </QuickAddModal>
       <QuickAddModal isOpen={showWeightModal} onClose={() => setShowWeightModal(false)} title="Add Weight">
         <AddWeightForm date={selectedDate} />
+      </QuickAddModal>
+      <QuickAddModal isOpen={showActivityModal} onClose={() => setShowActivityModal(false)} title="Add Activity">
+        <AddActivityForm date={selectedDate} />
       </QuickAddModal>
     </div>
   );

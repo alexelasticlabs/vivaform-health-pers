@@ -3,6 +3,7 @@ export { KpiCard } from './kpi-card';
 export { AddNutritionFormWithAutocomplete } from './add-nutrition-form-enhanced';
 export { AddWeightForm } from './add-weight-form';
 export { AddWaterForm } from './add-water-form';
+export { AddActivityForm } from './add-activity-form';
 export { CaloriesWidget } from './calories-widget';
 export { MacrosWidget } from './macros-widget';
 export { WaterWidget } from './water-widget';
