@@ -3,13 +3,11 @@ import { motion } from 'framer-motion';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { captureQuizEmail } from '@/api/quiz';
-import { useQuizStore } from '@/store/quiz-store';
 
 interface ExitIntentModalProps {
   currentStep: number;
   totalSteps: number;
-  onSave?: (email: string) => void;
+  onSave?: (email: string) => Promise<void> | void;
   onClose: () => void;
 }
 
@@ -19,37 +17,29 @@ export function ExitIntentModal({ currentStep, totalSteps, onSave, onClose }: Ex
   const [email, setEmail] = useState('');
   const [saved, setSaved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const { clientId } = useQuizStore();
+  const [error, setError] = useState<string | null>(null);
 
   const progress = Math.round((currentStep / totalSteps) * 100);
 
   const handleSave = async () => {
-    if (email && email.includes('@')) {
-      setIsSaving(true);
-      try {
-        await captureQuizEmail({
-          email,
-          clientId,
-          step: currentStep,
-          type: 'exit'
-        });
-
-        if (onSave) {
-          onSave(email);
-        }
-        setSaved(true);
-        setTimeout(onClose, 2000);
-      } catch {
-        if (onSave) {
-          onSave(email);
-        }
-        setSaved(true);
-        setTimeout(onClose, 2000);
-      } finally {
-        setIsSaving(false);
+    const trimmed = email.trim().toLowerCase();
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(trimmed)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+    setIsSaving(true);
+    setError(null);
+    try {
+      if (onSave) {
+        await onSave(trimmed);
       }
-    } else {
-      onClose();
+      setSaved(true);
+      setTimeout(onClose, 2000);
+    } catch {
+      setError('Could not save your progress. Please try again.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -102,14 +92,24 @@ export function ExitIntentModal({ currentStep, totalSteps, onSave, onClose }: Ex
             </p>
           </div>
 
-          <Input
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !isSaving && handleSave()}
-            disabled={isSaving}
-          />
+          <div className="space-y-2">
+            <Input
+              type="email"
+              placeholder="your@email.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(null);
+              }}
+              onKeyDown={(e) => e.key === 'Enter' && !isSaving && handleSave()}
+              disabled={isSaving}
+            />
+            {error && (
+              <p className="text-sm font-medium text-rose-600">
+                {error}
+              </p>
+            )}
+          </div>
 
           <div className="flex gap-3">
             <Button variant="outline" onClick={onClose} className="flex-1" disabled={isSaving}>
@@ -124,4 +124,3 @@ export function ExitIntentModal({ currentStep, totalSteps, onSave, onClose }: Ex
     </div>
   );
 }
-

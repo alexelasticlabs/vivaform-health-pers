@@ -27,7 +27,7 @@ export const AddActivityForm = ({ date }: { date: string }) => {
     mutationFn: createActivityLog,
     onSuccess: async () => {
       toast.success("Activity logged");
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-v2", form.date?.slice(0,10)] });
+      await queryClient.invalidateQueries({ queryKey: ["dashboard", form.date?.slice(0,10)] });
     },
     onError: (error) => toast.error(extractErrorMessage(error))
   });

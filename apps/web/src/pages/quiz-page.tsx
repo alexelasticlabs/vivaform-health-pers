@@ -245,7 +245,7 @@ export function QuizPage() {
     const stepId = currentStepConfig?.id ?? String(currentStep);
     if (clientId) logQuizNextClicked(clientId, stepId);
     if (!canGoNext()) {
-      if (currentStepConfig?.id === 'basic_profile') {
+      if (currentStepConfig?.id === 'body_metrics') {
         toast.error('Please enter your age and basic body measurements to continue.');
         setValidationMessage('Please enter your age and basic body measurements (height and weight) so we can calculate your plan safely.');
       } else {
@@ -342,15 +342,16 @@ export function QuizPage() {
   const handleSaveExit = async (email: string) => {
     try {
       await captureQuizEmail({
-        email,
+        email: email.trim().toLowerCase(),
         clientId,
         step: currentStep,
         type: 'exit'
       });
       toast.success('Progress saved! Check your email.');
     } catch (error) {
-      console.error('Failed to save:', error);
-      toast.success('Progress saved locally!');
+      console.error('Failed to save quiz progress:', error);
+      toast.error('Could not save your progress. Please try again.');
+      throw error;
     }
   };
 

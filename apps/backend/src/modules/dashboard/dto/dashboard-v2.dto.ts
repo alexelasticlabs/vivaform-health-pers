@@ -31,10 +31,10 @@ export enum AchievementRarity {
 export class HealthScoreDto {
   @ApiProperty()
   @IsNumber()
-  overall: number;
+  overall!: number;
 
   @ApiProperty()
-  breakdown: {
+  breakdown!: {
     nutrition: number;
     hydration: number;
     activity: number;
@@ -43,21 +43,21 @@ export class HealthScoreDto {
 
   @ApiProperty({ enum: ['improving', 'stable', 'declining'] })
   @IsString()
-  trend: 'improving' | 'stable' | 'declining';
+  trend!: 'improving' | 'stable' | 'declining';
 }
 
 export class DashboardMetricDto {
   @ApiProperty()
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty()
   @IsString()
-  label: string;
+  label!: string;
 
   @ApiProperty()
   @IsNumber()
-  value: number;
+  value!: number;
 
   @ApiPropertyOptional()
   @IsNumber()
@@ -66,7 +66,7 @@ export class DashboardMetricDto {
 
   @ApiProperty()
   @IsString()
-  unit: string;
+  unit!: string;
 
   @ApiPropertyOptional()
   @IsString()
@@ -92,19 +92,19 @@ export class DashboardMetricDto {
 export class DailyInsightDto {
   @ApiProperty()
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty({ enum: ['tip', 'achievement', 'warning', 'milestone'] })
   @IsString()
-  type: 'tip' | 'achievement' | 'warning' | 'milestone';
+  type!: 'tip' | 'achievement' | 'warning' | 'milestone';
 
   @ApiProperty()
   @IsString()
-  title: string;
+  title!: string;
 
   @ApiProperty()
   @IsString()
-  description: string;
+  description!: string;
 
   @ApiPropertyOptional()
   @IsString()
@@ -119,40 +119,40 @@ export class DailyInsightDto {
 
   @ApiProperty({ enum: ['high', 'medium', 'low'] })
   @IsString()
-  priority: 'high' | 'medium' | 'low';
+  priority!: 'high' | 'medium' | 'low';
 }
 
 export class AchievementDto {
   @ApiProperty()
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty()
   @IsString()
-  title: string;
+  title!: string;
 
   @ApiProperty()
   @IsString()
-  description: string;
+  description!: string;
 
   @ApiProperty()
   @IsString()
-  icon: string;
+  icon!: string;
 
   @ApiProperty()
   @IsNumber()
-  progress: number;
+  progress!: number;
 
   @ApiProperty()
   @IsBoolean()
-  unlocked: boolean;
+  unlocked!: boolean;
 
   @ApiPropertyOptional()
   unlockedAt?: Date;
 
   @ApiProperty({ enum: AchievementCategory })
   @IsEnum(AchievementCategory)
-  category: AchievementCategory;
+  category!: AchievementCategory;
 
   @ApiPropertyOptional()
   reward?: {
@@ -162,29 +162,29 @@ export class AchievementDto {
 
   @ApiProperty({ enum: AchievementRarity })
   @IsEnum(AchievementRarity)
-  rarity: AchievementRarity;
+  rarity!: AchievementRarity;
 }
 
 export class StreakDto {
   @ApiProperty()
   @IsNumber()
-  current: number;
+  current!: number;
 
   @ApiProperty()
   @IsNumber()
-  longest: number;
+  longest!: number;
 
   @ApiProperty({ enum: ['daily-logging', 'water-goal', 'calorie-goal', 'activity-goal'] })
   @IsString()
-  type: 'daily-logging' | 'water-goal' | 'calorie-goal' | 'activity-goal';
+  type!: 'daily-logging' | 'water-goal' | 'calorie-goal' | 'activity-goal';
 
   @ApiProperty()
-  lastUpdated: Date;
+  lastUpdated!: Date;
 }
 
 export class GoalProgressDto {
   @ApiProperty()
-  primaryGoal: {
+  primaryGoal!: {
     type: GoalType;
     target: number;
     current: number;
@@ -194,7 +194,7 @@ export class GoalProgressDto {
   };
 
   @ApiProperty()
-  weeklyProgress: {
+  weeklyProgress!: {
     caloriesOnTrack: number;
     waterGoalsHit: number;
     mealsLogged: number;
@@ -205,23 +205,23 @@ export class GoalProgressDto {
 export class MealTimelineEntryDto {
   @ApiProperty()
   @IsString()
-  id: string;
+  id!: string;
 
   @ApiProperty({ enum: ['breakfast', 'lunch', 'dinner', 'snack'] })
   @IsString()
-  type: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  type!: 'breakfast' | 'lunch' | 'dinner' | 'snack';
 
   @ApiProperty()
   @IsString()
-  time: string;
+  time!: string;
 
   @ApiProperty()
   @IsNumber()
-  calories: number;
+  calories!: number;
 
   @ApiProperty()
   @IsBoolean()
-  logged: boolean;
+  logged!: boolean;
 
   @ApiPropertyOptional()
   items?: {
@@ -233,13 +233,13 @@ export class MealTimelineEntryDto {
 export class DailyDashboardResponseDto {
   @ApiProperty()
   @IsString()
-  date: string;
+  date!: string;
 
   @ApiProperty()
-  healthScore: HealthScoreDto;
+  healthScore!: HealthScoreDto;
 
   @ApiProperty()
-  metrics: {
+  metrics!: {
     calories: DashboardMetricDto;
     water: DashboardMetricDto;
     weight: DashboardMetricDto;
@@ -250,17 +250,17 @@ export class DailyDashboardResponseDto {
   };
 
   @ApiProperty({ type: [MealTimelineEntryDto] })
-  mealTimeline: MealTimelineEntryDto[];
+  mealTimeline!: MealTimelineEntryDto[];
 
   @ApiProperty({ type: [DailyInsightDto] })
-  insights: DailyInsightDto[];
+  insights!: DailyInsightDto[];
 
   @ApiProperty({ type: [StreakDto] })
-  streaks: StreakDto[];
+  streaks!: StreakDto[];
 
   @ApiProperty({ type: [AchievementDto] })
-  achievements: AchievementDto[];
+  achievements!: AchievementDto[];
 
   @ApiProperty()
-  goalProgress: GoalProgressDto;
+  goalProgress!: GoalProgressDto;
 }

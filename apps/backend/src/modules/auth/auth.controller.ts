@@ -36,7 +36,7 @@ export class AuthController {
     return `${norm}/auth/refresh`.replace(/\/+/g, '/');
   }
 
-  @Throttle(AUTH_RATE_LIMITS.register.limit, AUTH_RATE_LIMITS.register.ttl)
+  @Throttle({ default: { limit: AUTH_RATE_LIMITS.register.limit, ttl: AUTH_RATE_LIMITS.register.ttl } })
   @Post("register")
   @ApiCreatedResponse({ description: "Регистрация пользователя и выдача токенов" })
   async register(@Body() dto: RegisterDto, @Res({ passthrough: true }) res: Response) {
@@ -54,7 +54,7 @@ export class AuthController {
     };
   }
 
-  @Throttle(AUTH_RATE_LIMITS.login.limit, AUTH_RATE_LIMITS.login.ttl)
+  @Throttle({ default: { limit: AUTH_RATE_LIMITS.login.limit, ttl: AUTH_RATE_LIMITS.login.ttl } })
   @Post("login")
   @ApiOkResponse({ description: "Авторизация пользователя" })
   login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
@@ -101,28 +101,28 @@ export class AuthController {
     return (this.authService as any).getProfile(user.userId);
   }
 
-  @Throttle(AUTH_RATE_LIMITS.forgotPassword.limit, AUTH_RATE_LIMITS.forgotPassword.ttl)
+  @Throttle({ default: { limit: AUTH_RATE_LIMITS.forgotPassword.limit, ttl: AUTH_RATE_LIMITS.forgotPassword.ttl } })
   @Post("forgot-password")
   @ApiOkResponse({ description: "Запрос на сброс пароля" })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
     return (this.authService as any).forgotPassword(dto);
   }
 
-  @Throttle(AUTH_RATE_LIMITS.resetPassword.limit, AUTH_RATE_LIMITS.resetPassword.ttl)
+  @Throttle({ default: { limit: AUTH_RATE_LIMITS.resetPassword.limit, ttl: AUTH_RATE_LIMITS.resetPassword.ttl } })
   @Post("reset-password")
   @ApiOkResponse({ description: "Сброс пароля по токену" })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return (this.authService as any).resetPassword(dto);
   }
 
-  @Throttle(AUTH_RATE_LIMITS.verifyEmail.limit, AUTH_RATE_LIMITS.verifyEmail.ttl)
+  @Throttle({ default: { limit: AUTH_RATE_LIMITS.verifyEmail.limit, ttl: AUTH_RATE_LIMITS.verifyEmail.ttl } })
   @Get("verify-email")
   @ApiOkResponse({ description: "Верификация email" })
   verifyEmail(@Query("token") token: string) {
     return (this.authService as any).verifyEmail(token);
   }
 
-  @Throttle(AUTH_RATE_LIMITS.requestTempPassword.limit, AUTH_RATE_LIMITS.requestTempPassword.ttl)
+  @Throttle({ default: { limit: AUTH_RATE_LIMITS.requestTempPassword.limit, ttl: AUTH_RATE_LIMITS.requestTempPassword.ttl } })
   @Post("request-temp-password")
   @ApiOkResponse({ description: "Запрос временного пароля" })
   requestTempPassword(@Body() dto: RequestTempPasswordDto) {
@@ -147,7 +147,7 @@ export class AuthController {
     return (this.authService as any).testEmail(dto.email);
   }
 
-  @Throttle(AUTH_RATE_LIMITS.resendVerification.limit, AUTH_RATE_LIMITS.resendVerification.ttl)
+  @Throttle({ default: { limit: AUTH_RATE_LIMITS.resendVerification.limit, ttl: AUTH_RATE_LIMITS.resendVerification.ttl } })
   @Post("resend-verification")
   @ApiOkResponse({ description: "Повторная отправка письма для верификации email" })
   resendVerification(@Body() dto: ResendVerificationDto) {

@@ -13,7 +13,7 @@ export class QuizLeadService {
     const normalizedClientId = (payload.clientId ?? '').trim();
 
     try {
-      const lead = await this.prisma.quizLead.upsert({
+      const lead = await (this.prisma as any).quizLead.upsert({
         where: {
           email_clientId: {
             email: normalizedEmail,
