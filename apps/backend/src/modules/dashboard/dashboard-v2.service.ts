@@ -19,7 +19,10 @@ import { AchievementCategory, AchievementRarity, GoalType } from './dto/dashboar
 @Injectable()
 export class DashboardV2Service {
   private readonly logger = new Logger('DashboardV2Service');
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    // Diagnostic log to verify DI works at runtime
+    this.logger.log(`PrismaService injected: ${this.prisma ? 'OK' : 'MISSING'}`);
+  }
 
   /**
    * Get comprehensive dashboard data for a user
