@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { Search, Heart, Clock, Users, ChefHat, Star, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { Recipe, RecipeFilters, RecipeCategory, DietaryTag } from '@/types/recipes.types';
+import type { Recipe, RecipeFilters, RecipeCategory } from '@/types/recipes.types';
 
 export const RecipesPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
