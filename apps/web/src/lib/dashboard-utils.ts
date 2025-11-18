@@ -5,7 +5,7 @@
 
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import type { HealthScore, DashboardMetric, Achievement, StreakData } from '@/types/dashboard.types';
+import type { HealthScore, Achievement } from '@/types/dashboard.types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

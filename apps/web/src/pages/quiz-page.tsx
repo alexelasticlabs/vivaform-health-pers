@@ -5,7 +5,7 @@ import { Sparkles, Lightbulb } from 'lucide-react';
 import { useQuizStore, useQuizAutosave, calculateBMI } from '@/store/quiz-store';
 import { submitQuiz, saveQuizPreview, getQuizPreview, captureQuizEmail } from '@/api';
 import { useUserStore } from '@/store/user-store';
-import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked, logQuizCtaClicked } from '@/lib/analytics';
+import { logQuizStart, logQuizSectionCompleted, logQuizSubmitSuccess, logQuizSubmitError, logQuizStepViewed, logQuizPreviewSaved, logQuizFinalStepViewed, logQuizNextClicked, logQuizBackClicked } from '@/lib/analytics';
 import { QuizStepRenderer, ExitIntentModal, BadgeUnlock, QuizProgress } from '@/components/quiz';
 import { getVisibleQuizSteps, calcProgressPercent } from '@/features/quiz/quiz-config';
 import type { QUIZ_BADGES} from '@/components/quiz/steps/enhanced-quiz-constants';
@@ -333,12 +333,7 @@ export function QuizPage() {
     }
   };
 
-  const handleStartOver = () => {
-    if (window.confirm('Are you sure you want to start over? All your progress will be lost.')) {
-      useQuizStore.getState().reset();
-      toast.info('Quiz reset. Starting fresh!');
-    }
-  };
+  // Removed unused handleStartOver to satisfy lint
 
   const handleSaveExit = async (email: string) => {
     try {

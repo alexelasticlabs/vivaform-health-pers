@@ -8,7 +8,6 @@ export function FoodPreferencesDeepStep() {
   const prefs = (answers.foodPreferences as any) ?? {};
 
   const updateList = (key: keyof typeof prefs, value: string) => {
-    const list = (prefs as any)[key] as string[] | undefined;
     const arr = value ? value.split(',').map((s) => s.trim()).filter(Boolean) : undefined;
     updateAnswers({ foodPreferences: { ...prefs, [key]: arr } as any });
   };

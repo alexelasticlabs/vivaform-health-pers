@@ -11,7 +11,6 @@ import { login } from '@/api/auth';
 import { useUserStore } from '@/store/user-store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/dashboard-utils';
 import { toast } from 'sonner';
 
 export const AdminLoginPage: React.FC = () => {

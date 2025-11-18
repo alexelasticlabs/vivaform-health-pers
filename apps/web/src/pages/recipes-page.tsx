@@ -4,8 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Filter, Heart, Clock, Users, ChefHat, Star, Flame } from 'lucide-react';
-import { cn } from '@/lib/dashboard-utils';
+import { Search, Heart, Clock, Users, ChefHat, Star, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Recipe, RecipeFilters, RecipeCategory, DietaryTag } from '@/types/recipes.types';
@@ -153,15 +152,7 @@ export const RecipesPage: React.FC = () => {
     { value: 'salad', label: 'Salads', icon: '🥗' },
   ];
 
-  const dietaryTags: { value: DietaryTag; label: string; color: string }[] = [
-    { value: 'vegetarian', label: 'Vegetarian', color: 'bg-green-100 text-green-700' },
-    { value: 'vegan', label: 'Vegan', color: 'bg-emerald-100 text-emerald-700' },
-    { value: 'gluten-free', label: 'Gluten-Free', color: 'bg-amber-100 text-amber-700' },
-    { value: 'dairy-free', label: 'Dairy-Free', color: 'bg-blue-100 text-blue-700' },
-    { value: 'keto', label: 'Keto', color: 'bg-purple-100 text-purple-700' },
-    { value: 'low-carb', label: 'Low-Carb', color: 'bg-pink-100 text-pink-700' },
-    { value: 'high-protein', label: 'High-Protein', color: 'bg-orange-100 text-orange-700' },
-  ];
+  // Removed unused dietaryTags constant to satisfy lint
 
   const filteredRecipes = recipes.filter((recipe) => {
     if (filters.category && recipe.category !== filters.category) return false;

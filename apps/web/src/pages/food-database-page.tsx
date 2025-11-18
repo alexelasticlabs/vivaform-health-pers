@@ -4,8 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { Search, Filter, Star, Verified, Plus, BarChart3 } from 'lucide-react';
-import { cn } from '@/lib/dashboard-utils';
+import { Search, Star, Verified, Plus, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
