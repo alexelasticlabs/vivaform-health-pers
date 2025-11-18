@@ -75,3 +75,36 @@ export class ImpersonateUserDto {
   reason?: string;
 }
 
+export class UpdateTicketDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  status?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  priority?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  assignedTo?: string;
+}
+
+export class ReplyTicketDto {
+  @ApiProperty()
+  @IsString()
+  body!: string;
+}
+
+export class UpdateFoodItemDto {
+  @ApiProperty()
+  @IsBoolean()
+  verified!: boolean;
+}
+
+export class PatchSettingsDto {
+  [key: string]: unknown;
+}
+
